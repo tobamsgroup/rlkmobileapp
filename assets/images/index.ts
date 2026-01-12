@@ -1,0 +1,28 @@
+const Onboarding1 = require("./onboarding-1.png");
+const Onboarding2 = require("./onboarding-2.png");
+const Onboarding3 = require("./onboarding-3.png");
+const AuthStep = require("./auth-step.png");
+const AuthSucess = require("./auth-success.png");
+const ProfileSelectKid = require("./profile-select-kid.png");
+const ProfileSelectAdult = require("./profile-select-adult.png");
+const Login = require("./login-inage.png");
+const Chatbox = require("./Chatbox.png");
+const AI = require("./AI.png");
+const KidSelectionOverlay = require("./KidSelectionOverlay.png");
+const HalfCircle = require("./HalfCircle.png");
+
+export const IMAGES = {
+  Onboarding1,
+  Onboarding2,
+  Onboarding3,
+  AuthStep,
+  AuthSucess,
+  ProfileSelectAdult,
+  ProfileSelectKid,
+  Login,
+
+  Chatbox,
+  AI,
+  KidSelectionOverlay,
+  HalfCircle
+};

@@ -1,0 +1,83 @@
+import { useFonts } from "expo-font";
+import { Stack } from "expo-router";
+import * as SplashScreen from "expo-splash-screen";
+import { StatusBar } from "expo-status-bar";
+import "react-native-reanimated";
+import "./global.css";
+import { useAppDispatch, useAppSelector } from "@/hooks/redux";
+import { getData } from "@/lib/storage";
+import { login, logout } from "@/redux/authSlice";
+import store from "@/redux/store";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { useEffect } from "react";
+import Toast from "react-native-toast-message";
+import { Provider } from "react-redux";
+
+SplashScreen.preventAutoHideAsync();
+const queryClient = new QueryClient();
+
+function AppContent() {
+  const [loaded, error] = useFonts({
+    "Sans-Black": require("../assets/fonts/WorkSans-Black.ttf"),
+    "Sans-Bold": require("../assets/fonts/WorkSans-Bold.ttf"),
+    "Sans-Medium": require("../assets/fonts/WorkSans-Medium.ttf"),
+    "Sans-Regular": require("../assets/fonts/WorkSans-Regular.ttf"),
+    "Sans-SemiBold": require("../assets/fonts/WorkSans-SemiBold.ttf"),
+  });
+
+  const isLoggedIn = useAppSelector((state) => state.auth.isLoggedIn);
+  const dispatch = useAppDispatch();
+
+  useEffect(() => {
+    const restoreSession = async () => {
+      const user = await getData("user");
+      if (user) {
+        dispatch(login(user));
+      } else {
+        dispatch(logout());
+      }
+    };
+    restoreSession();
+  }, [dispatch]);
+
+  useEffect(() => {
+    if (loaded || error) {
+      SplashScreen.hideAsync();
+    }
+  }, [loaded, error]);
+
+  if (!loaded && !error) {
+    return null;
+  }
+
+  return (
+    <>
+      <Stack>
+        <Stack.Protected guard={!isLoggedIn}>
+          <Stack.Screen name="onboarding" options={{ headerShown: false }} />
+          <Stack.Screen name="auth" options={{ headerShown: false }} />
+        </Stack.Protected>
+        <Stack.Protected guard={isLoggedIn}>
+          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+          <Stack.Screen name="kid" options={{ headerShown: false }} />
+        </Stack.Protected>
+        <Stack.Screen
+          name="modal"
+          options={{ presentation: "modal", title: "Modal" }}
+        />
+      </Stack>
+      <StatusBar style="auto" />
+      <Toast position="bottom" bottomOffset={50} topOffset={80} />
+    </>
+  );
+}
+
+export default function RootLayout() {
+  return (
+    <QueryClientProvider client={queryClient}>
+      <Provider store={store}>
+        <AppContent />
+      </Provider>
+    </QueryClientProvider>
+  );
+}

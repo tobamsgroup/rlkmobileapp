@@ -1,0 +1,22 @@
+import { SvgXml, XmlProps } from "react-native-svg";
+
+export default (props: Omit<XmlProps, "xml">) => {
+  const xml = `<svg
+      width="24"
+      height="24"
+      viewBox="0 0 24 24"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <path
+        d="M21 9C18.6 11.667 15.6 13 12 13C8.4 13 5.4 11.667 3 9M3 15L5.5 11.2M21 14.976L18.508 11.2M9 17L9.5 13M15 17L14.5 13"
+        stroke= "#221D23"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+`;
+  let prop = { ...props, xml: xml };
+  return <SvgXml {...prop} />;
+};
