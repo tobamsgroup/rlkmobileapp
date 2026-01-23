@@ -21,6 +21,7 @@ export type InputProps<T extends FieldValues> = {
   wrapperClassName?: string;
   containerClass?: string;
   textareaClass?: string;
+  placeholderColor?:string
 };
 
 const Input = <T extends FieldValues>({
@@ -97,10 +98,12 @@ export const SimpleInput = <T extends FieldValues>({
   textareaClass,
   wrapperClassName,
   disabled,
+  placeholderColor
 }: InputProps<T> & {
   value?: any;
   handleChange?: (text: string) => void;
   onBlur?: () => void;
+  
 }) => {
   const [showPassword, setShowPassword] = useState(false);
   const isPassword = type === "password";
@@ -129,7 +132,7 @@ export const SimpleInput = <T extends FieldValues>({
         />
       ) : (
         <View
-        style={{paddingVertical:scaleHeight(14)}}
+        style={{height:scaleHeight(48)}}
           className={`w-full bg-transparent border border-[#D3D2D3] rounded-full flex flex-row items-center justify-between px-6 relative ${containerClass}`}
         >
           <View className="flex-row items-center gap-2 flex-1">
@@ -138,6 +141,7 @@ export const SimpleInput = <T extends FieldValues>({
             <TextInput
               className={`flex-1 bg-transparent text-[16px] text-mainText mr-2 ${className}`}
               placeholder={placeholder}
+              placeholderTextColor={placeholderColor}
               value={value ?? ""}
               onBlur={onBlur}
               onChangeText={handleChange}

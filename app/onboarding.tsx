@@ -14,7 +14,6 @@ import {
   Text,
   View,
 } from "react-native";
-import Toast from "react-native-toast-message";
 import { twMerge } from "tailwind-merge";
 
 const INTERVAL = 6000;
@@ -58,9 +57,9 @@ const Onboarding = () => {
 
   useEffect(() => {
     if (!data?.length) return;
-    if(isOldUser) {
-      setIndex(0)
-      return
+    if (isOldUser) {
+      setIndex(0);
+      return;
     }
 
     const timer = setInterval(() => {
@@ -90,13 +89,13 @@ const Onboarding = () => {
     loadFirstTimer();
   }, []);
 
-
   return (
     <View
-      style={{
-        paddingTop: Constants.statusBarHeight,
-        backgroundColor: data[index].bgcolor,
-      }}
+      style={
+        {
+          // backgroundColor: data[index].bgcolor,
+        }
+      }
       className="flex-1 "
     >
       {!isOldUser && (
@@ -128,7 +127,10 @@ const Onboarding = () => {
       {isOldUser && (
         <CarouselItem data={data[0]} index={1} isFlatlist={false} />
       )}
-      <View className="bg-white px-6">
+      <View
+        style={{ paddingBottom: Constants.statusBarHeight }}
+        className="bg-white px-6 "
+      >
         <View className="mb-10">
           <Button
             onPress={() => {
@@ -137,14 +139,14 @@ const Onboarding = () => {
             className="mb-5"
             text="GET STARTED"
           />
-          <Text className="text-center text-[16px] font-sansMedium text-[#6C686C]">
+          <Text
+            onPress={() => {
+              (router.navigate("/auth/ProfileSelection"), revokeFirstTimer());
+            }}
+            className="text-center text-[16px] font-sansMedium text-[#6C686C]"
+          >
             Already have an account?{" "}
-            <Text
-              onPress={() => {
-                (router.navigate("/auth/ProfileSelection"), revokeFirstTimer());
-              }}
-              className="text-primary font-sansSemiBold text-[16px]"
-            >
+            <Text className="text-primary font-sansSemiBold text-[16px]">
               LOG IN
             </Text>
           </Text>
@@ -165,7 +167,11 @@ const CarouselItem = ({
 }) => {
   return (
     <View
-      style={{ width: Dimensions.get("window").width }}
+      style={{
+        width: Dimensions.get("window").width,
+        backgroundColor: data.bgcolor,
+        paddingTop: Constants.statusBarHeight,
+      }}
       className="flex-1 relative overflow-hidden"
     >
       <View

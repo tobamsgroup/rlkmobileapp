@@ -10,6 +10,14 @@ const Chatbox = require("./Chatbox.png");
 const AI = require("./AI.png");
 const KidSelectionOverlay = require("./KidSelectionOverlay.png");
 const HalfCircle = require("./HalfCircle.png");
+const KidProfilePlaceholder = require("./KidProfilePlaceholder.png");
+const NoNotification = require("./NoNotification.png")
+const BadgeTrophy = require("./BadgeTrophy.png")
+const GreenOverlay = require("./greenOverlay.png")
+const AILeft = require("./AILeft.png")
+const BookOpened = require("./BookOpened.png")
+const BookClosed = require("./BookClosed.png")
+const ChatboxLeft = require("./ChatboxLeft.png")
 
 export const IMAGES = {
   Onboarding1,
@@ -24,5 +32,13 @@ export const IMAGES = {
   Chatbox,
   AI,
   KidSelectionOverlay,
-  HalfCircle
+  HalfCircle,
+  KidProfilePlaceholder,
+  NoNotification,
+  BadgeTrophy,
+  GreenOverlay,
+  AILeft,
+  BookOpened,
+  BookClosed,
+  ChatboxLeft
 };

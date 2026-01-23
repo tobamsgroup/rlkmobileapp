@@ -7,29 +7,31 @@ import {
   Platform,
   View,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { Edges, SafeAreaView } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
 
 type ContainerProps = {
   children: ReactNode;
   scrollable?: boolean;
   backgroundColor?: string;
+  edges?: Edges
 };
 
 const Container = ({
   children,
   scrollable = false,
-  backgroundColor = "#FFFFFF",
+  backgroundColor = "#DBEFDC",
+  edges
 }: ContainerProps) => {
   const Content = scrollable ? ScrollView : View;
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor }}>
+    <SafeAreaView edges={edges} style={{ flex: 1, backgroundColor }}>
       <StatusBar style="dark" />
 
       <KeyboardAvoidingView
         style={{ flex: 1 }}
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
       >
         <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
           <Content

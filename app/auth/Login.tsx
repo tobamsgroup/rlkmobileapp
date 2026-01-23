@@ -78,8 +78,8 @@ const Login = () => {
       showToast("success", "Login Successful!");
       await storeData("user", res?.data?.data);
       dispatch(login(res?.data?.data));
-      if( (profile === "kid")){
-        router.navigate('/kid/AvatarSelection')
+      if (profile === "kid") {
+        router.navigate("/kid/AvatarSelection");
       }
     } catch (error: any) {
       if (error?.response?.data?.statusCode === 401) {
@@ -109,10 +109,12 @@ const Login = () => {
           />
         </View>
         <Text className="text-primary text-[24px] font-sansSemiBold text-center">
-          Welcome Back!
+          {profile === "kid" ? "Hi There! Ready to Learn?" : "Welcome Back!"}
         </Text>
         <Text className="text-center text-[16px] text-[#474348] font-sans leading-[1.5] mt-2 mb-8">
-          Log in to manage a child’s learning journey.
+          {profile === "kid"
+            ? "Enter your details below to begin your adventure."
+            : "  Log in to manage a child’s learning journey."}
         </Text>
         {incorrectError && (
           <View className="flex-row gap-3 p-3 bg-[#DE21211A] rounded-[8px] mb-8">

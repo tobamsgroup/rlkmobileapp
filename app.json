@@ -14,11 +14,16 @@
     },
     "android": {
       "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE"
+        "backgroundColor":  "#DBEFDC"
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
-      "package": "com.tobamsgroup.rlkmobileapp"
+      "package": "com.tobamsgroup.rlkmobileapp",
+      "splash": {
+        "image": "./assets/images/splash.png",
+        "resizeMode": "contain",
+        "backgroundColor": "#000000"
+      }
     },
     "web": {
       "output": "static",
@@ -47,6 +52,13 @@
         "./assets/fonts/WorkSans-Regular.ttf",
         "./assets/fonts/WorkSans-SemiBold.ttf"
       ]
-    }
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "88f97a7c-0af1-4506-8677-05d74df5ecb8"
+      }
+    },
+    "owner": "tobams_group"
   }
 }

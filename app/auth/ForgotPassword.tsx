@@ -118,7 +118,9 @@ const ForgotPassword = () => {
       showToast("success", "OTP verified successfully");
       setStep(2);
     } catch (error: any) {
-      console.error(error);
+      console.log(error?.response);
+
+     
       showToast(
         "error",
         error?.response?.data?.message ||
@@ -333,7 +335,7 @@ const ForgotPassword = () => {
             </Text>
 
             <Button
-              onPress={() => router.navigate("/auth/Login")}
+              onPress={() => router.navigate("/auth/Login?profile=adult")}
               className="my-8 w-full"
               text="GO TO LOGIN"
             />

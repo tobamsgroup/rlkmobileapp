@@ -1,0 +1,12 @@
+import { SvgXml, XmlProps } from "react-native-svg";
+
+export default (props: Omit<XmlProps, "xml">) => {
+  const fillColor = props?.fill || "#1671D9"
+  const xml = `<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path d="M8 0L10.1607 5.83927L16 8L10.1607 10.1607L8 16L5.83927 10.1607L0 8L5.83927 5.83927L8 0Z" fill=${String(fillColor)}/>
+</svg>
+
+`;
+  let prop = { ...props, xml: xml };
+  return <SvgXml {...prop} />;
+};

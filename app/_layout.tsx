@@ -52,7 +52,7 @@ function AppContent() {
 
   return (
     <>
-      <Stack>
+      <Stack screenOptions={{headerShown:false}}>
         <Stack.Protected guard={!isLoggedIn}>
           <Stack.Screen name="onboarding" options={{ headerShown: false }} />
           <Stack.Screen name="auth" options={{ headerShown: false }} />
@@ -60,14 +60,15 @@ function AppContent() {
         <Stack.Protected guard={isLoggedIn}>
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
           <Stack.Screen name="kid" options={{ headerShown: false }} />
+          <Stack.Screen options={{ headerShown: false }} />
         </Stack.Protected>
         <Stack.Screen
           name="modal"
           options={{ presentation: "modal", title: "Modal" }}
         />
       </Stack>
-      <StatusBar style="auto" />
-      <Toast position="bottom" bottomOffset={50} topOffset={80} />
+      <StatusBar style="dark" />
+      <Toast position="top" bottomOffset={50} topOffset={80} />
     </>
   );
 }

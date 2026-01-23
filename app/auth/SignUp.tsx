@@ -116,8 +116,12 @@ const SignUp = () => {
       await verifyOtp(payload);
       showToast("success", "Account Created Successfully");
       setStep(2);
-    } catch (error) {
-      showToast("error", "An error occurred while verifying OTP");
+    } catch (error: any) {
+      showToast(
+        "error",
+        error?.response?.data?.message ||
+          "An error occurred while verifying OTP"
+      );
     }
     setLoading(false);
   };
@@ -166,7 +170,7 @@ const SignUp = () => {
             <Text className="text-center text-[16px] font-sansMedium text-[#6C686C]">
               Already have an account?{" "}
               <Text
-                onPress={() => router.navigate("/auth/Login")}
+                onPress={() => router.navigate("/auth/ProfileSelection")}
                 className="text-primary font-sansSemiBold text-[16px]"
               >
                 LOG IN
@@ -194,7 +198,7 @@ const SignUp = () => {
                 }
                 className="text-[#004D99] underline"
               >
-                Privscy Policy
+                Privacy Policy
               </Text>
             </Text>
           </>
@@ -254,7 +258,7 @@ const SignUp = () => {
                   />
                 </View>
                 <Button
-                  onPress={() => router.navigate("/auth/Login")}
+                  onPress={() => router.navigate("/auth/Login?profile=adult")}
                   className="my-8 w-full"
                   text="LOG IN"
                 />
