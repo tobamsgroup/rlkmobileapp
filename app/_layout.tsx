@@ -1,20 +1,27 @@
-import { useFonts } from "expo-font";
-import { Stack } from "expo-router";
-import * as SplashScreen from "expo-splash-screen";
-import { StatusBar } from "expo-status-bar";
-import "react-native-reanimated";
-import "./global.css";
+import ToastAlert from "@/components/ToastAlert";
+import { SoundProvider } from "@/context/SoundContext";
 import { useAppDispatch, useAppSelector } from "@/hooks/redux";
 import { getData } from "@/lib/storage";
 import { login, logout } from "@/redux/authSlice";
 import store from "@/redux/store";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { useFonts } from "expo-font";
+import { Stack } from "expo-router";
+import * as SplashScreen from "expo-splash-screen";
+import { StatusBar } from "expo-status-bar";
 import { useEffect } from "react";
-import Toast from "react-native-toast-message";
+import "react-native-reanimated";
+import Toast, { ToastConfig } from "react-native-toast-message";
 import { Provider } from "react-redux";
+import "./global.css";
 
 SplashScreen.preventAutoHideAsync();
-const queryClient = new QueryClient();
+export const queryClient = new QueryClient();
+
+const toastConfig: ToastConfig = {
+  success: (props) => <ToastAlert type="success" text={props?.text1} />,
+  error: (props) => <ToastAlert type="error" text={props?.text1} />,
+};
 
 function AppContent() {
   const [loaded, error] = useFonts({
@@ -52,7 +59,7 @@ function AppContent() {
 
   return (
     <>
-      <Stack screenOptions={{headerShown:false}}>
+      <Stack screenOptions={{ headerShown: false }}>
         <Stack.Protected guard={!isLoggedIn}>
           <Stack.Screen name="onboarding" options={{ headerShown: false }} />
           <Stack.Screen name="auth" options={{ headerShown: false }} />
@@ -68,7 +75,12 @@ function AppContent() {
         />
       </Stack>
       <StatusBar style="dark" />
-      <Toast position="top" bottomOffset={50} topOffset={80} />
+      <Toast
+        position="top"
+        bottomOffset={50}
+        topOffset={80}
+        config={toastConfig}
+      />
     </>
   );
 }
@@ -76,9 +88,11 @@ function AppContent() {
 export default function RootLayout() {
   return (
     <QueryClientProvider client={queryClient}>
-      <Provider store={store}>
-        <AppContent />
-      </Provider>
+      <SoundProvider>
+        <Provider store={store}>
+          <AppContent />
+        </Provider>
+      </SoundProvider>
     </QueryClientProvider>
   );
 }

@@ -1,10 +1,19 @@
+import { getCurriculumStats } from "@/actions/curriculum";
 import { ICONS } from "@/assets/icons";
 import Container from "@/components/Container";
 import CurriculumCard from "@/components/Curriculum/CurriculumCard";
 import { scaleHeight, scaleWidth } from "@/utils/scale";
+import { useQuery } from "@tanstack/react-query";
 import { StyleSheet, Text, View } from "react-native";
 
 export default function Curriculum() {
+  const { data } = useQuery({
+    queryKey: ["curriculum"],
+    queryFn: async () => {
+      return await getCurriculumStats();
+    },
+  });
+
   return (
     <Container scrollable edges={["top"]}>
       <View className="px-6 py-5 relative z-20">
@@ -36,23 +45,12 @@ export default function Curriculum() {
             Explore Our Think Series
           </Text>
 
-          <CurriculumCard />
-          <CurriculumCard />
+          {data?.map((d, i) => (
+            <CurriculumCard key={i} {...d} />
+          ))}
         </View>
       </View>
     </Container>
   );
 }
 
-const styles = StyleSheet.create({
-  headerImage: {
-    color: "#808080",
-    bottom: -90,
-    left: -35,
-    position: "absolute",
-  },
-  titleContainer: {
-    flexDirection: "row",
-    gap: 8,
-  },
-});

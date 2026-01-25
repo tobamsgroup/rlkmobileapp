@@ -139,7 +139,7 @@ export const SimpleInput = <T extends FieldValues>({
             {displayIcon}
 
             <TextInput
-              className={`flex-1 bg-transparent text-[16px] text-mainText mr-2 ${className}`}
+              className={`flex-1 bg-transparent font-sans text-[16px] text-mainText mr-2 ${className}`}
               placeholder={placeholder}
               placeholderTextColor={placeholderColor}
               value={value ?? ""}

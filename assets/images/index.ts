@@ -18,6 +18,7 @@ const AILeft = require("./AILeft.png")
 const BookOpened = require("./BookOpened.png")
 const BookClosed = require("./BookClosed.png")
 const ChatboxLeft = require("./ChatboxLeft.png")
+const MoreOverlay = require("./MoreOverlay.png")
 
 export const IMAGES = {
   Onboarding1,
@@ -40,5 +41,6 @@ export const IMAGES = {
   AILeft,
   BookOpened,
   BookClosed,
-  ChatboxLeft
+  ChatboxLeft,
+  MoreOverlay
 };

@@ -1,48 +1,66 @@
-import ChevronLeft from "./ChevronLeft";
-import OnboardingCloud1 from "./OnboardingCloud1";
-import OnboardingCloud2 from "./OnboardingCloud2";
-import EyeOpened from "./EyeOpened";
-import EyesClosed from "./EyesClosed";
-import InformationCircle from "./InformationCircle";
-import AlertSucess from "./AlertSucess";
-import More from "./More";
-import Curriculum from "./Curriculum";
-import Home from "./Home";
-import ChildCare from "./ChildCare";
-import HalfCircle from "./HalfCircle";
 import Activity from "./Activity";
 import Add from "./Add";
+import AlertSucess from "./AlertSucess";
+import ArrowRight from "./ArrowRight";
+import Assignmentadd from "./Assignmentadd";
+import BookOpenedSmall from "./BookOpenedSmall";
+import BooksStacked from "./BooksStacked";
+import Calender from "./Calender";
+import Call from "./Call";
+import Chart from "./Chart";
 import Check from "./Check";
+import ChevronDown from "./ChevronDown";
+import ChevronLeft from "./ChevronLeft";
+import ChevronRight from "./ChevronRight";
+import ChildCare from "./ChildCare";
+import Clock from "./Clock";
+import Close from "./Close";
+import Curriculum from "./Curriculum";
 import Ellipse from "./Ellipse";
+import Export from "./Export";
+import EyeOpened from "./EyeOpened";
+import EyesClosed from "./EyesClosed";
+import Fire from "./Fire";
 import Flower from "./Flower";
+import Group from "./Group";
+import HalfCircle from "./HalfCircle";
+import HalfCloud from "./HalfCloud";
+import Home from "./Home";
+import InformationCircle from "./InformationCircle";
 import KeyboardArrowLeft from "./KeyboardArrowLeft";
 import KeyboardArrowRight from "./KeyboardArrowRight";
-import Notifications from "./Notifications";
-import Star from "./Star";
-import HalfCloud from "./HalfCloud";
-import ArrowRight from "./ArrowRight";
-import ChevronDown from "./ChevronDown";
-import Close from "./Close";
-import Search from "./Search";
-import Fire from "./Fire";
-import Notebook from "./Notebook";
-import Export from "./Export";
-import Puzzle from "./Puzzle";
 import Leaf from "./Leaf";
-import Clock from "./Clock";
-import Video from "./Video";
-import Star2 from "./Star2";
-import Chart from "./Chart";
-import MessageQuestion from "./MessageQuestion";
-import Sort from "./Sort";
 import LibraryBooks from "./LibraryBooks";
-import Assignmentadd from "./Assignmentadd";
+import Logout from "./Logout";
+import Mail from "./Mail";
+import MessageQuestion from "./MessageQuestion";
+import More from "./More";
+import Notebook from "./Notebook";
+import Notifications from "./Notifications";
+import OnboardingCloud1 from "./OnboardingCloud1";
+import OnboardingCloud2 from "./OnboardingCloud2";
+import Pencil from "./Pencil";
+import PencilEdit from "./PencilEdit";
+import Puzzle from "./Puzzle";
+import Search from "./Search";
+import Sort from "./Sort";
+import Star from "./Star";
+import Star2 from "./Star2";
 import StarFlower from "./StarFlower";
-import BooksStacked from "./BooksStacked";
-import BookOpenedSmall from "./BookOpenedSmall";
-import Calender from "./Calender";
+import User from "./User";
+import Video from "./Video";
+import Calendar2 from "./Calendar2";
 
 export const ICONS = {
+  Calendar2,
+  Call,
+  Group,
+  ChevronRight,
+  Logout,
+  Mail,
+  Pencil,
+  PencilEdit,
+  User,
   OnboardingCloud1,
   OnboardingCloud2,
   ChevronLeft,
@@ -85,5 +103,5 @@ export const ICONS = {
   StarFlower,
   Calender,
   BookOpenedSmall,
-  BooksStacked
+  BooksStacked,
 };

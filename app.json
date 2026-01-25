@@ -10,11 +10,14 @@
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.tobamsgroup.rlkmobileapp"
+      "bundleIdentifier": "com.tobamsgroup.rlkmobileapp",
+      "NSPhotoLibraryUsageDescription": "RLKids needs access to your photo library to upload images.",
+      "NSCameraUsageDescription": "RLKids needs access to your camera to take photos.",
+      "NSMicrophoneUsageDescription": "RLKids  needs access to your microphone for use within the app"
     },
     "android": {
       "adaptiveIcon": {
-        "backgroundColor":  "#DBEFDC"
+        "backgroundColor": "#DBEFDC"
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
@@ -38,6 +41,15 @@
           "imageWidth": 1000,
           "backgroundColor": "#DBEFDC"
         }
+      ],
+      "expo-audio",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "RLKids needs access to photo library for uploading images",
+          "cameraPermission": "Allow RLKids to access your camera",
+          "microphonePermission": "Allow RLKids to access your microphone"
+        }
       ]
     ],
     "experiments": {
@@ -53,6 +65,7 @@
         "./assets/fonts/WorkSans-SemiBold.ttf"
       ]
     },
+
     "extra": {
       "router": {},
       "eas": {

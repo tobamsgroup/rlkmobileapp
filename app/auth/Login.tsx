@@ -10,6 +10,7 @@ import { login } from "@/redux/authSlice";
 import { scaleHeight, scaleWidth } from "@/utils/scale";
 import { showToast } from "@/utils/toast";
 import { zodResolver } from "@hookform/resolvers/zod";
+import * as Haptics from "expo-haptics";
 import { router, useLocalSearchParams } from "expo-router";
 import React, { useState } from "react";
 import { useForm } from "react-hook-form";
@@ -46,7 +47,7 @@ const Login = () => {
     formState: { errors },
   } = useForm({
     resolver: zodResolver(
-      profile === "kid" ? KidLoginSchema : GuardianLoginSchema
+      profile === "kid" ? KidLoginSchema : GuardianLoginSchema,
     ),
     defaultValues: {
       email: "",
@@ -78,10 +79,12 @@ const Login = () => {
       showToast("success", "Login Successful!");
       await storeData("user", res?.data?.data);
       dispatch(login(res?.data?.data));
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       if (profile === "kid") {
         router.navigate("/kid/AvatarSelection");
       }
     } catch (error: any) {
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
       if (error?.response?.data?.statusCode === 401) {
         showToast("error", "Incorrect Login Credentials");
         setIncorrectError(true);

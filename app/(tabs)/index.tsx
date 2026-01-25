@@ -3,11 +3,14 @@ import Container from "@/components/Container";
 import ActiveLearningTracks from "@/components/Home/ActiveLearningTracks";
 import LearnersProgress from "@/components/Home/LearnersProgress";
 import RecommendedLearningTracks from "@/components/Home/RecommendedLearningTracks";
+import ToastAlert from "@/components/ToastAlert";
 import { useAppDispatch } from "@/hooks/redux";
 import { scaleWidth } from "@/utils/scale";
+import { showToast } from "@/utils/toast";
 import { router } from "expo-router";
 import { useRef, useState } from "react";
 import { FlatList, Pressable, Text, View } from "react-native";
+import Toast from "react-native-toast-message";
 
 const DATA = [1, 2, 3];
 export default function HomeScreen() {
@@ -49,7 +52,8 @@ export default function HomeScreen() {
             </Text>
           </View>
           <Pressable
-            onPress={() => router.push("/notifications")}
+            // onPress={() => router.push("/notifications")}
+            onPress={() => showToast('success', 'Hello There')}
             style={{
               height: scaleWidth(44),
               width: scaleWidth(44),
