@@ -6,6 +6,7 @@ import { router } from "expo-router";
 import React from "react";
 import { Image, Text, View } from "react-native";
 import Button from "../Button";
+import Skeleton from "../Skeleton";
 
 const SeriesOverviewCard = (props: VolumeStat) => {
   return (
@@ -43,6 +44,21 @@ const SeriesOverviewCard = (props: VolumeStat) => {
         textClassname="text-primary"
         text="VIEW LEARNERS"
       />
+    </View>
+  );
+};
+
+export const SeriesOverviewCardSkeleton = () => {
+  return (
+    <View className="bg-white p-5 rounded-[20px] flex-col items-start z-20 mb-6">
+      <Skeleton
+        style={{ height: scaleHeight(144) }}
+        className="rounded-[20px] w-full h-full mb-5"
+      />
+      <Skeleton className="w-2/3 mb-2" />
+      <Skeleton className="w-1/2 mb-4" />
+      <Skeleton className="w-full h-[48px] rounded-full mb-5" />
+      <Skeleton className="w-full h-[48px] rounded-full" />
     </View>
   );
 };

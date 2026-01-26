@@ -6,6 +6,7 @@ import React from "react";
 import { Image, Pressable, Text, View } from "react-native";
 import { twMerge } from "tailwind-merge";
 import Checkbox from "../Checkbox";
+import Skeleton from "../Skeleton";
 
 const KidSelectionCard = ({
   kid,
@@ -45,6 +46,25 @@ const KidSelectionCard = ({
       <Text className="text-[16px] text-dark font-sansMedium mt-2.5">
         {kid?.name}
       </Text>
+    </Pressable>
+  );
+};
+export const KidSelectionCardSkeleton = () => {
+  return (
+    <Pressable
+      className={twMerge(
+        "bg-[#FAFDFF] pt-2 pb-6 px-4 rounded-[16px] items-center w-[48%]",
+      )}
+    >
+      <View className="self-end">
+        <Skeleton className="w-8 h-8 rounded-[8px]" />
+      </View>
+      <Skeleton
+        style={{ width: scaleWidth(88), height: scaleHeight(88) }}
+        className="rounded-full"
+      />
+
+      <Skeleton className="rounded-full w-2/3 mt-2" />
     </Pressable>
   );
 };

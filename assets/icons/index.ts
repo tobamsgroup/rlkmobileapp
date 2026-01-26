@@ -50,8 +50,10 @@ import StarFlower from "./StarFlower";
 import User from "./User";
 import Video from "./Video";
 import Calendar2 from "./Calendar2";
+import AwardStar from "./AwardStar";
 
 export const ICONS = {
+  AwardStar,
   Calendar2,
   Call,
   Group,

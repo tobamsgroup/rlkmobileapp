@@ -22,10 +22,10 @@ const ToastAlert = ({
       className={`bg-[#FFFFFF]  rounded-[16px] p-4 items-start flex-row gap-2 border-b-[10px] border-l border-r ${borderColor}`}
     >
       {type === "success" ? (
-        <ICONS.AlertSucess width={scaleWidth(48)} height={scaleWidth(48)} />
+        <ICONS.AlertSucess width={scaleWidth(44)} height={scaleWidth(44)} />
       ) : (
         <View
-          style={{ width: scaleWidth(48), height: scaleWidth(48) }}
+          style={{ width: scaleWidth(44), height: scaleWidth(44) }}
           className="bg-[#DE21211A] rounded-full items-center justify-center"
         >
           <ICONS.Close strokeWidth={1} stroke={"#DE2121"} />

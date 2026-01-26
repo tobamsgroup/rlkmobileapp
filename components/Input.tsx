@@ -129,6 +129,7 @@ export const SimpleInput = <T extends FieldValues>({
           onBlur={onBlur}
           onChangeText={handleChange}
           editable={!disabled}
+          autoCapitalize={"none"}
         />
       ) : (
         <View
@@ -164,7 +165,7 @@ export const SimpleInput = <T extends FieldValues>({
         </View>
       )}
 
-      {error && <View className="flex-row gap-1 mt-1">
+      {error && <View className="flex-row gap-1 mt-1 items-center">
         <ICONS.InformationCircle/>
         <Text className="text-[#DE2121] font-sans ">{error}</Text>
         </View>}

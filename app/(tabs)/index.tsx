@@ -1,66 +1,77 @@
 import { ICONS } from "@/assets/icons";
+import { IMAGES } from "@/assets/images";
 import Container from "@/components/Container";
 import ActiveLearningTracks from "@/components/Home/ActiveLearningTracks";
+import CreateChildProfile from "@/components/Home/CreateChildProfile";
 import LearnersProgress from "@/components/Home/LearnersProgress";
 import RecommendedLearningTracks from "@/components/Home/RecommendedLearningTracks";
-import ToastAlert from "@/components/ToastAlert";
-import { useAppDispatch } from "@/hooks/redux";
+import Skeleton from "@/components/Skeleton";
+import useGuardian from "@/hooks/useGuardianProfile";
+import { ensureHttps } from "@/utils";
 import { scaleWidth } from "@/utils/scale";
-import { showToast } from "@/utils/toast";
 import { router } from "expo-router";
-import { useRef, useState } from "react";
-import { FlatList, Pressable, Text, View } from "react-native";
-import Toast from "react-native-toast-message";
+import { useState } from "react";
+import { Image, Pressable, Text, View } from "react-native";
 
-const DATA = [1, 2, 3];
 export default function HomeScreen() {
-  const dispatch = useAppDispatch();
-  const flatListRef = useRef<FlatList<number>>(null);
-  const [currentIndex, setCurrentIndex] = useState(0);
-
-  const scrollToIndex = (index: number) => {
-    if (index < 0 || index >= DATA.length) return;
-
-    flatListRef.current?.scrollToIndex({
-      index,
-      animated: true,
-    });
-
-    setCurrentIndex(index);
-  };
+  const [openModal, setOpenModal] = useState(false);
+  const { data, isLoading } = useGuardian();
   return (
     <Container edges={["top"]} scrollable backgroundColor="#DBEFDC">
       <View className="flex-1 px-6 py-5 relative z-10">
         <View className="flex-row gap-2 items-center">
-          <View
-            className="border border-[#3F9243]"
-            style={{
-              height: scaleWidth(48),
-              width: scaleWidth(48),
-              borderRadius: 100,
-            }}
-          ></View>
+          {isLoading ? (
+            <Skeleton
+              style={{
+                height: scaleWidth(48),
+                width: scaleWidth(48),
+                borderRadius: 100,
+              }}
+            />
+          ) : (
+            <View
+              className="border border-[#3F9243]"
+              style={{
+                height: scaleWidth(48),
+                width: scaleWidth(48),
+                borderRadius: 100,
+              }}
+            >
+              <Image
+                source={
+                  data?.picture
+                    ? { uri: ensureHttps(data?.picture) }
+                    : IMAGES.KidProfilePlaceholder
+                }
+                className="w-full h-full rounded-full"
+              />
+            </View>
+          )}
+
           <View className="flex-1">
             <Text className="text-[16px] font-sansSemiBold text-[#474348] leading-[1.5]">
               Welcome back 👋
             </Text>
-            <Text
-              numberOfLines={1}
-              className="text-[#221D23] text-[16px] font-sansSemiBold leading-[1.5]"
-            >
-              Marimasunde!
-            </Text>
+            {isLoading ? (
+              <Skeleton className="rounded-full w-2/3" />
+            ) : (
+              <Text
+                numberOfLines={1}
+                className="text-[#221D23] text-[16px] font-sansSemiBold leading-[1.5]"
+              >
+                {data?.firstName}
+              </Text>
+            )}
           </View>
           <Pressable
-            // onPress={() => router.push("/notifications")}
-            onPress={() => showToast('success', 'Hello There')}
+            onPress={() => router.push("/notifications")}
             style={{
               height: scaleWidth(44),
               width: scaleWidth(44),
             }}
             className="rounded-[100px] bg-white items-center justify-center"
           >
-            <ICONS.Notifications width={28} height={28} fill={"#4CAF50"} />
+            <ICONS.Notifications width={20} height={20} fill={"#4CAF50"} />
           </Pressable>
         </View>
 
@@ -85,7 +96,14 @@ export default function HomeScreen() {
                 fill={"#FFFFFF"}
               />
             </View>
-            <Text className="text-[16px] text-white font-sansBold">10</Text>
+            {isLoading ? (
+              <Skeleton className="w-20 rounded-full" />
+            ) : (
+              <Text className="text-[16px] text-white font-sansBold">
+                {data?.totalKids || 0}
+              </Text>
+            )}
+
             <Text className="text-[14px] text-white font-sansMedium">
               Learners
             </Text>
@@ -98,13 +116,19 @@ export default function HomeScreen() {
               }}
               className="w-12 h-12 bg-[#D3D2D333] rounded-full items-center justify-center"
             >
-              <ICONS.ChildCare
+              <ICONS.Curriculum
                 width={scaleWidth(24)}
                 height={scaleWidth(24)}
                 fill={"#FFFFFF"}
               />
             </View>
-            <Text className="text-[16px] text-white font-sansBold">10</Text>
+            {isLoading ? (
+              <Skeleton className="w-20 rounded-full" />
+            ) : (
+              <Text className="text-[16px] text-white font-sansBold">
+                {data?.activeTrackCount || 0}
+              </Text>
+            )}
             <Text className="text-[14px] text-white font-sansMedium">
               Active Tracks
             </Text>
@@ -117,19 +141,23 @@ export default function HomeScreen() {
               }}
               className="w-12 h-12 bg-[#D3D2D333] rounded-full items-center justify-center"
             >
-              <ICONS.ChildCare
+              <ICONS.Activity
                 width={scaleWidth(24)}
                 height={scaleWidth(24)}
                 fill={"#FFFFFF"}
               />
             </View>
-            <Text className="text-[16px] text-white font-sansBold">10</Text>
+            {isLoading ? (
+              <Skeleton className="w-20 rounded-full" />
+            ) : (
+              <Text className="text-[16px] text-white font-sansBold">0</Text>
+            )}
             <Text className="text-[14px] text-white font-sansMedium">
               Activities
             </Text>
           </View>
         </View>
-        <LearnersProgress />
+        <LearnersProgress onAddChild={() => setOpenModal(true)} />
         <View className="bg-white rounded-[16px] p-5 mt-7">
           <Text className="font-sansSemiBold text-[18px] text-dark mb-7">
             Quick Actions
@@ -148,16 +176,19 @@ export default function HomeScreen() {
                 fill={"#1671D9"}
               />
             </View>
-            <View className="flex-1">
+            <Pressable onPress={() => setOpenModal(true)} className="flex-1">
               <Text className="font-sansMedium text-[16px] text-dark leading-[1.5]">
                 Set Up New Child{"\n"}Profile
               </Text>
               <Text className="font-sans text-dark flex-shrink text-[14px] mt-2 leading-[1.5]">
                 Create a new profile to start a child's learning journey!
               </Text>
-            </View>
+            </Pressable>
           </View>
-          <View className="border-2 border-[#D5B300] bg-[#D5B3001A] rounded-[20px] p-4 flex-row gap-4 mt-7">
+          <Pressable
+            onPress={() => router.push("/(tabs)/curriculum")}
+            className="border-2 border-[#D5B300] bg-[#D5B3001A] rounded-[20px] p-4 flex-row gap-4 mt-7"
+          >
             <View
               className="bg-white rounded-full items-center justify-center"
               style={{
@@ -179,10 +210,14 @@ export default function HomeScreen() {
                 Pick a new course for a child to explore!
               </Text>
             </View>
-          </View>
+          </Pressable>
         </View>
         <ActiveLearningTracks />
         <RecommendedLearningTracks />
+        <CreateChildProfile
+          open={openModal}
+          onClose={() => setOpenModal(false)}
+        />
       </View>
     </Container>
   );

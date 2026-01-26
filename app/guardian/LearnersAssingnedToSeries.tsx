@@ -8,6 +8,7 @@ import Button from "@/components/Button";
 import Container from "@/components/Container";
 import { SimpleInput } from "@/components/Input";
 import ProgressBar from "@/components/ProgressBar";
+import Skeleton from "@/components/Skeleton";
 import TopBackButton from "@/components/TopBackButton";
 import { formatDate } from "@/utils";
 import { scaleHeight, scaleWidth } from "@/utils/scale";
@@ -21,7 +22,7 @@ const LearnersAssingnedToSeries = () => {
   const [search, setSearch] = useState("");
   const [kidsData, setKidsData] = useState<KidCourseWithPopulatedKid[]>([]);
 
-  const { data } = useQuery({
+  const { data, isLoading } = useQuery({
     queryKey: ["kids-volume", params?.id],
     queryFn: async () => {
       return await fetchKidsCourseBySeries(params?.id as string);
@@ -61,22 +62,24 @@ const LearnersAssingnedToSeries = () => {
           Total Kids: {kidsData?.length}
         </Text>
         <View className="bg-[#000F1F] p-6  px-8 rounded-[16px] mt-8 relative">
-          <Pressable
-            onPress={() =>
-              router.push(
-                `/guardian/AssignChild?title=${params?.title}&id=${params?.id}&seriesTitle=${params?.seriesTitle}`,
-              )
-            }
-            style={{
-              top: scaleHeight(343),
-            }}
-            className="flex-row self-end gap-2 items-center bg-[#3F9243] border-b-primary py-3 px-6 rounded-full absolute z-50"
-          >
-            <ICONS.Assignmentadd />
-            <Text className="text-white font-sansMedium text-[16px]">
-              ASSIGN
-            </Text>
-          </Pressable>
+          {!!kidsData?.length && (
+            <Pressable
+              onPress={() =>
+                router.push(
+                  `/guardian/AssignChild?title=${params?.title}&id=${params?.id}&seriesTitle=${params?.seriesTitle}`,
+                )
+              }
+              style={{
+                top: scaleHeight(343),
+              }}
+              className="flex-row self-end gap-2 items-center bg-[#3F9243] border-b-primary py-3 px-6 rounded-full absolute z-50"
+            >
+              <ICONS.Assignmentadd />
+              <Text className="text-white font-sansMedium text-[16px]">
+                ASSIGN
+              </Text>
+            </Pressable>
+          )}
           <ICONS.Ellipse
             style={{ position: "absolute", top: scaleHeight(68), zIndex: 0 }}
           />
@@ -113,9 +116,48 @@ const LearnersAssingnedToSeries = () => {
             }}
             fill={"#FFDE2A"}
           />
-          {kidsData?.map((k, i) => (
-            <KidProgessCard key={i} {...k} />
-          ))}
+
+          {!!!kidsData?.length && !isLoading && (
+            <View className="items-center z-50 relative">
+              <Image
+                style={{
+                  height: scaleWidth(72),
+                  width: scaleWidth(72),
+                }}
+                className="rounded-full border-[1.8px] border-[#FFD700] mb-6"
+                source={IMAGES.Superkid}
+              />
+              <Text className="text-white font-sansSemiBold text-[20px] text-center mb-4">
+                No Learners Assigned Yet.
+              </Text>
+              <Text className="text-white text-center font-sansMedium mb-6">
+                Once you assign child and they will appear here.
+              </Text>
+              <Button
+                onPress={() =>
+                  router.push(
+                    `/guardian/AssignChild?title=${params?.title}&id=${params?.id}&seriesTitle=${params?.seriesTitle}`,
+                  )
+                }
+                className="w-full bg-[#004D99] border-[#003366]"
+                text="ASSIGN KIDS"
+              />
+            </View>
+          )}
+          {isLoading && (
+            <>
+              {[1, 2]?.map((i) => (
+                <KidProgessCardSkeleton key={i} />
+              ))}
+            </>
+          )}
+          {!isLoading && !!kidsData?.length && (
+            <>
+              {kidsData?.map((k, i) => (
+                <KidProgessCard key={k._id} {...k} />
+              ))}
+            </>
+          )}
         </View>
       </View>
     </Container>
@@ -165,7 +207,41 @@ const KidProgessCard = (props: KidCourseWithPopulatedKid) => {
             {props?.assignedSeries?.[0]?.progress}%
           </Text>
         </View>
-        <Button text="VIEW PROGRESS" className="w-full" />
+        <Button
+          onPress={() =>
+            router.push(`/guardian/LearningProgress?id=${props?.kidId?._id}`)
+          }
+          text="VIEW PROGRESS"
+          className="w-full"
+        />
+      </View>
+    </View>
+  );
+};
+const KidProgessCardSkeleton = () => {
+  return (
+    <View className="relative mb-3">
+      <Skeleton
+        style={{
+          height: scaleWidth(104),
+          width: scaleWidth(104),
+          left: "33%",
+        }}
+        className=" border-2 border-black/15 rounded-full bg-white absolute top-0 left-0 z-30"
+      />
+
+      <View
+        style={{
+          //   width: scaleWidth(256),
+          marginTop: scaleHeight(52),
+          paddingTop: scaleHeight(58),
+        }}
+        className="border-2 border-primary rounded-[20px] bg-white items-center px-11 pb-5"
+      >
+        <Skeleton className="w-1/2 rounded-full" />
+        <Skeleton className="w-2/3 rounded-full mb-4 mt-3" />
+        <Skeleton className="w-full rounded-full mb-4" />
+        <Skeleton className="w-full rounded-full h-[48px]" />
       </View>
     </View>
   );

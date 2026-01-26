@@ -11,9 +11,10 @@ type SelectProps = {
   className?: string;
   label?: string;
   containerClassname?: string;
-  wrapperClassname?:string
+  wrapperClassname?: string;
   options: string[];
   value?: string;
+  error?: string;
 };
 
 const Select: FC<SelectProps> = ({
@@ -24,12 +25,13 @@ const Select: FC<SelectProps> = ({
   containerClassname,
   options,
   value: inputValue,
-  wrapperClassname
+  wrapperClassname,
+  error,
 }) => {
   const [value, setValue] = useState("");
   const [openModal, setOpenModal] = useState(false);
   return (
-    <View  className={wrapperClassname}>
+    <View className={wrapperClassname}>
       {label && (
         <Text className="mb-3 font-normal text-dark font-sans text-[16px] lg:text-[18px]">
           {label}
@@ -48,6 +50,12 @@ const Select: FC<SelectProps> = ({
         </Text>
         <ICONS.ChevronDown />
       </Pressable>
+      {error && (
+        <View className="flex-row gap-1 mt-1">
+          <ICONS.InformationCircle />
+          <Text className="text-[#DE2121] font-sans ">{error}</Text>
+        </View>
+      )}
       <ReactNativeModal
         onBackdropPress={() => setOpenModal(false)}
         style={{ padding: 0, margin: 0 }}
@@ -72,7 +80,7 @@ const Select: FC<SelectProps> = ({
                 }}
                 className={twMerge(
                   "border-b-2 border-[#D3D2D366] py-5 rounded-[8px] ",
-                  i + 1 === options.length && "border-b-0"
+                  i + 1 === options.length && "border-b-0",
                 )}
                 key={i}
               >

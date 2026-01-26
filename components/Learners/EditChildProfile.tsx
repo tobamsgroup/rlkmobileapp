@@ -1,4 +1,4 @@
-import { createKidProfile } from "@/actions/home";
+import { updateKidProfile } from "@/actions/home";
 import { ICONS } from "@/assets/icons";
 import { HAPTIC } from "@/utils/haptic";
 import { invalidateQueries } from "@/utils/query";
@@ -6,7 +6,7 @@ import { scaleWidth } from "@/utils/scale";
 import { showToast } from "@/utils/toast";
 import { zodResolver } from "@hookform/resolvers/zod";
 import Constant from "expo-constants";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import {
   KeyboardAvoidingView,
@@ -19,32 +19,34 @@ import {
 import ReactNativeModal from "react-native-modal";
 import { z } from "zod";
 import Button from "../Button";
-import Input from "../Input";
-import Select from "../Select";
+import Input, { SimpleInput } from "../Input";
 
 export const childProfileSchema = z.object({
   name: z.string().regex(/^[a-zA-Z]+ [a-zA-Z]+$/, {
     message: "Kid's name must be FirstName and LastName",
   }),
-  username: z.string().min(1, "Username is required"),
   age: z
     .number({ error: "Age is required" })
     .min(7, "Age must be between 7-14")
     .max(14, "Age must be between 7-14"),
-  preferredLearningTopics: z
-    .string()
-    .min(1, "Preferred learning topics is required"),
-  password: z.string().min(8, "Password must be at least 8 characters long"),
 });
 
 type ChildProfileSetupFormData = z.infer<typeof childProfileSchema>;
 
-const CreateChildProfile = ({
+const EditChildProfile = ({
   open,
   onClose,
+  kid,
 }: {
   open: boolean;
   onClose: () => void;
+  kid: {
+    username: string;
+    name: string;
+    age: number;
+    picture: string;
+    id: string;
+  };
 }) => {
   const [loading, setLoading] = useState(false);
   const {
@@ -58,10 +60,7 @@ const CreateChildProfile = ({
     resolver: zodResolver(childProfileSchema),
     defaultValues: {
       name: "",
-      username: "",
       age: undefined,
-      preferredLearningTopics: "",
-      password: "",
     },
   });
 
@@ -69,15 +68,15 @@ const CreateChildProfile = ({
     if (loading) return;
     setLoading(true);
     try {
-      const res = await createKidProfile(data);
+       await updateKidProfile(kid?.id, data);
       invalidateQueries("overview");
       invalidateQueries("kids-courses");
       invalidateQueries("guardian-kids");
-      invalidateQueries("kids");
-      invalidateQueries("learning-overview");
+      invalidateQueries("kids")
+      invalidateQueries("learning-overview")
       HAPTIC.success();
       onClose();
-      showToast("success", "Child Added Successfully");
+      showToast("success", "Child Profile Updated Successfully");
     } catch (err: any) {
       console.log(err);
       HAPTIC.error();
@@ -90,6 +89,13 @@ const CreateChildProfile = ({
 
     setLoading(false);
   };
+
+  useEffect(() => {
+    if (!kid) return;
+    setValue("name", kid?.name);
+    setValue("age", kid?.age);
+  }, [kid]);
+
   return (
     <ReactNativeModal style={{ padding: 0, margin: 0 }} isVisible={open}>
       <KeyboardAvoidingView
@@ -98,28 +104,32 @@ const CreateChildProfile = ({
       >
         <View
           style={{ paddingTop: Constant.statusBarHeight + 20 }}
-          className="bg-[#3F9243] flex-1 px-6 py-4"
+          className="bg-[#DBEFDC] flex-1  pt-4"
         >
-          <Pressable
-            onPress={onClose}
-            style={{
-              width: scaleWidth(32),
-              height: scaleWidth(32),
-            }}
-            className="rounded-full bg-white mb-5 items-center justify-center"
+          <View className="px-6">
+            <Pressable
+              onPress={onClose}
+              style={{
+                width: scaleWidth(32),
+                height: scaleWidth(32),
+              }}
+              className="rounded-full bg-white mb-5 items-center justify-center"
+            >
+              <ICONS.ChevronLeft
+                width={scaleWidth(14)}
+                height={scaleWidth(14)}
+              />
+            </Pressable>
+            <Text className="font-sansSemiBold text-[24px] text-dark mb-2">
+              Edit Child’s Profile
+            </Text>
+          </View>
+          <ScrollView
+            style={{ flex: 1 }}
+            contentContainerClassName="flex-1"
+            showsVerticalScrollIndicator={false}
           >
-            <ICONS.ChevronLeft width={scaleWidth(14)} height={scaleWidth(14)} />
-          </Pressable>
-          <ScrollView showsVerticalScrollIndicator={false}>
-            <Text className="font-sansSemiBold text-[24px] text-white mb-2">
-              Set Up
-              <Text className="text-[#FFD700]"> Child’s Profile</Text>
-            </Text>
-            <Text className="leading-[1.5] font-sans text-white text-[16px]">
-              Tell us a bit about the child so we can create a fun and engaging
-              experience tailored just for them.
-            </Text>
-            <View className="bg-white p-5 rounded-[16px] mt-10">
+            <View className="bg-white p-6  rounded-[16px] mt-6 flex-1 h-full">
               <Input
                 control={control}
                 wrapperClassName="mb-6"
@@ -127,48 +137,35 @@ const CreateChildProfile = ({
                 label="Child’s Name"
                 error={errors.name?.message}
               />
-              <Input
+              {/* <Input
                 control={control}
                 wrapperClassName="mb-6"
                 name="username"
                 label="Child’s Username"
                 error={errors.username?.message}
-              />
-              <Input
-                control={control}
+              /> */}
+              <SimpleInput
                 type="number"
                 wrapperClassName="mb-6"
                 error={errors.age?.message}
                 name="age"
                 label="Age"
+                value={getValues("age")}
+                handleChange={(text) => setValue("age", Number(text))}
               />
-              <Select
-                error={errors?.preferredLearningTopics?.message}
-                wrapperClassname="mb-6"
-                label="Prefferred Topic"
-                options={[
-                  "Think Sustainability",
-                  "Think Entrepreneurship",
-                  "Think Leadership",
-                  "Think Strategy",
-                  "Think Financial Literacy",
-                ]}
-                value={getValues("preferredLearningTopics")}
-                onChange={(text) => setValue("preferredLearningTopics", text)}
-              />
-              <Input
+              {/* <Input
                 error={errors.password?.message}
                 control={control}
                 name="password"
                 label="Password"
-              />
-              <Text className="mb-6 text-[#918E91] text-[12px] mt-3">
+              /> */}
+              {/* <Text className="mb-6 text-[#918E91] text-[12px] mt-3">
                 Password must be at least 8 characters long
-              </Text>
+              </Text> */}
               <Button
                 loading={loading}
                 onPress={handleSubmit(onSubmit)}
-                text="CREATE PROFILE"
+                text="SAVE CHANGES"
               />
             </View>
           </ScrollView>
@@ -178,4 +175,4 @@ const CreateChildProfile = ({
   );
 };
 
-export default CreateChildProfile;
+export default EditChildProfile;

@@ -1,6 +1,7 @@
 import { handleLogout } from "@/actions/logout";
 import { ICONS } from "@/assets/icons";
 import { IMAGES } from "@/assets/images";
+import Skeleton from "@/components/Skeleton";
 import { useAppDispatch } from "@/hooks/redux";
 import useGuardian from "@/hooks/useGuardianProfile";
 import { ensureHttps } from "@/utils";
@@ -17,27 +18,41 @@ import {
 
 export default function More() {
   const dispatch = useAppDispatch();
-  const { data } = useGuardian();
+  const { data, isLoading } = useGuardian();
   return (
     <View className="bg-[#DBEFDC] flex-1 relative">
       <Image
         style={{ width: SCREEN_WIDTH, height: scaleHeight(256) }}
         source={IMAGES.MoreOverlay}
       />
-      <Image
-        className="border-2 border-white rounded-full absolute "
-        style={{
-          width: scaleWidth(130),
-          height: scaleWidth(130),
-          top: scaleHeight(256) - 75,
-          left: SCREEN_WIDTH / 2 - 81,
-        }}
-        source={
-          data?.picture
-            ? { uri: ensureHttps(data?.picture) }
-            : IMAGES.KidProfilePlaceholder
-        }
-      />
+
+      {isLoading ? (
+        <Skeleton
+          style={{
+            width: scaleWidth(130),
+            height: scaleWidth(130),
+            top: scaleHeight(256) - 75,
+            left: SCREEN_WIDTH / 2 - 81,
+          }}
+          className="border-2 border-white rounded-full absolute "
+        />
+      ) : (
+        <Image
+          className="border-2 border-white rounded-full absolute "
+          style={{
+            width: scaleWidth(130),
+            height: scaleWidth(130),
+            top: scaleHeight(256) - 75,
+            left: SCREEN_WIDTH / 2 - 81,
+          }}
+          source={
+            data?.picture
+              ? { uri: ensureHttps(data?.picture) }
+              : IMAGES.KidProfilePlaceholder
+          }
+        />
+      )}
+
       <Text
         style={{ top: scaleHeight(88) }}
         className="text-white text-[20px] font-sansSemiBold absolute text-center w-full"
@@ -48,12 +63,16 @@ export default function More() {
         style={{ marginTop: scaleHeight(100) }}
         className="items-center px-6 flex-1 pb-6"
       >
-        <Text className="text-[20px] font-sansSemiBold text-dark">
-          Hi, {data?.firstName || "There"}
-        </Text>
+        {isLoading ? (
+          <Skeleton className="w-1/2 rounded-full" />
+        ) : (
+          <Text className="text-[20px] font-sansSemiBold text-dark">
+            Hi, {data?.firstName || "There"}
+          </Text>
+        )}
         <View className="bg-[#FAFDFF] rounded-full py-1 px-4 mt-2">
           <Text className="text-[16px] text-[#3F9243] font-sansMedium">
-            Parent/ Teacher
+            Parent / Teacher
           </Text>
         </View>
         <View className="w-full bg-[#FFFFFF] rounded-[20px] p-5 mt-5 flex-1">

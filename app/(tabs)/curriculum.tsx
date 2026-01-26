@@ -1,13 +1,15 @@
 import { getCurriculumStats } from "@/actions/curriculum";
 import { ICONS } from "@/assets/icons";
 import Container from "@/components/Container";
-import CurriculumCard from "@/components/Curriculum/CurriculumCard";
+import CurriculumCard, {
+  CurriculumCardSkeleton,
+} from "@/components/Curriculum/CurriculumCard";
 import { scaleHeight, scaleWidth } from "@/utils/scale";
 import { useQuery } from "@tanstack/react-query";
-import { StyleSheet, Text, View } from "react-native";
+import { Text, View } from "react-native";
 
 export default function Curriculum() {
-  const { data } = useQuery({
+  const { data, isLoading } = useQuery({
     queryKey: ["curriculum"],
     queryFn: async () => {
       return await getCurriculumStats();
@@ -45,12 +47,22 @@ export default function Curriculum() {
             Explore Our Think Series
           </Text>
 
-          {data?.map((d, i) => (
-            <CurriculumCard key={i} {...d} />
-          ))}
+          {isLoading && (
+            <>
+              {[1, 2, 3, 4, 5]?.map((i) => (
+                <CurriculumCardSkeleton key={i} />
+              ))}
+            </>
+          )}
+          {!isLoading && !!data?.length && (
+            <>
+              {data?.map((d, i) => (
+                <CurriculumCard key={i} {...d} />
+              ))}
+            </>
+          )}
         </View>
       </View>
     </Container>
   );
 }
-

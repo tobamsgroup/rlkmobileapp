@@ -8,7 +8,10 @@ import { IMAGES } from "@/assets/images";
 import Button from "@/components/Button";
 import Checkbox from "@/components/Checkbox";
 import Container from "@/components/Container";
-import KidSelectionCard from "@/components/Curriculum/KidSelectionCard";
+import KidSelectionCard, {
+  KidSelectionCardSkeleton,
+} from "@/components/Curriculum/KidSelectionCard";
+import Skeleton from "@/components/Skeleton";
 import Stepper from "@/components/Stepper";
 import TopBackButton from "@/components/TopBackButton";
 import { BookMeta } from "@/types";
@@ -31,16 +34,16 @@ const AssignChild = () => {
   >([]);
   const [selectedScope, setSelectedScope] = useState("entire");
   const [selectedModule, setSelectedModule] = useState<
-    { id: string; title: string, index:number }[]
+    { id: string; title: string; index: number }[]
   >([]);
   const [loading, setLoading] = useState(false);
-  const { data } = useQuery({
+  const { data, isLoading } = useQuery({
     queryKey: ["assign-volume", params?.id],
     queryFn: async () => {
       return await getVolume(params?.id as string);
     },
   });
-  const { data: kids } = useQuery({
+  const { data: kids, isLoading: isLoadingKids } = useQuery({
     queryKey: ["kids"],
     queryFn: async () => {
       return await getAllKids();
@@ -55,13 +58,13 @@ const AssignChild = () => {
     setStep((step) => step + 1);
   };
 
-  const selectModule = (id: string, title: string, index:number) => {
+  const selectModule = (id: string, title: string, index: number) => {
     setSelectedModule((prev) => {
       const isExist = selectedModule?.find((c) => c.id === id);
       if (isExist) {
         return prev?.filter((c) => c.id !== id);
       } else {
-        return [...prev, { id, title , index}];
+        return [...prev, { id, title, index }];
       }
     });
   };
@@ -82,7 +85,7 @@ const AssignChild = () => {
       await assignKidsToCourse(payload);
       HAPTIC.success();
       router.push(
-        `/guardian/AssignChildSuccess?selectedKids=${JSON.stringify(selectedKids)}&selectedModule=${JSON.stringify(selectedScope === "entire" ? [] : selectedModule)}&title=${params?.title}&seriesTitle=${params?.seriesTitle}`
+        `/guardian/AssignChildSuccess?selectedKids=${JSON.stringify(selectedKids)}&selectedModule=${JSON.stringify(selectedScope === "entire" ? [] : selectedModule)}&title=${params?.title}&seriesTitle=${params?.seriesTitle}`,
       );
       invalidateQueries("curriculum");
       invalidateQueries(`series-volume`);
@@ -153,23 +156,42 @@ const AssignChild = () => {
                 Learner
               </Text>
               <View className="rounded-[20px] bg-white w-full p-4">
-                <Image
-                  style={{ height: scaleHeight(168), width: "100%" }}
-                  className="rounded-[20px]"
-                  source={{ uri: ensureHttps(data?.image || "") }}
-                />
+                {isLoading ? (
+                  <Skeleton
+                    style={{ height: scaleHeight(168), width: "100%" }}
+                    className="rounded-[20px]"
+                  />
+                ) : (
+                  <Image
+                    style={{ height: scaleHeight(168), width: "100%" }}
+                    className="rounded-[20px]"
+                    source={{ uri: ensureHttps(data?.image || "") }}
+                  />
+                )}
               </View>
               <View className="bg-[#FAFDFF] p-4 rounded-[20px] mt-6">
                 <Text className="text-[18px] font-sansSemiBold text-[#3F9243] mb-4">
                   Course Overview
                 </Text>
-                <Text className="font-sansMedium text-dark text-[16px]">
-                  {data?.overview?.catchPhrase}
-                </Text>
-                <Text className="mt-2 text-[#474348] font-sans text-[16px] leading-[1.5] mb-6">
-                  {data?.overview?.description}
-                </Text>
-                <Button onPress={() => setStep(2)} text="ASSIGN NOW" />
+                {isLoading ? (
+                  <Skeleton className="w-full rounded-full" />
+                ) : (
+                  <Text className="font-sansMedium text-dark text-[16px]">
+                    {data?.overview?.catchPhrase}
+                  </Text>
+                )}
+                {isLoading ? (
+                  <Skeleton className="w-full h-[200px] " />
+                ) : (
+                  <Text className="mt-2 text-[#474348] font-sans text-[16px] leading-[1.5] mb-6">
+                    {data?.overview?.description}
+                  </Text>
+                )}
+                {isLoading ? (
+                  <Skeleton className="h-[50px] rounded-full w-full" />
+                ) : (
+                  <Button onPress={() => setStep(2)} text="ASSIGN NOW" />
+                )}
               </View>
             </View>
           )}
@@ -189,21 +211,31 @@ const AssignChild = () => {
               </Text>
               {step === 2 && (
                 <>
-                  <FlatList
-                    data={kids}
-                    renderItem={({ item }) => (
-                      <KidSelectionCard
-                        selected={
-                          !!selectedKids?.find((s) => s.id === item._id)
-                        }
-                        onSelect={() => toggleSelection(item._id, item.name)}
-                        kid={item}
-                      />
-                    )}
-                    numColumns={2}
-                    contentContainerStyle={{ rowGap: 12, columnGap: 12 }}
-                    columnWrapperStyle={{ gap: 12 }}
-                  />
+                  {isLoadingKids ? (
+                    <FlatList
+                      data={[1, 2, 3, 4]}
+                      renderItem={({ item }) => <KidSelectionCardSkeleton />}
+                      numColumns={2}
+                      contentContainerStyle={{ rowGap: 12, columnGap: 12 }}
+                      columnWrapperStyle={{ gap: 12 }}
+                    />
+                  ) : (
+                    <FlatList
+                      data={kids}
+                      renderItem={({ item }) => (
+                        <KidSelectionCard
+                          selected={
+                            !!selectedKids?.find((s) => s.id === item._id)
+                          }
+                          onSelect={() => toggleSelection(item._id, item.name)}
+                          kid={item}
+                        />
+                      )}
+                      numColumns={2}
+                      contentContainerStyle={{ rowGap: 12, columnGap: 12 }}
+                      columnWrapperStyle={{ gap: 12 }}
+                    />
+                  )}
                 </>
               )}
               {step === 3 && (
@@ -280,7 +312,7 @@ const AssignChild = () => {
                       <View className="bg-white p-6 rounded-[8px] mt-4">
                         {data?.chapters?.map((c) => (
                           <Pressable
-                          key={c?._id}
+                            key={c?._id}
                             onPress={(e) => {
                               e.stopPropagation();
                               selectModule(c._id, c.title, c.index);

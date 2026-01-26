@@ -19,8 +19,17 @@ const BookOpened = require("./BookOpened.png")
 const BookClosed = require("./BookClosed.png")
 const ChatboxLeft = require("./ChatboxLeft.png")
 const MoreOverlay = require("./MoreOverlay.png")
+const Superkid = require("./superkid.jpg")
+const BookStack = require("./BookStack.png")
+const LearnerPlaceholder = require("./LearnerPlaceholder.png")
+const Clipboard = require("./clipboard.png")
+
 
 export const IMAGES = {
+  LearnerPlaceholder,
+  Clipboard,
+  BookStack,
+  Superkid,
   Onboarding1,
   Onboarding2,
   Onboarding3,

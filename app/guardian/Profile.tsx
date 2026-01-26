@@ -4,6 +4,7 @@ import { IMAGES } from "@/assets/images";
 import Button from "@/components/Button";
 import Container from "@/components/Container";
 import { SimpleInput } from "@/components/Input";
+import Skeleton from "@/components/Skeleton";
 import TopBackButton from "@/components/TopBackButton";
 import useGuardian from "@/hooks/useGuardianProfile";
 import { GuardianProfileProps } from "@/types";
@@ -21,10 +22,8 @@ import ReactNativeModal from "react-native-modal";
 
 const Profile = () => {
   const [openEdit, setOpenEdit] = useState(false);
-  const { data } = useGuardian();
+  const { data, isLoading } = useGuardian();
 
-
-  console.log({data})
   return (
     <Container scrollable>
       <View className="px-6 py-5">
@@ -38,42 +37,67 @@ const Profile = () => {
         <View className="  mt-6">
           <View className="bg-white rounded-[16px] py-6 px-5">
             <View className="items-center bg-[#0991371A] p-5 rounded-[12px]">
-              <Image
-                style={{ height: scaleWidth(95), width: scaleWidth(95) }}
-                className="rounded-full"
-                source={
-                  data?.picture
-                    ? { uri: ensureHttps(data?.picture) }
-                    : IMAGES.KidProfilePlaceholder
-                }
-              />
-              <Text className="text-[20px] font-sansSemiBold mb-2">
-                {data?.firstName} {data?.lastName}
-              </Text>
+              {isLoading ? (
+                <Skeleton
+                  className="rounded-full"
+                  style={{ height: scaleWidth(95), width: scaleWidth(95) }}
+                />
+              ) : (
+                <Image
+                  style={{ height: scaleWidth(95), width: scaleWidth(95) }}
+                  className="rounded-full"
+                  source={
+                    data?.picture
+                      ? { uri: ensureHttps(data?.picture) }
+                      : IMAGES.KidProfilePlaceholder
+                  }
+                />
+              )}
+              {isLoading ? (
+                <Skeleton className="w-2/3 rounded-full mb-2 mt-4" />
+              ) : (
+                <Text className="text-[20px] font-sansSemiBold mb-2 mt-4">
+                  {data?.firstName} {data?.lastName}
+                </Text>
+              )}
 
               <View className="bg-[#DBEFDC] rounded-full py-1.5 px-4 mt-2">
                 <Text className="text-[16px] text-[#3F9243] font-sansMedium">
-                  Parent/ Teacher
+                  Parent / Teacher
                 </Text>
               </View>
-              <Text className=" text-[#474348] mt-2 text-[16px] font-sansMedium mb-2">
-                {data?.email}
-              </Text>
-              {data?.phoneNumber && (
+              {isLoading ? (
+                <Skeleton className="w-2/3 mt-2 mb-2" />
+              ) : (
                 <Text className=" text-[#474348] mt-2 text-[16px] font-sansMedium mb-2">
-                  {data?.phoneNumber}
+                  {data?.email}
                 </Text>
               )}
+              {isLoading ? (
+                <Skeleton className="w-1/2 mt-2 mb-2" />
+              ) : (
+                <>
+                  {data?.phoneNumber && (
+                    <Text className=" text-[#474348] mt-2 text-[16px] font-sansMedium mb-2">
+                      {data?.phoneNumber}
+                    </Text>
+                  )}
+                </>
+              )}
             </View>
-            <Button
-              onPress={() => setOpenEdit(true)}
-              className="gap-2.5 bg-white border-2 border-[#D3D2D3] mt-6"
-            >
-              <ICONS.Pencil />
-              <Text className="text-dark font-sansMedium text-[16px]">
-                EDIT PROFILE
-              </Text>
-            </Button>
+            {isLoading ? (
+              <Skeleton className="h-[48px] rounded-full mt-6" />
+            ) : (
+              <Button
+                onPress={() => setOpenEdit(true)}
+                className="gap-2.5 bg-white border-2 border-[#D3D2D3] mt-6"
+              >
+                <ICONS.Pencil />
+                <Text className="text-dark font-sansMedium text-[16px]">
+                  EDIT PROFILE
+                </Text>
+              </Button>
+            )}
           </View>
 
           <View className="bg-white rounded-[16px] py-6 px-5 mt-4">
@@ -84,9 +108,13 @@ const Profile = () => {
               <Text className="text-[16px] font-sansMedium text-[#265828]">
                 Child Profiles Created
               </Text>
-              <Text className="text-[16px] font-sansMedium text-dark mt-5">
-                {data?.totalKids}
-              </Text>
+              {isLoading ? (
+                <Skeleton className="w-10 mt-5" />
+              ) : (
+                <Text className="text-[16px] font-sansMedium text-dark mt-5">
+                  {data?.totalKids}
+                </Text>
+              )}
             </View>
             <View className="bg-[#D5B3001A] p-5 rounded-[12px] mb-4">
               <View className="w-11 h-11 bg-[#D5B300] rounded-full items-center justify-center mb-4">
@@ -95,9 +123,13 @@ const Profile = () => {
               <Text className="text-[16px] font-sansMedium text-[#806C00]">
                 Active Tracks
               </Text>
-              <Text className="text-[16px] font-sansMedium text-dark mt-5">
-                {data?.activeTrackCount}
-              </Text>
+              {isLoading ? (
+                <Skeleton className="w-10 mt-5" />
+              ) : (
+                <Text className="text-[16px] font-sansMedium text-dark mt-5">
+                  {data?.activeTrackCount}
+                </Text>
+              )}
             </View>
             <View className="bg-[#1671D91A] p-5 rounded-[12px] ">
               <View className="w-11 h-11 bg-[#1671D9] rounded-full items-center justify-center mb-4">
@@ -106,9 +138,13 @@ const Profile = () => {
               <Text className="text-[16px] font-sansMedium text-[#00274D]">
                 Date Joined
               </Text>
-              <Text className="text-[16px] font-sansMedium text-dark mt-5">
-                {formatDate(data?.createdAt || "")}
-              </Text>
+              {isLoading ? (
+                <Skeleton className="w-10 mt-5" />
+              ) : (
+                <Text className="text-[16px] font-sansMedium text-dark mt-5">
+                  {formatDate(data?.createdAt || "")}
+                </Text>
+              )}
             </View>
           </View>
         </View>

@@ -2,9 +2,12 @@ import { getSeriesVolume } from "@/actions/curriculum";
 import { ICONS } from "@/assets/icons";
 import CheckDropdown from "@/components/CheckDropdown";
 import Container from "@/components/Container";
-import SeriesOverviewCard from "@/components/Curriculum/SeriesOverviewCard";
+import SeriesOverviewCard, {
+  SeriesOverviewCardSkeleton,
+} from "@/components/Curriculum/SeriesOverviewCard";
 import { SimpleInput } from "@/components/Input";
 import ProgressBar from "@/components/ProgressBar";
+import Skeleton from "@/components/Skeleton";
 import TopBackButton from "@/components/TopBackButton";
 import { VolumeStat } from "@/types";
 import { scaleHeight } from "@/utils/scale";
@@ -21,42 +24,37 @@ const CurriculumSeriesOverview = () => {
   const [openStatus, setOpenStatus] = useState(false);
   const [openSort, setOpenSort] = useState(false);
   const [volumeData, setVolumeData] = useState<VolumeStat[]>([]);
-  const { data } = useQuery({
+  const { data, isLoading } = useQuery({
     queryKey: ["series-volume", params?.id],
     queryFn: async () => {
       return await getSeriesVolume(params?.id as string);
     },
   });
 
-useEffect(() => {
-  if (!data?.volumeStats) return;
+  useEffect(() => {
+    if (!data?.volumeStats) return;
 
-  let result = [...data.volumeStats];
+    let result = [...data.volumeStats];
 
-  if (search?.trim()) {
-    const query = search.toLowerCase();
-    result = result.filter((v) =>
-      v.title?.toLowerCase().includes(query),
-    );
-  }
+    if (search?.trim()) {
+      const query = search.toLowerCase();
+      result = result.filter((v) => v.title?.toLowerCase().includes(query));
+    }
 
-  if (status === "Assigned") {
-    result = result.filter((v) => v.assignedCount > 0);
-  }
+    if (status === "Assigned") {
+      result = result.filter((v) => v.assignedCount > 0);
+    }
 
-  if (status === "Unassigned") {
-    result = result.filter((v) => v.assignedCount < 1);
-  }
+    if (status === "Unassigned") {
+      result = result.filter((v) => v.assignedCount < 1);
+    }
 
-  if (sort === "A-Z") {
-    result.sort((a, b) =>
-      a.title.localeCompare(b.title),
-    );
-  }
+    if (sort === "A-Z") {
+      result.sort((a, b) => a.title.localeCompare(b.title));
+    }
 
-  setVolumeData(result);
-}, [data, search, status, sort]);
-
+    setVolumeData(result);
+  }, [data, search, status, sort]);
 
   return (
     <Container scrollable>
@@ -158,14 +156,33 @@ useEffect(() => {
               }}
               fill={"#FFDE2A"}
             />
-            <ProgressBar percent={30} height={18} />
-            <Text className="font-sansSemiBold text-white text-[16px] mt-4 mb-8">
-              {data?.assignedVolumes} of {data?.totalVolumes} Series Assigned
-            </Text>
+            {isLoading ? (
+              <Skeleton className="rounded-full w-full" />
+            ) : (
+              <ProgressBar percent={30} height={18} />
+            )}
+            {isLoading ? (
+              <Skeleton className="rounded-full w-1/2 mt-4 mb-8" />
+            ) : (
+              <Text className="font-sansSemiBold text-white text-[16px] mt-4 mb-8">
+                {data?.assignedVolumes} of {data?.totalVolumes} Series Assigned
+              </Text>
+            )}
 
-            {volumeData?.map((s) => (
-              <SeriesOverviewCard key={s.index} {...s} />
-            ))}
+            {isLoading && (
+              <>
+                {[1, 2, 3]?.map((s) => (
+                  <SeriesOverviewCardSkeleton key={s} />
+                ))}
+              </>
+            )}
+            {!isLoading && (
+              <>
+                {volumeData?.map((s) => (
+                  <SeriesOverviewCard key={s.index} {...s} />
+                ))}
+              </>
+            )}
           </View>
         </View>
       </TouchableWithoutFeedback>
