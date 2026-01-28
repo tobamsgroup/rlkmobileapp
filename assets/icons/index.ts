@@ -51,8 +51,10 @@ import User from "./User";
 import Video from "./Video";
 import Calendar2 from "./Calendar2";
 import AwardStar from "./AwardStar";
+import Cloud3 from "./Cloud3";
 
 export const ICONS = {
+  Cloud3,
   AwardStar,
   Calendar2,
   Call,

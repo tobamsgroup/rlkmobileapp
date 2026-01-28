@@ -23,9 +23,19 @@ const Superkid = require("./superkid.jpg")
 const BookStack = require("./BookStack.png")
 const LearnerPlaceholder = require("./LearnerPlaceholder.png")
 const Clipboard = require("./clipboard.png")
+const EmojiTired = require("./EmojiTired.png")
+const EmojiConfident = require("./EmojiConfident.png")
+const EmojiAnxious = require("./EmojiAnxious.png")
+const EmojiCurious = require("./EmojiCurious.png")
+const Cloud = require("./Cloud.png")
 
 
 export const IMAGES = {
+  Cloud,
+  EmojiAnxious,
+  EmojiConfident,
+  EmojiCurious,
+  EmojiTired,
   LearnerPlaceholder,
   Clipboard,
   BookStack,

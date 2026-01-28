@@ -9,11 +9,14 @@ import { useFonts } from "expo-font";
 import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import "react-native-reanimated";
 import Toast, { ToastConfig } from "react-native-toast-message";
 import { Provider } from "react-redux";
 import "./global.css";
+import { registerForPushNotificationsAsync } from "@/notification";
+import { Platform } from "react-native";
+import * as Notifications from 'expo-notifications';
 
 SplashScreen.preventAutoHideAsync();
 export const queryClient = new QueryClient();
@@ -23,7 +26,17 @@ const toastConfig: ToastConfig = {
   error: (props) => <ToastAlert type="error" text={props?.text1} />,
 };
 
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({
+    shouldPlaySound: false,
+    shouldSetBadge: false,
+    shouldShowBanner: true,
+    shouldShowList: true,
+  }),
+});
+
 function AppContent() {
+   const [expoPushToken, setExpoPushToken] = useState('');
   const [loaded, error] = useFonts({
     "Sans-Black": require("../assets/fonts/WorkSans-Black.ttf"),
     "Sans-Bold": require("../assets/fonts/WorkSans-Bold.ttf"),
@@ -34,6 +47,26 @@ function AppContent() {
 
   const isLoggedIn = useAppSelector((state) => state.auth.isLoggedIn);
   const dispatch = useAppDispatch();
+
+    useEffect(() => {
+    registerForPushNotificationsAsync().then(token => token && setExpoPushToken(token));
+
+    // if (Platform.OS === 'android') {
+    //   Notifications.getNotificationChannelsAsync().then(value => setChannels(value ?? []));
+    // }
+    // const notificationListener = Notifications.addNotificationReceivedListener(notification => {
+    //   setNotification(notification);
+    // });
+
+    const responseListener = Notifications.addNotificationResponseReceivedListener(response => {
+      console.log(response);
+    });
+
+    return () => {
+      // notificationListener.remove();
+      responseListener.remove();
+    };
+  }, []);
 
   useEffect(() => {
     const restoreSession = async () => {
@@ -56,6 +89,8 @@ function AppContent() {
   if (!loaded && !error) {
     return null;
   }
+
+  console.log({expoPushToken})
 
   return (
     <>

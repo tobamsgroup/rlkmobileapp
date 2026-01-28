@@ -1,11 +1,13 @@
+import Button from '@/components/Button'
 import Container from '@/components/Container'
+import { router } from 'expo-router'
 import React from 'react'
 import { Text } from 'react-native'
 
 const HomeKid = () => {
   return (
  <Container>
-    <Text>Hello</Text>
+   <Button onPress={() => router.push('/kid/Mood')} text='Go Mood'/>
  </Container>
   )
 }
