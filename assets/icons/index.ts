@@ -52,8 +52,14 @@ import Video from "./Video";
 import Calendar2 from "./Calendar2";
 import AwardStar from "./AwardStar";
 import Cloud3 from "./Cloud3";
+import RecordVoice from "./RecordVoice";
+import Web from "./Web";
+import Play from "./Play";
 
 export const ICONS = {
+  Play,
+  RecordVoice,
+  Web,
   Cloud3,
   AwardStar,
   Calendar2,

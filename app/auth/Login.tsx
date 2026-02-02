@@ -1,3 +1,4 @@
+import { attachTokenOnLogin } from "@/actions";
 import { ICONS } from "@/assets/icons";
 import { IMAGES } from "@/assets/images";
 import Button from "@/components/Button";
@@ -83,6 +84,7 @@ const Login = () => {
       if (profile === "kid") {
         router.navigate("/kid/AvatarSelection");
       }
+       attachTokenOnLogin().catch(console.log);
     } catch (error: any) {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
       if (error?.response?.data?.statusCode === 401) {

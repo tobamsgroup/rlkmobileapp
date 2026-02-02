@@ -28,9 +28,32 @@ const EmojiConfident = require("./EmojiConfident.png")
 const EmojiAnxious = require("./EmojiAnxious.png")
 const EmojiCurious = require("./EmojiCurious.png")
 const Cloud = require("./Cloud.png")
+const AccentAdultFemale = require("./accent-adult-female.png")
+const AccentAdultMale = require("./accent-adult-male.png")
+const AccentKidFemale = require("./accent-kid-female.png")
+const AccentKidMale = require("./accent-kid-male.png")
+const RectangleOverlay = require("./rectangle-overlay.png")
+const FlagAU = require("./flag-au.png")
+const FlagGB = require("./flag-gb.png")
+const FlagIND = require("./flag-india.png")
+const FlagSA = require("./flag-sa.png")
+const FlagNG = require("./flag-ng.jpg")
+const FlagUSA = require("./flag-usa.jpg")
+
 
 
 export const IMAGES = {
+  AccentAdultFemale,
+  AccentAdultMale,
+  AccentKidFemale,
+  AccentKidMale,
+  RectangleOverlay,
+  FlagAU,
+  FlagGB,
+  FlagIND,
+  FlagNG,
+  FlagSA,
+  FlagUSA,
   Cloud,
   EmojiAnxious,
   EmojiConfident,

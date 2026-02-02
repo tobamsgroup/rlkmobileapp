@@ -1,11 +1,15 @@
+import { savePushToken } from "@/actions";
 import ToastAlert from "@/components/ToastAlert";
 import { SoundProvider } from "@/context/SoundContext";
 import { useAppDispatch, useAppSelector } from "@/hooks/redux";
 import { getData } from "@/lib/storage";
+import { registerForPushNotificationsAsync } from "@/notification";
 import { login, logout } from "@/redux/authSlice";
 import store from "@/redux/store";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useFonts } from "expo-font";
+import * as Notifications from "expo-notifications";
 import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
@@ -14,9 +18,8 @@ import "react-native-reanimated";
 import Toast, { ToastConfig } from "react-native-toast-message";
 import { Provider } from "react-redux";
 import "./global.css";
-import { registerForPushNotificationsAsync } from "@/notification";
 import { Platform } from "react-native";
-import * as Notifications from 'expo-notifications';
+import { getDeviceId } from "@/utils";
 
 SplashScreen.preventAutoHideAsync();
 export const queryClient = new QueryClient();
@@ -28,15 +31,14 @@ const toastConfig: ToastConfig = {
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
-    shouldPlaySound: false,
-    shouldSetBadge: false,
+    shouldPlaySound: true,
+    shouldSetBadge: true,
     shouldShowBanner: true,
     shouldShowList: true,
   }),
 });
 
 function AppContent() {
-   const [expoPushToken, setExpoPushToken] = useState('');
   const [loaded, error] = useFonts({
     "Sans-Black": require("../assets/fonts/WorkSans-Black.ttf"),
     "Sans-Bold": require("../assets/fonts/WorkSans-Bold.ttf"),
@@ -47,26 +49,6 @@ function AppContent() {
 
   const isLoggedIn = useAppSelector((state) => state.auth.isLoggedIn);
   const dispatch = useAppDispatch();
-
-    useEffect(() => {
-    registerForPushNotificationsAsync().then(token => token && setExpoPushToken(token));
-
-    // if (Platform.OS === 'android') {
-    //   Notifications.getNotificationChannelsAsync().then(value => setChannels(value ?? []));
-    // }
-    // const notificationListener = Notifications.addNotificationReceivedListener(notification => {
-    //   setNotification(notification);
-    // });
-
-    const responseListener = Notifications.addNotificationResponseReceivedListener(response => {
-      console.log(response);
-    });
-
-    return () => {
-      // notificationListener.remove();
-      responseListener.remove();
-    };
-  }, []);
 
   useEffect(() => {
     const restoreSession = async () => {
@@ -89,8 +71,6 @@ function AppContent() {
   if (!loaded && !error) {
     return null;
   }
-
-  console.log({expoPushToken})
 
   return (
     <>
@@ -121,6 +101,47 @@ function AppContent() {
 }
 
 export default function RootLayout() {
+  const [expoPushToken, setExpoPushToken] = useState("");
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const registerAndSaveToken = async () => {
+      try {
+        const token = await registerForPushNotificationsAsync();
+        if (!token || !isMounted) return;
+        const storedToken = await AsyncStorage.getItem("PUSH_TOKEN");
+        if (storedToken === token) return;
+        const deviceId = await getDeviceId()
+        if(!deviceId) return
+        await savePushToken({ token, deviceType:Platform.OS, deviceId });
+        await AsyncStorage.setItem("PUSH_TOKEN", token);
+      } catch (error) {
+        console.error("Failed to register/save push token", error);
+      }
+    };
+
+    registerAndSaveToken();
+
+    const notificationListener = Notifications.addNotificationReceivedListener(
+      (notification) => {
+        console.log({ notification });
+      },
+    );
+
+    const responseListener =
+      Notifications.addNotificationResponseReceivedListener((response) => {
+        console.log(response);
+      });
+
+    return () => {
+      isMounted = false;
+      notificationListener.remove();
+      responseListener.remove();
+    };
+  }, []);
+  console.log({ expoPushToken });
+
   return (
     <QueryClientProvider client={queryClient}>
       <SoundProvider>

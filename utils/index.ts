@@ -1,5 +1,7 @@
 import { KidCourseWithPopulatedKid } from "@/actions/curriculum";
 import { format, formatDistanceToNowStrict } from "date-fns";
+import * as Application from "expo-application";
+import { Platform } from "react-native";
 
 
 export function ensureHttps(url: string): string {
@@ -98,3 +100,13 @@ export function shuffleArray<T>(array?: T[]): T[] {
   if (!array) return [];
   return array.sort(() => Math.random() - 0.5);
 }
+
+
+
+export const getDeviceId = async () => {
+  if (Platform.OS === "android") {
+    return Application.getAndroidId();
+  }
+
+  return await Application.getIosIdForVendorAsync();
+};

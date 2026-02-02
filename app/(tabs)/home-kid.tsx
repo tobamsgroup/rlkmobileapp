@@ -7,7 +7,7 @@ import { Text } from 'react-native'
 const HomeKid = () => {
   return (
  <Container>
-   <Button onPress={() => router.push('/kid/Mood')} text='Go Mood'/>
+   <Button onPress={() => router.push('/kid/AccentSelection')} text='Go Mood'/>
  </Container>
   )
 }

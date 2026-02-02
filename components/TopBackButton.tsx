@@ -4,10 +4,14 @@ import { router } from "expo-router";
 import React from "react";
 import { Pressable } from "react-native";
 
-const TopBackButton = () => {
+const TopBackButton = ({
+  onPress = () => router.back(),
+}: {
+  onPress?: () => void;
+}) => {
   return (
     <Pressable
-      onPress={() => router.back()}
+      onPress={onPress}
       style={{
         width: scaleWidth(32),
         height: scaleWidth(32),

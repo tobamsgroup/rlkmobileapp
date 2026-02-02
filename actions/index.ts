@@ -1,4 +1,5 @@
 import axios from "@/lib/axios";
+import { getDeviceId } from "@/utils";
 
 interface TeacherSignupProps {
   email: string;
@@ -47,10 +48,22 @@ export const kidForgotPassword = async (username: string) => {
 };
 
 export const parentResetPassword = async (
-  payload: ParentResetPasswordProps
+  payload: ParentResetPasswordProps,
 ) => {
   const res = await axios.post("/auth/reset-password", payload);
   return res;
 };
 
+export const attachTokenOnLogin = async () => {
+  const deviceId = await getDeviceId();
+  if (!deviceId) return;
+  await axios.put("/push-tokens/attach-user", { deviceId });
+};
 
+export const savePushToken = async (payload: {
+  token: string;
+  deviceType?: string;
+  deviceId: string;
+}) => {
+  await axios.post("/push-tokens", payload);
+};
