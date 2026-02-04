@@ -6,6 +6,7 @@ import CreateChildProfile from "@/components/Home/CreateChildProfile";
 import { SimpleInput } from "@/components/Input";
 import LearnerCard, {
   LearnerCardSkeleton,
+  NoLearnersFound,
 } from "@/components/Learners/LearnersCard";
 import { IGuardianKids } from "@/types";
 import { scaleHeight, scaleWidth } from "@/utils/scale";
@@ -40,7 +41,7 @@ export default function Learners() {
   }, [data, search]);
 
   return (
-    <SafeAreaView style={{ backgroundColor: "#DBEFDC", flex: 1 }}>
+    <SafeAreaView edges={['top']} style={{ backgroundColor: "#DBEFDC", flex: 1 }}>
       {!isLoading && !!!data?.length && (
         <View className="items-center px-12 justify-center flex-1 relative">
           <Image
@@ -104,12 +105,12 @@ export default function Learners() {
                 value={search}
                 handleChange={setSearch}
               />
-              <Text className="text-dark font-sansMedium mt-3 text-[16px] mb-6">
+             {!!filteredData?.length && <Text className="text-dark font-sansMedium mt-3 text-[16px] mb-6">
                 Total Kids: {filteredData?.length || 0}
-              </Text>
+              </Text>}
             </>
           }
-          ListEmptyComponent={isLoading ? <LearnerCardSkeleton /> : null}
+          ListEmptyComponent={isLoading ? <LearnerCardSkeleton /> : <NoLearnersFound/>}
           data={filteredData}
           renderItem={({ item }) => <LearnerCard {...item} />}
           className="flex-1 mt-6 px-6 py-5"

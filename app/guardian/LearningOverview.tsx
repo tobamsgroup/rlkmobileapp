@@ -121,7 +121,7 @@ const LearningOverview = () => {
               <Text className="flex-shrink-0 text-[20px] font-sansSemiBold text-dark">
                 {data?.thisWeek?.lastLogin
                   ? formatDateSlash(data?.thisWeek?.lastLogin)
-                  : "Not Logged In Yet"}
+                  : "-"}
               </Text>
               <View className="w-12 h-12 rounded-full bg-[#FFF7CC] items-center justify-center">
                 <ICONS.Clock />
@@ -132,7 +132,7 @@ const LearningOverview = () => {
             <Text className="text-[#474348] font-sans">Lessons Completed</Text>
             <View className="mt-3 flex-row items-center justify-between gap-5">
               <Text className="flex-shrink-0 text-[20px] font-sansSemiBold text-dark">
-                {data?.thisWeek.lessonsCompleted}
+                {data?.thisWeek.lessonsCompleted || "-"}
               </Text>
               <View className="w-12 h-12 rounded-full bg-[#0991371A] items-center justify-center">
                 <ICONS.Check stroke={"#099137"} />
@@ -143,7 +143,7 @@ const LearningOverview = () => {
             <Text className="text-[#474348] font-sans">Quiz Passed</Text>
             <View className="mt-3 flex-row items-center justify-between gap-5">
               <Text className="flex-shrink-0 text-[20px] font-sansSemiBold text-dark">
-                {data?.thisWeek.assignmentsPassed}
+                {data?.thisWeek.assignmentsPassed !== "0/0" ? data?.thisWeek.assignmentsPassed : '-'}
               </Text>
               <View className="w-12 h-12 rounded-full bg-[#1671D91A] items-center justify-center">
                 <ICONS.Check stroke={"#004D99"} />
@@ -154,7 +154,7 @@ const LearningOverview = () => {
             <Text className="text-[#474348] font-sans">Total Time Spent</Text>
             <View className="mt-3 flex-row items-center justify-between gap-5">
               <Text className="flex-shrink-0 text-[20px] font-sansSemiBold text-dark">
-                {data?.thisWeek.totalTimeSpent}
+                {data?.thisWeek.totalTimeSpent === "0m" ? '-' : data?.thisWeek.totalTimeSpent}
               </Text>
               <View className="w-12 h-12 rounded-full bg-[#C821DE1A] items-center justify-center">
                 <ICONS.Clock stroke={"#004D99"} />

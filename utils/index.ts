@@ -110,3 +110,12 @@ export const getDeviceId = async () => {
 
   return await Application.getIosIdForVendorAsync();
 };
+
+
+export function maskEmail(email?: string): string {
+  if(!email) return ""
+  if (!email || !email.includes("@")) return email;
+
+  const [, domain] = email.split("@");
+  return `***@${domain}`;
+}

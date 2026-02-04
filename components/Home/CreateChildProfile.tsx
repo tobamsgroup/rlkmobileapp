@@ -34,6 +34,9 @@ export const childProfileSchema = z.object({
   preferredLearningTopics: z
     .string()
     .min(1, "Preferred learning topics is required"),
+  gender: z
+    .string()
+    .min(1, "Please select a gender"),
   password: z.string().min(8, "Password must be at least 8 characters long"),
 });
 
@@ -62,6 +65,7 @@ const CreateChildProfile = ({
       age: undefined,
       preferredLearningTopics: "",
       password: "",
+      gender:""
     },
   });
 
@@ -75,6 +79,7 @@ const CreateChildProfile = ({
       invalidateQueries("guardian-kids");
       invalidateQueries("kids");
       invalidateQueries("learning-overview");
+      invalidateQueries("guardian")
       HAPTIC.success();
       onClose();
       showToast("success", "Child Added Successfully");
@@ -141,6 +146,17 @@ const CreateChildProfile = ({
                 error={errors.age?.message}
                 name="age"
                 label="Age"
+              />
+              <Select
+                error={errors?.gender?.message}
+                wrapperClassname="mb-6"
+                label="Gender"
+                options={[
+                  "Male",
+                  "Female"
+                ]}
+                value={getValues("gender")}
+                onChange={(text) => setValue("gender", text)}
               />
               <Select
                 error={errors?.preferredLearningTopics?.message}

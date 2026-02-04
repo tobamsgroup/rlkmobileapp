@@ -43,7 +43,7 @@ export default function More() {
             width: scaleWidth(130),
             height: scaleWidth(130),
             top: scaleHeight(256) - 75,
-            left: SCREEN_WIDTH / 2 - 81,
+            left: SCREEN_WIDTH / 2 - 65,
           }}
           source={
             data?.picture
@@ -60,13 +60,13 @@ export default function More() {
         Account
       </Text>
       <View
-        style={{ marginTop: scaleHeight(100) }}
+        style={{ marginTop: scaleHeight(80) }}
         className="items-center px-6 flex-1 pb-6"
       >
         {isLoading ? (
           <Skeleton className="w-1/2 rounded-full" />
         ) : (
-          <Text className="text-[20px] font-sansSemiBold text-dark">
+          <Text numberOfLines={3} className="text-[20px] font-sansSemiBold text-center text-dark">
             Hi, {data?.firstName || "There"}
           </Text>
         )}
@@ -126,15 +126,4 @@ export default function More() {
   );
 }
 
-const styles = StyleSheet.create({
-  headerImage: {
-    color: "#808080",
-    bottom: -90,
-    left: -35,
-    position: "absolute",
-  },
-  titleContainer: {
-    flexDirection: "row",
-    gap: 8,
-  },
-});
+

@@ -140,7 +140,6 @@ export default function RootLayout() {
       responseListener.remove();
     };
   }, []);
-  console.log({ expoPushToken });
 
   return (
     <QueryClientProvider client={queryClient}>

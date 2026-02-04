@@ -1,3 +1,4 @@
+import { getAllNotifications } from "@/actions/notification";
 import { ICONS } from "@/assets/icons";
 import { IMAGES } from "@/assets/images";
 import Container from "@/components/Container";
@@ -9,216 +10,252 @@ import Skeleton from "@/components/Skeleton";
 import useGuardian from "@/hooks/useGuardianProfile";
 import { ensureHttps } from "@/utils";
 import { scaleWidth } from "@/utils/scale";
+import { useQuery } from "@tanstack/react-query";
 import { router } from "expo-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Image, Pressable, Text, View } from "react-native";
 
 export default function HomeScreen() {
   const [openModal, setOpenModal] = useState(false);
   const { data, isLoading } = useGuardian();
+  const [hasUnread, setHasUnread] = useState(false);
+  const { data: notifications } = useQuery({
+    queryKey: ["notifications"],
+    queryFn: async () => {
+      return await getAllNotifications();
+    },
+  });
+
+  useEffect(() => {
+    if (!notifications) return;
+    const unreadCount = notifications.filter((n) => !n.isRead);
+    setHasUnread(unreadCount?.length > 0);
+  }, [notifications]);
   return (
-    <Container edges={["top"]} scrollable backgroundColor="#DBEFDC">
-      <View className="flex-1 px-6 py-5 relative z-10">
-        <View className="flex-row gap-2 items-center">
-          {isLoading ? (
-            <Skeleton
-              style={{
-                height: scaleWidth(48),
-                width: scaleWidth(48),
-                borderRadius: 100,
-              }}
-            />
-          ) : (
-            <View
-              className="border border-[#3F9243]"
-              style={{
-                height: scaleWidth(48),
-                width: scaleWidth(48),
-                borderRadius: 100,
-              }}
-            >
-              <Image
-                source={
-                  data?.picture
-                    ? { uri: ensureHttps(data?.picture) }
-                    : IMAGES.KidProfilePlaceholder
-                }
-                className="w-full h-full rounded-full"
-              />
-            </View>
-          )}
-
-          <View className="flex-1">
-            <Text className="text-[16px] font-sansSemiBold text-[#474348] leading-[1.5]">
-              Welcome back 👋
-            </Text>
+    <>
+      <Container edges={["top"]} scrollable backgroundColor="#DBEFDC">
+        <View className="flex-1 px-6 py-5 relative z-10">
+          <View className="flex-row gap-2 items-center">
             {isLoading ? (
-              <Skeleton className="rounded-full w-2/3" />
+              <Skeleton
+                style={{
+                  height: scaleWidth(48),
+                  width: scaleWidth(48),
+                  borderRadius: 100,
+                }}
+              />
             ) : (
-              <Text
-                numberOfLines={1}
-                className="text-[#221D23] text-[16px] font-sansSemiBold leading-[1.5]"
+              <View
+                className="border border-[#3F9243]"
+                style={{
+                  height: scaleWidth(48),
+                  width: scaleWidth(48),
+                  borderRadius: 100,
+                }}
               >
-                {data?.firstName}
-              </Text>
-            )}
-          </View>
-          <Pressable
-            onPress={() => router.push("/notifications")}
-            style={{
-              height: scaleWidth(44),
-              width: scaleWidth(44),
-            }}
-            className="rounded-[100px] bg-white items-center justify-center"
-          >
-            <ICONS.Notifications width={20} height={20} fill={"#4CAF50"} />
-          </Pressable>
-        </View>
-
-        <View className="mt-7 bg-white px-4 py-3 rounded-bl-[16px] rounded-tr-[16px] rounded-[4px] border border-[#4CAF50]">
-          <Text className="font-sansMedium text-[14px] leading-[1.5] text-[#221D23]">
-            Let’s check in on the learners you’re{"\n"}guiding today.
-          </Text>
-        </View>
-
-        <View className=" mt-7 rounded-[16px] bg-[#3F9243] py-4 px-3 flex-row justify-around items-center">
-          <View className="items-center gap-2">
-            <View
-              style={{
-                height: scaleWidth(48),
-                width: scaleWidth(48),
-              }}
-              className=" bg-[#D3D2D333] rounded-full items-center justify-center"
-            >
-              <ICONS.ChildCare
-                width={scaleWidth(24)}
-                height={scaleWidth(24)}
-                fill={"#FFFFFF"}
-              />
-            </View>
-            {isLoading ? (
-              <Skeleton className="w-20 rounded-full" />
-            ) : (
-              <Text className="text-[16px] text-white font-sansBold">
-                {data?.totalKids || 0}
-              </Text>
+                <Image
+                  source={
+                    data?.picture
+                      ? { uri: ensureHttps(data?.picture) }
+                      : IMAGES.KidProfilePlaceholder
+                  }
+                  className="w-full h-full rounded-full"
+                />
+              </View>
             )}
 
-            <Text className="text-[14px] text-white font-sansMedium">
-              Learners
-            </Text>
-          </View>
-          <View className="items-center gap-2">
-            <View
-              style={{
-                height: scaleWidth(48),
-                width: scaleWidth(48),
-              }}
-              className="w-12 h-12 bg-[#D3D2D333] rounded-full items-center justify-center"
-            >
-              <ICONS.Curriculum
-                width={scaleWidth(24)}
-                height={scaleWidth(24)}
-                fill={"#FFFFFF"}
-              />
-            </View>
-            {isLoading ? (
-              <Skeleton className="w-20 rounded-full" />
-            ) : (
-              <Text className="text-[16px] text-white font-sansBold">
-                {data?.activeTrackCount || 0}
+            <View className="flex-1">
+              <Text className="text-[16px] font-sansSemiBold text-[#474348] leading-[1.5]">
+                Welcome back 👋
               </Text>
-            )}
-            <Text className="text-[14px] text-white font-sansMedium">
-              Active Tracks
-            </Text>
-          </View>
-          <View className="items-center gap-2">
-            <View
-              style={{
-                height: scaleWidth(48),
-                width: scaleWidth(48),
-              }}
-              className="w-12 h-12 bg-[#D3D2D333] rounded-full items-center justify-center"
-            >
-              <ICONS.Activity
-                width={scaleWidth(24)}
-                height={scaleWidth(24)}
-                fill={"#FFFFFF"}
-              />
+              {isLoading ? (
+                <Skeleton className="rounded-full w-2/3" />
+              ) : (
+                <Text
+                  numberOfLines={1}
+                  className="text-[#221D23] text-[16px] font-sansSemiBold leading-[1.5]"
+                >
+                  {data?.firstName}
+                </Text>
+              )}
             </View>
-            {isLoading ? (
-              <Skeleton className="w-20 rounded-full" />
-            ) : (
-              <Text className="text-[16px] text-white font-sansBold">0</Text>
-            )}
-            <Text className="text-[14px] text-white font-sansMedium">
-              Activities
-            </Text>
-          </View>
-        </View>
-        <LearnersProgress onAddChild={() => setOpenModal(true)} />
-        <View className="bg-white rounded-[16px] p-5 mt-7">
-          <Text className="font-sansSemiBold text-[18px] text-dark mb-7">
-            Quick Actions
-          </Text>
-          <View className="border-2 border-[#1671D9] bg-[#1671D91A] rounded-[20px] p-4 flex-row gap-4">
-            <View
-              className="bg-white rounded-full items-center justify-center"
+            <Pressable
+              onPress={() => router.push("/notifications")}
               style={{
-                height: scaleWidth(48),
-                width: scaleWidth(48),
+                height: scaleWidth(44),
+                width: scaleWidth(44),
               }}
+              className="rounded-[100px] bg-white items-center justify-center"
             >
-              <ICONS.ChildCare
-                width={scaleWidth(32)}
-                height={scaleWidth(32)}
-                fill={"#1671D9"}
-              />
-            </View>
-            <Pressable onPress={() => setOpenModal(true)} className="flex-1">
-              <Text className="font-sansMedium text-[16px] text-dark leading-[1.5]">
-                Set Up New Child{"\n"}Profile
-              </Text>
-              <Text className="font-sans text-dark flex-shrink text-[14px] mt-2 leading-[1.5]">
-                Create a new profile to start a child's learning journey!
-              </Text>
+              <View className="relative">
+                <ICONS.Notifications width={20} height={20} fill={"#4CAF50"} />
+                {hasUnread && (
+                  <View className="w-3 border-2 border-white absolute right-[-2px] outline-none h-3 bg-[#DE2121] rounded-full" />
+                )}
+              </View>
             </Pressable>
           </View>
-          <Pressable
-            onPress={() => router.push("/(tabs)/curriculum")}
-            className="border-2 border-[#D5B300] bg-[#D5B3001A] rounded-[20px] p-4 flex-row gap-4 mt-7"
-          >
-            <View
-              className="bg-white rounded-full items-center justify-center"
-              style={{
-                height: scaleWidth(48),
-                width: scaleWidth(48),
-              }}
+
+          <View className="mt-7 bg-white px-4 py-3 rounded-bl-[16px] rounded-tr-[16px] rounded-[4px] border border-[#4CAF50]">
+            <Text className="font-sansMedium text-[14px] leading-[1.5] text-[#221D23]">
+              Let’s check in on the learners you’re{"\n"}guiding today.
+            </Text>
+          </View>
+
+          <View className=" mt-7 rounded-[16px] bg-[#3F9243] py-4 px-3 flex-row justify-around items-center">
+            <View className="items-center gap-2">
+              <View
+                style={{
+                  height: scaleWidth(48),
+                  width: scaleWidth(48),
+                }}
+                className=" bg-[#D3D2D333] rounded-full items-center justify-center"
+              >
+                <ICONS.ChildCare
+                  width={scaleWidth(24)}
+                  height={scaleWidth(24)}
+                  fill={"#FFFFFF"}
+                />
+              </View>
+              {isLoading ? (
+                <Skeleton className="w-20 rounded-full" />
+              ) : (
+                <Text className="text-[16px] text-white font-sansBold">
+                  {data?.totalKids || 0}
+                </Text>
+              )}
+
+              <Text className="text-[14px] text-white font-sansMedium">
+                Learners
+              </Text>
+            </View>
+            <View className="items-center gap-2">
+              <View
+                style={{
+                  height: scaleWidth(48),
+                  width: scaleWidth(48),
+                }}
+                className="w-12 h-12 bg-[#D3D2D333] rounded-full items-center justify-center"
+              >
+                <ICONS.Curriculum
+                  width={scaleWidth(24)}
+                  height={scaleWidth(24)}
+                  fill={"#FFFFFF"}
+                />
+              </View>
+              {isLoading ? (
+                <Skeleton className="w-20 rounded-full" />
+              ) : (
+                <Text className="text-[16px] text-white font-sansBold">
+                  {data?.activeTrackCount || 0}
+                </Text>
+              )}
+              <Text className="text-[14px] text-white font-sansMedium">
+                Active Tracks
+              </Text>
+            </View>
+            <View className="items-center gap-2">
+              <View
+                style={{
+                  height: scaleWidth(48),
+                  width: scaleWidth(48),
+                }}
+                className="w-12 h-12 bg-[#D3D2D333] rounded-full items-center justify-center"
+              >
+                <ICONS.Activity
+                  width={scaleWidth(24)}
+                  height={scaleWidth(24)}
+                  fill={"#FFFFFF"}
+                />
+              </View>
+              {isLoading ? (
+                <Skeleton className="w-20 rounded-full" />
+              ) : (
+                <Text className="text-[16px] text-white font-sansBold">0</Text>
+              )}
+              <Text className="text-[14px] text-white font-sansMedium">
+                Activities
+              </Text>
+            </View>
+          </View>
+          <LearnersProgress onAddChild={() => setOpenModal(true)} />
+          <View className="bg-white rounded-[16px] p-5 mt-7">
+            <Text className="font-sansSemiBold text-[18px] text-dark mb-7">
+              Quick Actions
+            </Text>
+            <View className="border-2 border-[#1671D9] bg-[#1671D91A] rounded-[20px] p-4 flex-row gap-4">
+              <View
+                className="bg-white rounded-full items-center justify-center"
+                style={{
+                  height: scaleWidth(48),
+                  width: scaleWidth(48),
+                }}
+              >
+                <ICONS.ChildCare
+                  width={scaleWidth(32)}
+                  height={scaleWidth(32)}
+                  fill={"#1671D9"}
+                />
+              </View>
+              <Pressable onPress={() => setOpenModal(true)} className="flex-1">
+                <Text className="font-sansMedium text-[16px] text-dark leading-[1.5]">
+                  Set Up New Child{"\n"}Profile
+                </Text>
+                <Text className="font-sans text-dark flex-shrink text-[14px] mt-2 leading-[1.5]">
+                  Create a new profile to start a child's learning journey!
+                </Text>
+              </Pressable>
+            </View>
+            <Pressable
+              onPress={() => router.push("/(tabs)/curriculum")}
+              className="border-2 border-[#D5B300] bg-[#D5B3001A] rounded-[20px] p-4 flex-row gap-4 mt-7"
             >
-              <ICONS.Curriculum
-                width={scaleWidth(32)}
-                height={scaleWidth(32)}
-                fill={"#D5B300"}
-              />
-            </View>
-            <View className="flex-1">
-              <Text className="font-sansMedium text-[16px] text-dark leading-[1.5]">
-                Assign New Course
-              </Text>
-              <Text className="font-sans text-dark flex-shrink text-[14px] mt-2 leading-[1.5]">
-                Pick a new course for a child to explore!
-              </Text>
-            </View>
-          </Pressable>
+              <View
+                className="bg-white rounded-full items-center justify-center"
+                style={{
+                  height: scaleWidth(48),
+                  width: scaleWidth(48),
+                }}
+              >
+                <ICONS.Curriculum
+                  width={scaleWidth(32)}
+                  height={scaleWidth(32)}
+                  fill={"#D5B300"}
+                />
+              </View>
+              <View className="flex-1">
+                <Text className="font-sansMedium text-[16px] text-dark leading-[1.5]">
+                  Assign New Course
+                </Text>
+                <Text className="font-sans text-dark flex-shrink text-[14px] mt-2 leading-[1.5]">
+                  Pick a new course for a child to explore!
+                </Text>
+              </View>
+            </Pressable>
+          </View>
+          <ActiveLearningTracks />
+          <RecommendedLearningTracks />
         </View>
-        <ActiveLearningTracks />
-        <RecommendedLearningTracks />
+
+      </Container>
         <CreateChildProfile
           open={openModal}
           onClose={() => setOpenModal(false)}
         />
-      </View>
-    </Container>
+      <Pressable
+        onPress={() => setOpenModal(true)}
+        style={{
+          position: "absolute",
+          bottom: 30,
+          right: 24,
+        }}
+        className="flex-row gap-2 items-center bg-[#3F9243] py-3 px-6 rounded-full z-50"
+      >
+        <ICONS.Add />
+        <Text className="text-white font-sansMedium text-[16px]">
+          ADD CHILD
+        </Text>
+      </Pressable>
+    </>
   );
 }

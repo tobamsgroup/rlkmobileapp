@@ -1,6 +1,7 @@
 import {
   assignKidsToCourse,
   getAllKids,
+  getKidAssignedToSeries,
   getVolume,
 } from "@/actions/curriculum";
 import { ICONS } from "@/assets/icons";
@@ -50,8 +51,26 @@ const AssignChild = () => {
     },
   });
 
+  const { data: assignedKids } = useQuery({
+    queryKey: ["assigned-kids", params?.id],
+    queryFn: async () => {
+      return await getKidAssignedToSeries(params?.id as string);
+    },
+  });
+
   const handlePress = async () => {
     if (step === 3) {
+      const assigned = getAlreadyAssignedKidNames(
+        selectedKids,
+        assignedKids?.[0]?.assignedKids!,
+      );
+
+      if (assigned?.length > 0) {
+        alert(
+          `${assigned.join(", ")} is already assigned to this series, Please remove them to continue!`,
+        );
+        return;
+      }
       await onSubmit();
       return;
     }
@@ -362,5 +381,14 @@ const AssignChild = () => {
     </Container>
   );
 };
+
+function getAlreadyAssignedKidNames(
+  selectedKids: { id: string; name: string }[],
+  assignedKidIds: string[],
+): string[] {
+  return selectedKids
+    .filter((kid) => assignedKidIds.includes(kid.id))
+    .map((kid) => kid.name);
+}
 
 export default AssignChild;

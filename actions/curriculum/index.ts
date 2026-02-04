@@ -25,6 +25,13 @@ type CourseAssignProps = {
   chapterIds: string[];
 };
 
+type SeriesAssignedKids = {
+  seriesId: string;      
+  seriesTitle: string;   
+  assignedKids: string[]; 
+}
+
+
 export const getCurriculumStats = cache(
   async (): Promise<CurriculumStats[]> => {
     const resp = await axios.get("/guardian/curriculum");
@@ -40,6 +47,12 @@ export const getRecentActivities = cache(async (): Promise<ActivityProps[]> => {
 export const getSeriesVolume = cache(
   async (seriesId: string): Promise<VolumeAssignmentStatsResponse> => {
     const resp = await axios.get(`/guardian/curriculum/${seriesId}/volumes`);
+    return resp?.data?.data;
+  },
+);
+export const getKidAssignedToSeries = cache(
+  async (seriesId: string): Promise<SeriesAssignedKids[]> => {
+    const resp = await axios.get(`/guardian/curriculum/${seriesId}/kids`);
     return resp?.data?.data;
   },
 );

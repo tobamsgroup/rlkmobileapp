@@ -6,6 +6,7 @@ import Container from "@/components/Container";
 import { SimpleInput } from "@/components/Input";
 import OtpInput from "@/components/OtpInput";
 import Stepper from "@/components/Stepper";
+import { maskEmail } from "@/utils";
 import { scaleWidth } from "@/utils/scale";
 import { showToast } from "@/utils/toast";
 import { router } from "expo-router";
@@ -217,7 +218,7 @@ const SignUp = () => {
                   Verify Your Account
                 </Text>
                 <Text className="text-center text-[16px] text-[#474348] font-sans leading-[1.5] mt-2 mb-8">
-                  We’ve sent a 6-digit code to your email address {email} Enter
+                  We’ve sent a 6-digit code to your email address {maskEmail(email)} Enter
                   the code below to password.
                 </Text>
                 <OtpInput onComplete={(otp) => setOtp(otp)} />

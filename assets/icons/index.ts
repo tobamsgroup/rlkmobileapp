@@ -54,9 +54,16 @@ import AwardStar from "./AwardStar";
 import Cloud3 from "./Cloud3";
 import RecordVoice from "./RecordVoice";
 import Web from "./Web";
-import Play from "./Play";
+import Play from "./Play"
+import Settings from "./Settings";
+import Lock from "./Lock";
+import Trophy from "./Trophy";
+
 
 export const ICONS = {
+  Lock,
+  Trophy,
+  Settings,
   Play,
   RecordVoice,
   Web,

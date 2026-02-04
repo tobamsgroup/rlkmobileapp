@@ -31,6 +31,8 @@ const CurriculumSeriesOverview = () => {
     },
   });
 
+  console.log({data})
+
   useEffect(() => {
     if (!data?.volumeStats) return;
 
@@ -159,7 +161,7 @@ const CurriculumSeriesOverview = () => {
             {isLoading ? (
               <Skeleton className="rounded-full w-full" />
             ) : (
-              <ProgressBar percent={30} height={18} />
+              <ProgressBar percent={((data?.assignedVolumes || 0) / (data?.totalVolumes || 1)) * 100} height={18} />
             )}
             {isLoading ? (
               <Skeleton className="rounded-full w-1/2 mt-4 mb-8" />

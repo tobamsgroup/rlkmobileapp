@@ -13,7 +13,7 @@ export type InputProps<T extends FieldValues> = {
   textarea?: boolean;
   label?: string;
   placeholder?: string;
-  type?: "text" | "number" | "password";
+  type?: "text" | "number" | "password" | "email-address";
   icon?: ReactNode;
   displayIcon?: ReactNode;
   optionalLabel?: string;
@@ -123,7 +123,7 @@ export const SimpleInput = <T extends FieldValues>({
         <TextInput
           multiline
           textAlignVertical="top"
-          className={`min-h-[155px] py-4 rounded-[4px] bg-transparent p-4 w-full border border-[#D3D2D3] text-[14px] lg:text-[16px] ${textareaClass}`}
+          className={`min-h-[155px] py-4 text-dark rounded-[4px] bg-transparent p-4 w-full border border-[#D3D2D3] text-[14px] lg:text-[16px] ${textareaClass}`}
           placeholder={placeholder}
           value={value ?? ""}
           onBlur={onBlur}
@@ -140,7 +140,7 @@ export const SimpleInput = <T extends FieldValues>({
             {displayIcon}
 
             <TextInput
-              className={`flex-1 bg-transparent font-sans text-[16px] text-mainText mr-2 ${className}`}
+              className={`flex-1 bg-transparent font-sans text-[16px] text-dark mr-2 ${className}`}
               placeholder={placeholder}
               placeholderTextColor={placeholderColor}
               value={value ?? ""}
@@ -157,7 +157,7 @@ export const SimpleInput = <T extends FieldValues>({
               className="absolute right-4"
               onPress={() => setShowPassword((prev) => !prev)}
             >
-              {showPassword ? <ICONS.EyeOpened/> : <ICONS.EyesClosed />}
+              {!showPassword ? <ICONS.EyeOpened/> : <ICONS.EyesClosed />}
             </Pressable>
           ) : (
             icon && <View>{icon}</View>

@@ -21,7 +21,6 @@ const AssignChildSuccess = () => {
     return { selectedKids, selectedModule };
   }, [params]);
 
-  console.log({ selectedKids, selectedModule });
   return (
     <View
       style={{
@@ -174,7 +173,7 @@ const AssignChildSuccess = () => {
               </View>
             </View>
           </View>
-          <Button className="mt-8" text="VIEW LEARNERS" />
+          <Button onPress={() => router.push('/(tabs)/learners')} className="mt-8" text="VIEW LEARNERS" />
           <Button
           onPress={() => router.push('/(tabs)/curriculum')}
             className="mt-4 bg-white"

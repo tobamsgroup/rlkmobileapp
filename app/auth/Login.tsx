@@ -88,7 +88,6 @@ const Login = () => {
     } catch (error: any) {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
       if (error?.response?.data?.statusCode === 401) {
-        showToast("error", "Incorrect Login Credentials");
         setIncorrectError(true);
       } else {
         showToast("error", "Please try again!");
@@ -143,6 +142,7 @@ const Login = () => {
             error={errors?.email?.message}
             name="email"
             label="Email Address"
+            type="email-address"
           />
         )}
         <Input

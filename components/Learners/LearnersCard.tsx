@@ -1,10 +1,11 @@
 import { IMAGES } from "@/assets/images";
 import { IGuardianKids } from "@/types";
 import { ensureHttps } from "@/utils";
-import { scaleWidth } from "@/utils/scale";
+import { scaleHeight, scaleWidth } from "@/utils/scale";
 import { router } from "expo-router";
 import React from "react";
 import { Image, Text, View } from "react-native";
+import { twMerge } from "tailwind-merge";
 import Button from "../Button";
 import Skeleton from "../Skeleton";
 
@@ -18,7 +19,10 @@ const LearnerCard = (props: IGuardianKids) => {
             ? { uri: ensureHttps(props?.picture) }
             : IMAGES.KidProfilePlaceholder
         }
-        className="mb-2 border-[1.4px] border-[#FFD700] rounded-full"
+        className={twMerge(
+          "mb-2 border-[#FFD700] rounded-full",
+          props?.picture && "border-[1.4px] ",
+        )}
       />
       <Text className="text-[#193A1B] font-sansMedium text-[16px] mb-5">
         {props?.name}
@@ -43,7 +47,7 @@ const LearnerCard = (props: IGuardianKids) => {
 };
 export const LearnerCardSkeleton = () => {
   return (
-    <View className="bg-[#FAFDFF] rounded-[20px] p-4 items-center mb-4">
+    <View className="bg-[#FAFDFF] rounded-[20px] p-4 items-center mb-4 mt-10">
       <Skeleton
         style={{ width: scaleWidth(81), height: scaleWidth(81) }}
         className=" rounded-full mb-5"
@@ -55,4 +59,25 @@ export const LearnerCardSkeleton = () => {
   );
 };
 
+export const NoLearnersFound = () => {
+  return (
+    <View className="flex items-center mt-10">
+      <Image
+        style={{
+          height: scaleHeight(70),
+          width: scaleWidth(100),
+        }}
+        source={IMAGES.SearchGlassCartoon}
+        className="mb-6"
+      />
+      <Text className="text-[18px] text-[#265828] font-sansSemiBold mb-4">
+        No Learner Found
+      </Text>
+      <Text className="text-center leading-[1.5] font-sans text-[#474348]">
+        We couldn’t find any learner with that {"\n"}name.{"\n"}Please check the
+        spelling or try {"\n"}searching for another learner
+      </Text>
+    </View>
+  );
+};
 export default LearnerCard;

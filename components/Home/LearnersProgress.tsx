@@ -9,6 +9,7 @@ import React, { useMemo, useRef, useState } from "react";
 import { FlatList, Image, Pressable, Text, View } from "react-native";
 import Button from "../Button";
 import Skeleton from "../Skeleton";
+import { twMerge } from "tailwind-merge";
 
 const LearnersProgress = ({ onAddChild }: { onAddChild: () => void }) => {
   const flatListRef = useRef<FlatList<GroupedByKid>>(null);
@@ -111,18 +112,7 @@ const LearnersProgress = ({ onAddChild }: { onAddChild: () => void }) => {
             textClassname="text-[16px]"
             text="VIEW ALL LEARNERS"
           />
-          <Pressable
-            onPress={onAddChild}
-            style={{
-              bottom: scaleHeight(134),
-            }}
-            className="flex-row self-end gap-2 items-center bg-[#3F9243] border-b-primary py-3 px-6 rounded-full absolute z-50"
-          >
-            <ICONS.Add />
-            <Text className="text-white font-sansMedium text-[16px]">
-              ADD CHILD
-            </Text>
-          </Pressable>
+        
         </>
       )}
 
@@ -186,7 +176,7 @@ const KidProgessCard = (props: GroupedByKid) => {
   return (
     <View className="relative">
       <View
-        className="border-2 border-[#FFD700] rounded-full bg-white absolute top-0 left-0 z-30"
+        className={twMerge("border-2 border-[#FFD700] rounded-full bg-white absolute top-0 left-0 z-30")}
         style={{
           height: scaleWidth(104),
           width: scaleWidth(104),

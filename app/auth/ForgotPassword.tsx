@@ -13,6 +13,7 @@ import CustomizedAlert from "@/components/CustomizedAlert";
 import { SimpleInput } from "@/components/Input";
 import OtpInput from "@/components/OtpInput";
 import Stepper from "@/components/Stepper";
+import { maskEmail } from "@/utils";
 import { scaleWidth } from "@/utils/scale";
 import { showToast } from "@/utils/toast";
 import { router, useLocalSearchParams } from "expo-router";
@@ -259,7 +260,7 @@ const ForgotPassword = () => {
               Enter OTP
             </Text>
             <Text className="text-center text-[16px] text-[#474348] font-sans leading-[1.5] mt-2 mb-8">
-              We’ve sent a 6-digit code to [user's email]. Please enter it below
+              We’ve sent a 6-digit code to {maskEmail(email)}. Please enter it below
               to reset your password.
             </Text>
             <OtpInput onComplete={(otp) => setOtp(otp)} />

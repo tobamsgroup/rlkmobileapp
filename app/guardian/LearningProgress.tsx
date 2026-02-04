@@ -27,6 +27,7 @@ import {
   View,
 } from "react-native";
 import { LineChart, PieChart } from "react-native-gifted-charts";
+import { twMerge } from "tailwind-merge";
 
 const LearningProgress = () => {
   const params = useLocalSearchParams();
@@ -123,7 +124,10 @@ const LearningProgress = () => {
                         ? { uri: data?.kid?.picture }
                         : IMAGES.KidProfilePlaceholder
                     }
-                    className="rounded-full border border-[#D5B300]"
+                    className={twMerge(
+                      "rounded-full border-[#D5B300]",
+                      data?.kid?.picture && "border",
+                    )}
                   />
                 )}
                 {isLoading ? (
@@ -157,7 +161,7 @@ const LearningProgress = () => {
                     }}
                     className="bg-white rounded-[12px] py-3 flex-row items-center justify-between relative"
                   >
-                    <View className="flex-row items-center gap-3">
+                    <View key={r?._id} className="flex-row items-center gap-3">
                       <Image
                         style={{
                           width: scaleWidth(36),
@@ -168,7 +172,10 @@ const LearningProgress = () => {
                             ? { uri: r?.picture }
                             : IMAGES.KidProfilePlaceholder
                         }
-                        className="rounded-full border border-[#D5B300]"
+                        className={twMerge(
+                          "rounded-full border-[#D5B300]",
+                          data?.kid?.picture && "border",
+                        )}
                       />
                       <Text className="text-[16px] font-sansMedium text-dark">
                         {r?.name}
@@ -202,7 +209,10 @@ const LearningProgress = () => {
                       ? { uri: data?.kid?.picture }
                       : IMAGES.KidProfilePlaceholder
                   }
-                  className="rounded-full border border-[#D5B300]"
+                  className={twMerge(
+                    "rounded-full border-[#D5B300]",
+                    data?.kid?.picture && "border",
+                  )}
                 />
               )}
 

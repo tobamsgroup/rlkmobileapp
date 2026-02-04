@@ -16,7 +16,7 @@ import { scaleWidth } from "@/utils/scale";
 import { showToast } from "@/utils/toast";
 import Constants from "expo-constants";
 import { ImagePickerAsset } from "expo-image-picker";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Image, Pressable, ScrollView, Text, View } from "react-native";
 import ReactNativeModal from "react-native-modal";
 
@@ -56,9 +56,15 @@ const Profile = () => {
               {isLoading ? (
                 <Skeleton className="w-2/3 rounded-full mb-2 mt-4" />
               ) : (
-                <Text className="text-[20px] font-sansSemiBold mb-2 mt-4">
-                  {data?.firstName} {data?.lastName}
-                </Text>
+                <>
+                  {(data?.firstName || data?.lastName) && (
+                    <>
+                      <Text className="text-[20px] font-sansSemiBold mb-2 mt-4 text-center">
+                        {data?.firstName} {data?.lastName}
+                      </Text>
+                    </>
+                  )}
+                </>
               )}
 
               <View className="bg-[#DBEFDC] rounded-full py-1.5 px-4 mt-2">
@@ -69,7 +75,7 @@ const Profile = () => {
               {isLoading ? (
                 <Skeleton className="w-2/3 mt-2 mb-2" />
               ) : (
-                <Text className=" text-[#474348] mt-2 text-[16px] font-sansMedium mb-2">
+                <Text className=" text-[#474348] w-[90%] mt-2 text-[16px] text-center font-sansMedium mb-2">
                   {data?.email}
                 </Text>
               )}
@@ -78,7 +84,7 @@ const Profile = () => {
               ) : (
                 <>
                   {data?.phoneNumber && (
-                    <Text className=" text-[#474348] mt-2 text-[16px] font-sansMedium mb-2">
+                    <Text className=" text-[#474348] mt-2 text-[16px] text-center font-sansMedium mb-2">
                       {data?.phoneNumber}
                     </Text>
                   )}
@@ -103,7 +109,7 @@ const Profile = () => {
           <View className="bg-white rounded-[16px] py-6 px-5 mt-4">
             <View className="bg-[#0991371A] p-5 rounded-[12px] mb-4">
               <View className="w-11 h-11 bg-[#099137] rounded-full items-center justify-center mb-4">
-                <ICONS.Mail />
+                <ICONS.Group />
               </View>
               <Text className="text-[16px] font-sansMedium text-[#265828]">
                 Child Profiles Created
@@ -118,7 +124,7 @@ const Profile = () => {
             </View>
             <View className="bg-[#D5B3001A] p-5 rounded-[12px] mb-4">
               <View className="w-11 h-11 bg-[#D5B300] rounded-full items-center justify-center mb-4">
-                <ICONS.Mail />
+                <ICONS.Curriculum fill={"white"} />
               </View>
               <Text className="text-[16px] font-sansMedium text-[#806C00]">
                 Active Tracks
@@ -202,7 +208,7 @@ const EditForm = ({
     setLoading(true);
     try {
       await updateGuardianProfile(payload);
-      showToast("success", "Profile pdated Successfully");
+      showToast("success", "Profile Updated Successfully");
       invalidateQueries("profile");
       invalidateQueries("guardian");
       onClose();
@@ -215,6 +221,11 @@ const EditForm = ({
     setLoading(false);
   };
 
+  useEffect(() => {
+    if (!data?.email) return;
+    setEmail(data?.email);
+  }, [data]);
+
   const selectImage = async () => {
     const image = await pickImage();
     if (image) {
@@ -222,7 +233,6 @@ const EditForm = ({
     }
   };
 
-  console.log({ image });
   return (
     <ReactNativeModal isVisible={open} onBackdropPress={onClose}>
       <ScrollView
@@ -278,6 +288,7 @@ const EditForm = ({
             label="Email Address"
             value={email}
             disabled
+            containerClass="bg-gray-100"
           />
           <SimpleInput
             wrapperClassName="mt-4"
@@ -287,7 +298,7 @@ const EditForm = ({
             value={phoneNumber}
           />
           <Button
-            disabled={loading}
+            disabled={loading || !firstName || !lastName}
             onPress={onSubmit}
             loading={loading}
             className="w-full mt-6"

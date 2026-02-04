@@ -39,10 +39,21 @@ const FlagIND = require("./flag-india.png")
 const FlagSA = require("./flag-sa.png")
 const FlagNG = require("./flag-ng.jpg")
 const FlagUSA = require("./flag-usa.jpg")
+const KidDashboardOverlay = require("./KidDashboardOverlay.png")
+const KidDashboardWelcome = require("./KidDashboardWelcome.png")
+const LockedTrophy = require("./LockedTrophy.png")
+const Star = require("./Star.png")
+const SearchGlassCartoon = require("./SearchGlassCartoon.png")
+
 
 
 
 export const IMAGES = {
+  SearchGlassCartoon,
+  LockedTrophy,
+  Star,
+  KidDashboardOverlay,
+  KidDashboardWelcome,
   AccentAdultFemale,
   AccentAdultMale,
   AccentKidFemale,
