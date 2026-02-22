@@ -44,11 +44,13 @@ const KidDashboardWelcome = require("./KidDashboardWelcome.png")
 const LockedTrophy = require("./LockedTrophy.png")
 const Star = require("./Star.png")
 const SearchGlassCartoon = require("./SearchGlassCartoon.png")
+const NoBadge = require("./NoBadge.png")
 
 
 
 
 export const IMAGES = {
+  NoBadge,
   SearchGlassCartoon,
   LockedTrophy,
   Star,

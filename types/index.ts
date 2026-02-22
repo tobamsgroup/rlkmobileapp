@@ -473,3 +473,13 @@ export interface ScenarioQuizQuestion {
     };
   }[];
 }
+
+export interface Badge {
+  _id: string;
+  name: string;
+  description: string;
+  type: string;
+  category: string;
+  subcategory:string;
+  imageUrl: string;
+}

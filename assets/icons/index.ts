@@ -58,9 +58,21 @@ import Play from "./Play"
 import Settings from "./Settings";
 import Lock from "./Lock";
 import Trophy from "./Trophy";
+import AMinus from "./AMinus";
+import APlus from "./APlus";
+import LineHeightBig from "./LineHeightBig";
+import LineHeightSmall from "./LineHeightSmall";
+import QuestionCircled from "./QuestionCircled";
+import TooltipStar from "./TooltipStar";
 
 
 export const ICONS = {
+  AMinus,
+  APlus,
+  LineHeightBig,
+  LineHeightSmall,
+  QuestionCircled,
+  TooltipStar,
   Lock,
   Trophy,
   Settings,

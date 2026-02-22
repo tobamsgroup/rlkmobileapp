@@ -137,7 +137,7 @@ const AccentSelection = () => {
   );
 };
 
-const AccentCard = ({
+export const AccentCard = ({
   isSelected,
   accent,
   onPress,
@@ -184,7 +184,7 @@ const AccentCard = ({
   );
 };
 
-const ACCENTS = [
+export const ACCENTS = [
   {
     image: IMAGES.FlagGB,
     name: "British",
@@ -211,7 +211,7 @@ const ACCENTS = [
   },
 ];
 
-const VOICES = [
+export const VOICES = [
   {
     image: IMAGES.AccentKidMale,
     name: "Male",

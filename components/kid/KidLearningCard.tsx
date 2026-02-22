@@ -4,6 +4,7 @@ import React from "react";
 import { Image, Text, View } from "react-native";
 import Button from "../Button";
 import ProgressBar from "../ProgressBar";
+import { router } from "expo-router";
 
 const KidLearningCard = () => {
   return (
@@ -27,6 +28,7 @@ const KidLearningCard = () => {
       </View>
 
       <Button
+      onPress={() => router.push}
         className="w-full bg-white border-primary border-2"
         textClassname="text-primary"
         text="CONTINUE"

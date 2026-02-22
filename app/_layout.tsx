@@ -45,6 +45,7 @@ function AppContent() {
     "Sans-Medium": require("../assets/fonts/WorkSans-Medium.ttf"),
     "Sans-Regular": require("../assets/fonts/WorkSans-Regular.ttf"),
     "Sans-SemiBold": require("../assets/fonts/WorkSans-SemiBold.ttf"),
+    "Sans-Italic": require("../assets/fonts/WorkSans-Italic.ttf"),
   });
 
   const isLoggedIn = useAppSelector((state) => state.auth.isLoggedIn);

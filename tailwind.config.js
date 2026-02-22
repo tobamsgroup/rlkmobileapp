@@ -15,6 +15,7 @@ module.exports = {
         sansBlack: ["Sans-Black"],
         sansSemiBold: ["Sans-SemiBold"],
         sansMedium: ["Sans-Medium"],
+        sansItalic: ["Sans-Italic"],
       },
       colors:{
         primary:'#337535',

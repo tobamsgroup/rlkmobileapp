@@ -1,10 +1,10 @@
-import { handleLogout } from "@/actions/logout";
-import { ICONS } from "@/assets/icons";
-import { IMAGES } from "@/assets/images";
-import { useAppDispatch } from "@/hooks/redux";
-import { scaleHeight, scaleWidth, SCREEN_WIDTH } from "@/utils/scale";
-import { router } from "expo-router";
-import React from "react";
+import { handleLogout } from '@/actions/logout';
+import { ICONS } from '@/assets/icons';
+import { IMAGES } from '@/assets/images';
+import { useAppDispatch } from '@/hooks/redux';
+import { scaleHeight, scaleWidth, SCREEN_WIDTH } from '@/utils/scale';
+import { router } from 'expo-router';
+import React from 'react';
 import {
   Image,
   Linking,
@@ -12,13 +12,13 @@ import {
   ScrollView,
   Text,
   View,
-} from "react-native";
+} from 'react-native';
 
 const MoreKid = () => {
   const dispatch = useAppDispatch();
   return (
     <ScrollView
-      style={{ flex: 1, backgroundColor: "#DBEFDC" }}
+      style={{ flex: 1, backgroundColor: '#DBEFDC' }}
       showsVerticalScrollIndicator={false}
     >
       <View className="bg-[#DBEFDC] flex-1 relative">
@@ -85,7 +85,7 @@ const MoreKid = () => {
           </View>
           <View className="w-full bg-[#FFFFFF] rounded-[20px] p-5 mt-5 flex-1">
             <Pressable
-              onPress={() => router.push("/kid/Profile")}
+              onPress={() => router.push('/kid/Profile')}
               className="flex-row items-center gap-2 pb-6 border-b border-b-[#D3D2D366]"
             >
               <View className="items-center justify-center w-10 h-10 rounded-full bg-[#0991371A]">
@@ -97,11 +97,11 @@ const MoreKid = () => {
               <ICONS.ChevronRight />
             </Pressable>
             <Pressable
-              onPress={() => router.push("/kid/ParentAccess")}
+              onPress={() => router.push('/kid/ParentAccess')}
               className="flex-row items-center gap-2 py-6 border-b border-b-[#D3D2D366]"
             >
               <View className="items-center justify-center w-10 h-10 rounded-full bg-[#D5B3001A]">
-                <ICONS.User fill={"#D5B300"} />
+                <ICONS.User fill={'#D5B300'} />
               </View>
               <Text className="text-dark text-[16px] font-sansMedium flex-1">
                 Parent/Teacher View
@@ -109,7 +109,7 @@ const MoreKid = () => {
               <ICONS.ChevronRight />
             </Pressable>
             <Pressable
-              onPress={() => router.push("/guardian/Profile")}
+              onPress={() => router.push('/kid/Settings')}
               className="flex-row items-center gap-2 py-6 border-b border-b-[#D3D2D366]"
             >
               <View className="items-center justify-center w-10 h-10 rounded-full bg-[#1671D91A]">
@@ -135,7 +135,7 @@ const MoreKid = () => {
             <View className="flex-row items-center justify-around mt-12">
               <Text
                 onPress={() =>
-                  Linking.openURL("https://rlkids.ai/privacy-policy")
+                  Linking.openURL('https://rlkids.ai/privacy-policy')
                 }
                 className="text-[#474348] font-sansMedium "
               >
@@ -144,7 +144,7 @@ const MoreKid = () => {
               <View className="w-1 h-1 rounded-full bg-[#474348]" />
               <Text
                 onPress={() =>
-                  Linking.openURL("https://rlkids.ai/terms-and-conditions")
+                  Linking.openURL('https://rlkids.ai/terms-and-conditions')
                 }
                 className="text-[#474348] font-sansMedium "
               >
