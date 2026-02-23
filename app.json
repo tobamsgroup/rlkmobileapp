@@ -50,7 +50,12 @@
           "backgroundColor": "#DBEFDC"
         }
       ],
-      "expo-audio",
+    [
+        "expo-audio",
+        {
+          "microphonePermission": "Allow RL4KIDS to access your microphone."
+        }
+      ],
       [
         "expo-image-picker",
         {
@@ -59,7 +64,8 @@
           "microphonePermission": "Allow RLKids to access your microphone"
         }
       ],
-        "expo-notifications"
+      "expo-notifications",
+      "expo-video"
     ],
     "experiments": {
       "typedRoutes": true,

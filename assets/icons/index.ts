@@ -64,9 +64,73 @@ import LineHeightBig from "./LineHeightBig";
 import LineHeightSmall from "./LineHeightSmall";
 import QuestionCircled from "./QuestionCircled";
 import TooltipStar from "./TooltipStar";
+import Bulb from "./Bulb";
+import Clipboard from "./Clipboard";
+import CookieMan from "./CookieMan";
+import Menu from "./Menu";
+import Note from "./Note";
+import PadLock from "./PadLock";
+import QuestionMark from "./QuestionMark";
+import Star3 from "./Star3";
+import CheckCircle from "./CheckCircle";
+import ReadModeCancel from "./ReadModeCancel";
+import ReadModePause from "./ReadModePause";
+import ReadModeReset from "./ReadModeReset";
+import ReadModeSpeakerBlack from "./ReadModeSpeakerBlack";
+import ReadModeSpeakerYellow from "./ReadModeSpeakerYellow";
+import ReadModeTt from "./ReadModeTt";
+import McqOption from "./McqOption";
+import McqOptionSelected from "./McqOptionSelected";
+import PartyPopper from "./PartyPopper";
+import Award from "./Award";
+import ArrowBackUp from "./ArrowBackUp";
+import ArrowForwardUp from "./ArrowForwardUp";
+import Brush from "./Brush";
+import ColorPalette from "./ColorPalette";
+import Eraser from "./Eraser";
+import Keyboard from "./Keyboard";
+import MicrophoneFilled from "./MicrophoneFilled";
+import MicrophoneOutlined from "./MicrophoneOutlined";
+import PencilOutlined from "./PencilOutlined";
+import VoiceSpeaker from "./VoiceSpeaker";
+import Palette from "./Palette";
+import PauseFilled from "./PauseFilled";
+import PartyingFace from "./PartyingFace";
 
 
 export const ICONS = {
+  PartyingFace,
+  PauseFilled,
+  ArrowBackUp,
+  ArrowForwardUp,
+  Brush,
+  ColorPalette,
+  Eraser,
+  Keyboard,
+  MicrophoneFilled,
+  MicrophoneOutlined,
+  PencilOutlined,
+  VoiceSpeaker,
+  Palette,
+  PartyPopper,
+  Award,
+  McqOption,
+  McqOptionSelected,
+  ReadModeCancel,
+  ReadModePause,
+  ReadModeReset,
+  ReadModeSpeakerBlack,
+  ReadModeSpeakerYellow,
+  ReadModeTt,
+  CheckCircle,
+  Star3,
+  Bulb,
+  Clipboard,
+  CookieMan,
+  Menu,
+  Note,
+  PadLock,
+  QuestionMark,
   AMinus,
   APlus,
   LineHeightBig,

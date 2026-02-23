@@ -21,11 +21,12 @@ const Notifications = () => {
   const [data, setData] = useState<NotificationProp[]>([]);
 
   const { data: notifications, isLoading } = useQuery({
-    queryKey: ["notifications"],
+    queryKey: ["notificationssmfimiofmr"],
     queryFn: async () => {
       return await getAllNotifications();
     },
   });
+
 
   useEffect(() => {
     if (!notifications) return;
