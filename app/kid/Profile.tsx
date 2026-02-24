@@ -2,6 +2,7 @@ import { getRecentActivities } from '@/actions/kid';
 import { ICONS } from '@/assets/icons';
 import { IMAGES } from '@/assets/images';
 import ProgressBar from '@/components/ProgressBar';
+import Skeleton from '@/components/Skeleton';
 import TopBackButton from '@/components/TopBackButton';
 import useKidLearningOverview from '@/hooks/useKidLearning';
 import useKidProfile from '@/hooks/useKidProfile';
@@ -15,8 +16,9 @@ import React, { useMemo } from 'react';
 import { Image, Pressable, ScrollView, Text, View } from 'react-native';
 
 const Profile = () => {
-  const { data } = useKidProfile();
-  const { data: overview } = useKidLearningOverview();
+  const { data, isLoading } = useKidProfile();
+  const { data: overview, isLoading: isLoafingOverview } =
+    useKidLearningOverview();
 
   const xpInfo = useMemo(() => {
     return calculateXpLevel(data?.totalXp || 0);
@@ -44,7 +46,6 @@ const Profile = () => {
           style={{ width: SCREEN_WIDTH, height: scaleHeight(256) }}
           source={IMAGES.MoreOverlay}
         />
-        {/* 
         {isLoading ? (
           <Skeleton
             style={{
@@ -55,21 +56,22 @@ const Profile = () => {
             }}
             className="border-2 border-white rounded-full absolute "
           />
-        ) : ( */}
-        <Image
-          className="border-2 border-[#FFDE2A] rounded-full absolute "
-          style={{
-            width: scaleWidth(130),
-            height: scaleWidth(130),
-            top: scaleHeight(256) - 75,
-            left: SCREEN_WIDTH / 2 - 81,
-          }}
-          source={
-            data?.picture
-              ? { uri: ensureHttps(data?.picture) }
-              : IMAGES.KidProfilePlaceholder
-          }
-        />
+        ) : (
+          <Image
+            className="border-2 border-[#FFDE2A] rounded-full absolute "
+            style={{
+              width: scaleWidth(130),
+              height: scaleWidth(130),
+              top: scaleHeight(256) - 75,
+              left: SCREEN_WIDTH / 2 - 81,
+            }}
+            source={
+              data?.picture
+                ? { uri: ensureHttps(data?.picture) }
+                : IMAGES.KidProfilePlaceholder
+            }
+          />
+        )}
         <Pressable
           onPress={() => router.push('/kid/ChangeAvatar')}
           style={{ top: scaleHeight(256) + 23, left: SCREEN_WIDTH / 2 + 35 }}
@@ -109,7 +111,7 @@ const Profile = () => {
               <Text className="text-[16px] text-[#474348] font-sans mt-2">
                 {data?.age} Years
               </Text>
-              <Text></Text>
+
             </View>
             <View className="p-4 rounded-[8px] bg-[#FFF7CCB2] w-full flex-row  items-center justify-center gap-3">
               <Image
@@ -204,6 +206,17 @@ const Profile = () => {
             <Text className="text-[18px] font-sansSemiBold text-dark mb-5">
               Recent Activity
             </Text>
+
+            {!!!activities?.length && (
+              <View>
+                <Text className="font-sansSemiBold text-[#265828] text-[18px] text-center mb-4">
+                  No Activity Yet
+                </Text>
+                <Text className="font-sans text-[#474348] leading-[1.5] text-center">
+                  Your activities will appear here
+                </Text>
+              </View>
+            )}
 
             {activities?.slice(0, 5).map((a) => (
               <View className="p-3 flex-row rounded-[16px] gap-3 border border-[#D3D2D3] mb-6">

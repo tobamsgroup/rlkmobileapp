@@ -381,9 +381,7 @@ const Playground = () => {
       case 'mid':
       case 'end':
         return (
-          <div className="md:w-[65.17vw]  w-full mx-auto">
             <Quiz handleNext={onNext} readingProgress={readingProgress} />
-          </div>
         );
 
       case 'journal':
@@ -391,9 +389,7 @@ const Playground = () => {
 
       case 'learn':
         return (
-          <div className="md:w-4/5 w-full mx-auto">
             <LearnCore onNext={onNext} />
-          </div>
         );
 
       case 'scenario':
@@ -489,14 +485,12 @@ const Playground = () => {
       {/* Component Block */}
       <View className={twMerge('px-6', page === 'rewards' && 'px-0')}>
         {mode === 'read' ? (
-          <div className="">
+          <>
             {page === 'mid' || page === 'end' ? (
-              <div className="md:w-4/5 w-full mx-auto">
                 <Quiz
                   handleNext={handleNext}
                   readingProgress={readingProgress}
                 />
-              </div>
             ) : (
               <ReadMode
                 isLoading={isLoadingSeriesPage}
@@ -506,7 +500,7 @@ const Playground = () => {
                 readingProgress={readingProgress}
               />
             )}
-          </div>
+          </>
         ) : (
           <View className="w-full">
             {renderPage()}
@@ -526,14 +520,14 @@ const Playground = () => {
                     </SecondaryButton>
                   )}
                   <Button
-                    className="text-xl font-semibold lg:px-16 max-lg:flex-1 flex items-center justify-center gap-2 z-100"
+                    className="text-xl font-semibold w-full flex items-center justify-center gap-2 z-100"
                     onPress={() => onNext()}
                   >
                     <Text className="text-white font-sansSemiBold text-[16px]">
                       NEXT
                     </Text>
                     <View className="rotate-270">
-                      <ICONS.ChevronDown stroke="white" strokeWidth="3" />
+                      <ICONS.ChevronRight stroke="white" strokeWidth="3" />
                     </View>
                   </Button>
                 </View>

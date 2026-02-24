@@ -1,4 +1,6 @@
 import { fetchKidLearning } from '@/actions/kid';
+import { ICONS } from '@/assets/icons';
+import { KidLearningCardSkeleton } from '@/components/kid/KidLearningCard';
 import KidSeriesProgressCard from '@/components/kid/KidSeriesProgressCard';
 import Select from '@/components/Select';
 import { KidLearningOverview } from '@/types';
@@ -67,16 +69,32 @@ const MyLearning = () => {
           ]}
         />
       </View>
-      <FlatList
-        data={filteredSeries}
-        keyExtractor={(_, index) => index.toString()}
-        contentContainerClassName="p-6"
-        renderItem={({item}) => (
-          <KidSeriesProgressCard
-           item={item}
-          />
-        )}
-      />
+      {isLoading && (
+        <View className="p-6">
+          <KidLearningCardSkeleton />
+          <KidLearningCardSkeleton />
+        </View>
+      )}
+      {!isLoading && (
+        <FlatList
+          ListEmptyComponent={() => (
+            <View className=" h-[40vh] items-center justify-center">
+              <ICONS.CircledClipboard />
+              <Text className="font-sansSemiBold text-[#265828] text-[18px] text-center my-4">
+                No Courses Yet
+              </Text>
+              <Text className="font-sans text-[#474348] leading-[1.5] text-center px-10">
+                Hang tight! Your parent/teacher will assign some fun courses for
+                you soon.
+              </Text>
+            </View>
+          )}
+          data={filteredSeries}
+          keyExtractor={(_, index) => index.toString()}
+          contentContainerClassName="p-6"
+          renderItem={({ item }) => <KidSeriesProgressCard item={item} />}
+        />
+      )}
     </View>
   );
 };

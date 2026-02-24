@@ -1,4 +1,7 @@
+import { updateReadingProgress } from '@/actions/kid';
 import { ChapterPage as ChapterPageType, ReadingProgressProps } from '@/types';
+import { handleParams } from '@/utils/kid';
+import { invalidateQueries } from '@/utils/query';
 import { useLocalSearchParams } from 'expo-router';
 import React, {
   useEffect,
@@ -8,10 +11,8 @@ import React, {
   useTransition,
 } from 'react';
 import { View } from 'react-native';
+import Skeleton from '../Skeleton';
 import { Chapter } from './Chapter';
-import { updateReadingProgress } from '@/actions/kid';
-import { invalidateQueries } from '@/utils/query';
-import { handleParams } from '@/utils/kid';
 
 const ReadMode = ({
   isLoading,
@@ -40,7 +41,6 @@ const ReadMode = ({
     page: pageIndex = 1,
   } = useLocalSearchParams();
 
-
   const [openHelper, setOpenHelper] = useState(true);
   const [helper, setHelper] = useState('');
   const [openOnboarding, setOpenOnboarding] = useState(false);
@@ -68,150 +68,149 @@ const ReadMode = ({
   const taskType = getActivityType(page);
   const todayKey = new Date().toISOString().split('T')[0];
 
-//   const saveTimeToStorage = (dateKey: string, minutes: number) => {
-//     localStorage.setItem(
-//       `readingTime_${dateKey}`,
-//       JSON.stringify({ minutes, lastSaved: Date.now() }),
-//     );
-//   };
+  //   const saveTimeToStorage = (dateKey: string, minutes: number) => {
+  //     localStorage.setItem(
+  //       `readingTime_${dateKey}`,
+  //       JSON.stringify({ minutes, lastSaved: Date.now() }),
+  //     );
+  //   };
 
-//   const clearTimeFromStorage = (dateKey: string) => {
-//     localStorage.removeItem(`readingTime_${dateKey}`);
-//   };
+  //   const clearTimeFromStorage = (dateKey: string) => {
+  //     localStorage.removeItem(`readingTime_${dateKey}`);
+  //   };
 
-//   useEffect(() => {
-//     const saved = localStorage.getItem(`readingTime_${todayKey}`);
-//     if (saved) {
-//       const parsed = JSON.parse(saved);
-//       accumulatedTodayRef.current = parsed.minutes ?? 0;
-//     }
-//   }, [todayKey]);
+  //   useEffect(() => {
+  //     const saved = localStorage.getItem(`readingTime_${todayKey}`);
+  //     if (saved) {
+  //       const parsed = JSON.parse(saved);
+  //       accumulatedTodayRef.current = parsed.minutes ?? 0;
+  //     }
+  //   }, [todayKey]);
 
-//   const sendReadingTime = (
-//     dateKey: string,
-//     minutes: number,
-//     taskName: string,
-//   ) => {
-//     if (minutes <= 0 || !taskId) return;
+  //   const sendReadingTime = (
+  //     dateKey: string,
+  //     minutes: number,
+  //     taskName: string,
+  //   ) => {
+  //     if (minutes <= 0 || !taskId) return;
 
-//     startTransition(async () => {
-//       try {
-//         await trackKidReadingTime({
-//           taskId: taskId!,
-//           taskName,
-//           taskType,
-//           timeSpentMinutes: Math.round(minutes),
-//         });
+  //     startTransition(async () => {
+  //       try {
+  //         await trackKidReadingTime({
+  //           taskId: taskId!,
+  //           taskName,
+  //           taskType,
+  //           timeSpentMinutes: Math.round(minutes),
+  //         });
 
-//         clearTimeFromStorage(dateKey);
-//         toast.success(`Reading time saved for ${dateKey}`);
-//       } catch (error: any) {
-//         if (error?.response?.status === 401) {
-//           toast.error('Unauthorized – please log in again');
-//         } else if (error?.response?.data?.message) {
-//           toast.error(error.response.data.message);
-//         } else {
-//           toast.error('Failed to save reading time – will retry later');
-//         }
-//       }
-//     });
-//   };
+  //         clearTimeFromStorage(dateKey);
+  //         toast.success(`Reading time saved for ${dateKey}`);
+  //       } catch (error: any) {
+  //         if (error?.response?.status === 401) {
+  //           toast.error('Unauthorized – please log in again');
+  //         } else if (error?.response?.data?.message) {
+  //           toast.error(error.response.data.message);
+  //         } else {
+  //           toast.error('Failed to save reading time – will retry later');
+  //         }
+  //       }
+  //     });
+  //   };
 
-//   useEffect(() => {
-//     if (!taskId) return;
+  //   useEffect(() => {
+  //     if (!taskId) return;
 
-//     const now = new Date();
-//     const currentDay = now.toISOString().split('T')[0];
+  //     const now = new Date();
+  //     const currentDay = now.toISOString().split('T')[0];
 
-//     for (let i = 1; i <= 30; i++) {
-//       const pastDate = new Date();
-//       pastDate.setDate(now.getDate() - i);
-//       const pastKey = pastDate.toISOString().split('T')[0];
+  //     for (let i = 1; i <= 30; i++) {
+  //       const pastDate = new Date();
+  //       pastDate.setDate(now.getDate() - i);
+  //       const pastKey = pastDate.toISOString().split('T')[0];
 
-//       const saved = localStorage.getItem(`readingTime_${pastKey}`);
-//       if (!saved) continue;
+  //       const saved = localStorage.getItem(`readingTime_${pastKey}`);
+  //       if (!saved) continue;
 
-//       const { minutes } = JSON.parse(saved);
-//       if (minutes <= 0) {
-//         clearTimeFromStorage(pastKey);
-//         continue;
-//       }
+  //       const { minutes } = JSON.parse(saved);
+  //       if (minutes <= 0) {
+  //         clearTimeFromStorage(pastKey);
+  //         continue;
+  //       }
 
-//       const weekday = new Intl.DateTimeFormat('en-US', {
-//         weekday: 'long',
-//       }).format(pastDate);
-//       const taskName = `${baseTitle} – ${weekday}`;
+  //       const weekday = new Intl.DateTimeFormat('en-US', {
+  //         weekday: 'long',
+  //       }).format(pastDate);
+  //       const taskName = `${baseTitle} – ${weekday}`;
 
-//     }
+  //     }
 
-//     const yesterday = new Date();
-//     yesterday.setDate(now.getDate() - 1);
-//     const yesterdayKey = yesterday.toISOString().split('T')[0];
+  //     const yesterday = new Date();
+  //     yesterday.setDate(now.getDate() - 1);
+  //     const yesterdayKey = yesterday.toISOString().split('T')[0];
 
-//     const yesterdaySaved = localStorage.getItem(`readingTime_${yesterdayKey}`);
-//     if (yesterdaySaved) {
-//       const { minutes } = JSON.parse(yesterdaySaved);
-//       if (minutes > 0) {
-//         const weekday = new Intl.DateTimeFormat('en-US', {
-//           weekday: 'long',
-//         }).format(yesterday);
-//         const taskName = `${baseTitle} – ${weekday}`;
-//       }
-//     }
-//   }, [taskId, baseTitle, todayKey]);
+  //     const yesterdaySaved = localStorage.getItem(`readingTime_${yesterdayKey}`);
+  //     if (yesterdaySaved) {
+  //       const { minutes } = JSON.parse(yesterdaySaved);
+  //       if (minutes > 0) {
+  //         const weekday = new Intl.DateTimeFormat('en-US', {
+  //           weekday: 'long',
+  //         }).format(yesterday);
+  //         const taskName = `${baseTitle} – ${weekday}`;
+  //       }
+  //     }
+  //   }, [taskId, baseTitle, todayKey]);
 
   // Persist Every 30 Seconds, Send Next Day After Midnight
-//   useEffect(() => {
-//     if (isLoading || !chapterId) return;
+  //   useEffect(() => {
+  //     if (isLoading || !chapterId) return;
 
-//     let startTime = Date.now();
+  //     let startTime = Date.now();
 
-//     const handleVisibilityChange = () => {
-//       if (document.visibilityState === 'hidden') {
-//         const sessionMinutes = (Date.now() - startTime) / 1000 / 60;
-//         accumulatedTodayRef.current += sessionMinutes;
-//         saveTimeToStorage(todayKey, accumulatedTodayRef.current);
-//         startTime = Date.now();
-//       } else {
-//         startTime = Date.now();
-//       }
-//     };
+  //     const handleVisibilityChange = () => {
+  //       if (document.visibilityState === 'hidden') {
+  //         const sessionMinutes = (Date.now() - startTime) / 1000 / 60;
+  //         accumulatedTodayRef.current += sessionMinutes;
+  //         saveTimeToStorage(todayKey, accumulatedTodayRef.current);
+  //         startTime = Date.now();
+  //       } else {
+  //         startTime = Date.now();
+  //       }
+  //     };
 
-//     const handleInterval = () => {
-//       if (document.visibilityState !== 'visible') return;
+  //     const handleInterval = () => {
+  //       if (document.visibilityState !== 'visible') return;
 
-//       const sessionMinutes = (Date.now() - startTime) / 1000 / 60;
-//       accumulatedTodayRef.current += sessionMinutes;
-//       startTime = Date.now();
+  //       const sessionMinutes = (Date.now() - startTime) / 1000 / 60;
+  //       accumulatedTodayRef.current += sessionMinutes;
+  //       startTime = Date.now();
 
-//       if (Math.floor(accumulatedTodayRef.current * 60) % 30 === 0) {
-//         saveTimeToStorage(todayKey, accumulatedTodayRef.current);
-//       }
-//     };
+  //       if (Math.floor(accumulatedTodayRef.current * 60) % 30 === 0) {
+  //         saveTimeToStorage(todayKey, accumulatedTodayRef.current);
+  //       }
+  //     };
 
-//     intervalRef.current = setInterval(handleInterval, 1000);
-//     document.addEventListener('visibilitychange', handleVisibilityChange);
+  //     intervalRef.current = setInterval(handleInterval, 1000);
+  //     document.addEventListener('visibilitychange', handleVisibilityChange);
 
-//     return () => {
-//       if (intervalRef.current) clearInterval(intervalRef.current);
-//       document.removeEventListener('visibilitychange', handleVisibilityChange);
+  //     return () => {
+  //       if (intervalRef.current) clearInterval(intervalRef.current);
+  //       document.removeEventListener('visibilitychange', handleVisibilityChange);
 
-//       const sessionMinutes = (Date.now() - startTime) / 1000 / 60;
-//       const total = accumulatedTodayRef.current + sessionMinutes;
-//       if (total > 0) {
-//         saveTimeToStorage(todayKey, total);
-//       }
-//     };
-//   }, [isLoading, chapterId, todayKey]);
+  //       const sessionMinutes = (Date.now() - startTime) / 1000 / 60;
+  //       const total = accumulatedTodayRef.current + sessionMinutes;
+  //       if (total > 0) {
+  //         saveTimeToStorage(todayKey, total);
+  //       }
+  //     };
+  //   }, [isLoading, chapterId, todayKey]);
 
   const data = useMemo(() => {
     return allSeriesPages?.find((sp) => sp._id === chapterId) || null;
   }, [chapterId, allSeriesPages]);
 
-
-    useEffect(() => {
-      if (!pageIndex) handleParams([["page", "1"]]);
-    }, [pageIndex, handleParams]);
+  useEffect(() => {
+    if (!pageIndex) handleParams([['page', '1']]);
+  }, [pageIndex, handleParams]);
 
   const activePage = useMemo(() => {
     if (!data) return null;
@@ -279,39 +278,41 @@ const ReadMode = ({
     return { canGoNext, canGoPrev };
   }, [pageIndex, chapterId, allSeriesPages, activePage]);
 
-
-//   useEffect(() => {
-//     const hasSeen = localStorage.getItem('hasSeenOnboarding');
-//     if (!hasSeen) {
-//       setOpenOnboarding(true);
-//       localStorage.setItem('hasSeenOnboarding', 'true');
-//     }
-//   }, []);
-
+  //   useEffect(() => {
+  //     const hasSeen = localStorage.getItem('hasSeenOnboarding');
+  //     if (!hasSeen) {
+  //       setOpenOnboarding(true);
+  //       localStorage.setItem('hasSeenOnboarding', 'true');
+  //     }
+  //   }, []);
 
   return (
     <View className="relative z-10">
-      <Chapter
-        handlePageIndex={handlePageIndex}
-        canGoNext={canGoNext}
-        canGoPrev={canGoPrev}
-        data={activePage}
-        title={data?.chapterTitle}
-      />
-   
+      {isLoading && (
+        <View className="flex-1 bg-[#FAFDFF] p-8 rounded-[12px]">
+          <Skeleton className="mb-10 w-3/4" />
+          <Skeleton className="h-40 rounded-[12px] mb-4" />
+          <Skeleton className="mb-2" />
+          <Skeleton className="mb-2" />
+          <Skeleton className="mb-8" />
+          <Skeleton className="mb-2" />
+          <Skeleton className="mb-2" />
+          <Skeleton className="mb-8" />
+          <Skeleton className="h-20 rounded-full" />
+        </View>
+      )}
+
+      {!isLoading && (
+        <Chapter
+          handlePageIndex={handlePageIndex}
+          canGoNext={canGoNext}
+          canGoPrev={canGoPrev}
+          data={activePage}
+          title={data?.chapterTitle}
+        />
+      )}
     </View>
   );
-};
-
-const SHADOW = {
-  shadowColor: 'black',
-  elevation: 5,
-  shadowRadius: 5,
-  shadowOpacity: 0.4,
-  shadowOffset: {
-    width: 4,
-    height: 4,
-  },
 };
 
 export default ReadMode;

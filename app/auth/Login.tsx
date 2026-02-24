@@ -81,9 +81,9 @@ const Login = () => {
       await storeData("user", res?.data?.data);
       dispatch(login(res?.data?.data));
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-      if (profile === "kid") {
-        router.navigate("/kid/AvatarSelection");
-      }
+      // if (profile === "kid") {
+      //   router.navigate("/kid/AvatarSelection");
+      // }
        attachTokenOnLogin().catch(console.log);
     } catch (error: any) {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);

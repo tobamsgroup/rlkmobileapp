@@ -12,10 +12,7 @@ type VideoPlayerProps = {
 
 const VideoPlayer: React.FC<VideoPlayerProps> = ({
   src,
-  thumbnail,
-  onVideoEnd,
 }) => {
-  const [showPlayer, setShowPlayer] = useState(true);
 
   const player = useVideoPlayer(src, (player) => {
     player.loop = true;
@@ -27,9 +24,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
   });
 
   return (
-    <View style={{
-        height:SCREEN_HEIGHT * 0.5
-    }} className="relative w-full bg-[#265828]  h-full rounded-[20px] overflow-hidden">
+    <View  className="relative w-full bg-[#265828]  h-full rounded-[20px] overflow-hidden">
 
 
       {/* Video View */}

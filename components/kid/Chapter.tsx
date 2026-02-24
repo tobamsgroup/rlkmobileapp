@@ -7,7 +7,7 @@ import { useReadSettings } from '@/context/ReadContext';
 import { ChapterPage as ChapterPageType, PageParagraph } from '@/types';
 import { twMerge } from 'tailwind-merge';
 import { buildSegments, createManualKaraoke, Segment } from '../../utils/kid';
-import Button from '../Button';
+import Button, { SecondaryButton } from '../Button';
 import { KaraokeText } from './KaraokeText';
 
 export const Chapter = ({
@@ -270,7 +270,7 @@ export const Chapter = ({
 
        {data && <View className="flex-row justify-center gap-4">
           {canGoPrev && (
-            <Button
+            <SecondaryButton
               className="flex-1"
               onPress={() => handlePageIndex('prev')}
               text="PREVIOUS"

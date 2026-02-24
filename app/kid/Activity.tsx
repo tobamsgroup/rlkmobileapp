@@ -50,6 +50,8 @@ const Activity = ({
       });
     }, [series, book, lessonId, chapterId, pageIndex]);
 
+    console.log({cp:ActiveLesson?.component, series, book, lessonId, chapterId, pageIndex })
+
   return (
     <View className="w-full h-[65vh]  mb-[5px] rounded-[20px] bg-[#265828] relative">
       {ActiveLesson?.component ? (

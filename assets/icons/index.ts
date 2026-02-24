@@ -96,9 +96,14 @@ import VoiceSpeaker from "./VoiceSpeaker";
 import Palette from "./Palette";
 import PauseFilled from "./PauseFilled";
 import PartyingFace from "./PartyingFace";
-
+import Badges from "./Badges";
+import Message2Question from "./Message2Question";
+import CircledClipboard from "./CircledClipboard";
 
 export const ICONS = {
+  CircledClipboard,
+  Message2Question,
+  Badges,
   PartyingFace,
   PauseFilled,
   ArrowBackUp,

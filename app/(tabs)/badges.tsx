@@ -1,6 +1,8 @@
 import { getAllBadges } from '@/actions/kid';
+import { IMAGES } from '@/assets/images';
 import Container from '@/components/Container';
 import Select from '@/components/Select';
+import Skeleton from '@/components/Skeleton';
 import { Badge } from '@/types';
 import { scaleWidth } from '@/utils/scale';
 import { useQuery } from '@tanstack/react-query';
@@ -12,7 +14,7 @@ const HomeKid = () => {
   const [series, setSeries] = useState('Think Sustainability');
   const [tab, setTab] = useState('journey');
   const [seriesGroup, setSeriesGroup] = useState<SeriesGroup[]>([]);
-  const { data } = useQuery({
+  const { data, isLoading } = useQuery({
     queryKey: ['badges'],
     queryFn: async () => {
       return await getAllBadges();
@@ -80,9 +82,19 @@ const HomeKid = () => {
                       {j}
                     </Text>
                     <View className="mt-5 flex-row flex-wrap gap-2">
-                      {badges?.map((b) => (
-                        <BadgeCard {...b} />
-                      ))}
+                      {!isLoading ? (
+                        <>
+                          {badges?.map((b) => (
+                            <BadgeCard key={b._id} {...b} />
+                          ))}
+                        </>
+                      ) : (
+                        <>
+                          {[1, 2, 3, 4]?.map((b) => (
+                            <BadgeCardSkeleton key={b} />
+                          ))}
+                        </>
+                      )}
                     </View>
                   </View>
                 );
@@ -132,8 +144,8 @@ export const BadgeCard = (props: Badge) => {
     <Pressable className="items-center gap-1.5 border border-[#D3D2D366] rounded-[12px] py-6 w-[48%]">
       <Image
         style={{ width: scaleWidth(52), height: scaleWidth(52) }}
-        source={{ uri: props?.imageUrl }}
-        // source={IMAGES.NoBadge}
+        // source={{ uri: props?.imageUrl }}
+        source={IMAGES.NoBadge}
       />
       <Text
         numberOfLines={1}
@@ -141,6 +153,17 @@ export const BadgeCard = (props: Badge) => {
       >
         {props?.name}
       </Text>
+    </Pressable>
+  );
+};
+export const BadgeCardSkeleton = () => {
+  return (
+    <Pressable className="items-center gap-1.5 border border-[#D3D2D366] rounded-[12px] py-6 w-[48%]">
+      <Skeleton
+        style={{ width: scaleWidth(52), height: scaleWidth(52) }}
+        className="rounded-full"
+      />
+      <Skeleton className="w-1/2 h-5" />
     </Pressable>
   );
 };

@@ -55,7 +55,16 @@ const KidSeriesProgressCard = ({ item }: { item: KidLearningOverview }) => {
         renderItem={({ item: seriesh }) => (
           <KidSeriesProgressCardInner
             series={seriesh}
-            chapterId={item?.assignedChapters?.filter(i => i.chapterId?.seriesId === seriesh.seriesId._id)?.[0]?.chapterId?._id!}
+            lessonId={
+              item?.assignedChapters?.filter(
+                (i) => i.chapterId?.seriesId === seriesh.seriesId._id,
+              )?.[0]?.chapterId.lessons?.[0]?._id
+            }
+            chapterId={
+              item?.assignedChapters?.filter(
+                (i) => i.chapterId?.seriesId === seriesh.seriesId._id,
+              )?.[0]?.chapterId?._id!
+            }
             progress={getSeriesProgress(
               seriesh.seriesId._id,
               item.assignedChapters,
@@ -105,12 +114,14 @@ export const KidSeriesProgressCardInner = ({
   series,
   full = false,
   progress,
-  chapterId
+  chapterId,
+  lessonId
 }: {
   series: AssignedSeries;
   full?: boolean;
   progress: number;
-  chapterId:string
+  chapterId: string;
+  lessonId: string;
 }) => {
   return (
     <View
@@ -159,13 +170,13 @@ export const KidSeriesProgressCardInner = ({
       </View>
       <Button
         onPress={() =>
-            // console.log(
+          // console.log(
 
-            //     `/kid/Playground?book=${series.seriesId.bookId}&series=${series?.seriesId._id}&chapterId=${series?.seriesId?.chapters?.[0]}&mode=play&page=1`,
-            //     series
-            // )
+          //     `/kid/Playground?book=${series.seriesId.bookId}&series=${series?.seriesId._id}&chapterId=${series?.seriesId?.chapters?.[0]}&mode=play&page=1`,
+          //     series
+          // )
           router.push(
-            `/kid/Playground?book=${series.seriesId.bookId}&series=${series?.seriesId._id}&chapterId=${chapterId}&lessonId=${series?.seriesId?.chapters?.[0]}&mode=read&page=1`,
+            `/kid/Playground?book=${series.seriesId.bookId}&series=${series?.seriesId._id}&chapterId=${chapterId}&lessonId=${lessonId}&mode=read&page=1`,
           )
         }
         className="w-full mt-4 bg-white border-primary border-2"

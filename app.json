@@ -32,6 +32,8 @@
       },
       "permissions": [
         "android.permission.RECORD_AUDIO",
+        "android.permission.MODIFY_AUDIO_SETTINGS",
+        "android.permission.RECORD_AUDIO",
         "android.permission.MODIFY_AUDIO_SETTINGS"
       ],
       "googleServicesFile": "./google-services.json"
@@ -50,7 +52,7 @@
           "backgroundColor": "#DBEFDC"
         }
       ],
-    [
+      [
         "expo-audio",
         {
           "microphonePermission": "Allow RL4KIDS to access your microphone."
@@ -65,7 +67,7 @@
         }
       ],
       "expo-notifications",
-     [
+      [
         "expo-video",
         {
           "supportsBackgroundPlayback": true,
@@ -95,6 +97,12 @@
         "projectId": "88f97a7c-0af1-4506-8677-05d74df5ecb8"
       }
     },
-    "owner": "tobams_group"
+    "owner": "tobams_group",
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/88f97a7c-0af1-4506-8677-05d74df5ecb8"
+    }
   }
 }

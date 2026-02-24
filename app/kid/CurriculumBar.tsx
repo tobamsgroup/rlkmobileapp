@@ -9,8 +9,10 @@ import {
 } from '@/types';
 import {
   filterAssignedChapters,
+  getPLProgress,
   handleParams,
   isPageAccessible,
+  isPlayandLearnPageAccessible,
 } from '@/utils/kid';
 import { STAUS_BAR_HEIGHT } from '@/utils/scale';
 import { useLocalSearchParams } from 'expo-router';
@@ -173,7 +175,6 @@ const CurriculumBar = ({
     return `${Number(current)}/${total}`;
   };
 
-
   return (
     <ReactNativeModal
       style={{ padding: 0, margin: 0 }}
@@ -201,16 +202,215 @@ const CurriculumBar = ({
             Series {series?.seriesId?.index} : {series?.seriesId?.title}
           </Text>
         </View>
-        {/* {mode === 'read' && ( */}
-        <>
-          {filterAssignedChapters(allSeriesPages, currentBookProgress!)?.map(
-            (module, index) => {
-              const accessible = isPageAccessible(
-                currentBookProgress!,
-                module._id,
-                module.chapterIndex,
-                module?.pages?.length,
-              );
+        {mode === 'read' && (
+          <>
+            {filterAssignedChapters(allSeriesPages, currentBookProgress!)?.map(
+              (module, index) => {
+                const accessible = isPageAccessible(
+                  currentBookProgress!,
+                  module._id,
+                  module.chapterIndex,
+                  module?.pages?.length,
+                );
+                return (
+                  <View className="" key={module._id}>
+                    <Pressable
+                      onPress={() => toggleModule(module._id)}
+                      className="bg-[#DBEFDC80] py-5 px-3 flex-row items-center gap-3"
+                    >
+                      {expandedModules[module._id] ? (
+                        <View className="rotate-180">
+                          <ICONS.ChevronDown />
+                        </View>
+                      ) : (
+                        <ICONS.ChevronDown
+                          strokeWidth="1.5"
+                          className="mt-2 shrink-0"
+                        />
+                      )}
+
+                      <Text className="flex-1 text-dark text-[18px] font-sansMedium">
+                        {module.chapterIndex < 10
+                          ? '0' + module.chapterIndex
+                          : module.chapterIndex}
+                        : {module.chapterTitle}
+                      </Text>
+                      {!!module.pages?.length && (
+                        <Text className="font-sansMedium text-[#474348]">
+                          {module.pages?.length
+                            ? getProgressText(
+                                'read',
+                                module.pages,
+                                accessible ?? undefined,
+                              )
+                            : ''}
+                        </Text>
+                      )}
+                    </Pressable>
+                    {expandedModules[module._id] && (
+                      <View>
+                        {!!!module?.pages?.length && (
+                          <View
+                            className={twMerge(
+                              'p-5 text-black flex items-center gap-4 cursor-pointer',
+                            )}
+                          >
+                            <View
+                              className={twMerge(
+                                'rounded-full p-2',
+                                'bg-[#EDF7ED]',
+                              )}
+                            >
+                              <ICONS.LibraryBooks
+                                width={16}
+                                height={16}
+                                stroke={'#3F9243'}
+                              />
+                            </View>
+                            <Text> Coming Soon...</Text>
+                          </View>
+                        )}
+                        {module?.pages?.map((p, i) => {
+                          const accessible = isPageAccessible(
+                            currentBookProgress!,
+                            module._id,
+                            p.index,
+                            module?.pages?.length,
+                          );
+                          const status = getPageStatus(
+                            module.pages,
+                            accessible?.currentPageIndex,
+                            p.index,
+                          );
+                          const finishedPage = status.isFinished;
+                          const lockedPage = status.isLocked;
+                          const accessiblePage = status.isAccessible;
+                          const currentPage = status.isCurrent;
+                          return (
+                            <>
+                              <Pressable
+                                onPress={(e) => {
+                                  if (!lockedPage) {
+                                    onSelectLesson(
+                                      module._id,
+                                      'read',
+                                      p.index.toString(),
+                                    );
+                                    onClose();
+                                  } else {
+                                    handleLockedClicked(e);
+                                  }
+                                }}
+                                className={twMerge(
+                                  ' py-5 px-3 flex-row items-center gap-3',
+                                  isActiveScene(
+                                    module._id,
+                                    p.index.toString(),
+                                  ) && 'bg-[#337535] text-white font-medium',
+                                )}
+                              >
+                                <View
+                                  className={twMerge(
+                                    'w-10 h-10 rounded-full bg-[#1671D91A] items-center justify-center',
+                                    lockedPage
+                                      ? 'bg-[#D3D2D366]'
+                                      : // : p.index === "mid"
+                                        // ? "bg-[#DE21211A]"
+                                        // : p.index === "end"
+                                        // ? "bg-[#DF9B121A]"
+                                        getPageName(p as ChapterPage)
+                                            ?.toLowerCase()
+                                            ?.includes('activity')
+                                        ? 'bg-[#DE21211A]'
+                                        : 'bg-[#1671D91A]',
+                                    isActiveScene(
+                                      module._id,
+                                      p.index.toString(),
+                                    )
+                                      ? 'bg-[#FFFFFF1A]'
+                                      : '',
+                                  )}
+                                >
+                                  {getPageName(p as ChapterPage)
+                                    ?.toLowerCase()
+                                    ?.includes('activity') ? (
+                                    <ICONS.QuestionMark
+                                      width={16}
+                                      height={16}
+                                      stroke={
+                                        lockedPage
+                                          ? '#6C686C'
+                                          : isActiveScene(
+                                                module._id,
+                                                p.index.toString(),
+                                              )
+                                            ? 'white'
+                                            : '#DE2121'
+                                      }
+                                    />
+                                  ) : (
+                                    <ICONS.Clipboard
+                                      width={16}
+                                      height={16}
+                                      stroke={
+                                        lockedPage
+                                          ? '#6C686C'
+                                          : isActiveScene(
+                                                module._id,
+                                                p.index.toString(),
+                                              )
+                                            ? 'white'
+                                            : '#1671D9'
+                                      }
+                                    />
+                                  )}
+                                </View>
+                                <Text
+                                  className={twMerge(
+                                    'flex-1 text-dark text-[16px] font-sans',
+                                    isActiveScene(
+                                      module._id,
+                                      p.index.toString(),
+                                    ) && 'text-white',
+                                  )}
+                                >
+                                  {getPageName(p as ChapterPage)}
+                                </Text>
+                                {/* <ICONS.PadLock/> */}
+                                {accessiblePage && (
+                                  <View className="flex items-center justify-end">
+                                    <ICONS.CheckCircle
+                                    // stroke={
+                                    //   isActiveScene(
+                                    //     module._id,
+                                    //     p.index.toString(),
+                                    //   )
+                                    //     ? 'white'
+                                    //     : '#099137'
+                                    // }
+                                    />
+                                  </View>
+                                )}
+                                {lockedPage && (
+                                  <View className="flex items-center justify-end">
+                                    <ICONS.PadLock stroke="#6C686C" />
+                                  </View>
+                                )}
+                              </Pressable>
+                            </>
+                          );
+                        })}
+                      </View>
+                    )}
+                  </View>
+                );
+              },
+            )}
+          </>
+        )}
+        {mode === 'play' && (
+          <>
+            {newActivityPages?.map((module, index) => {
               return (
                 <View className="" key={module._id}>
                   <Pressable
@@ -229,71 +429,35 @@ const CurriculumBar = ({
                     )}
 
                     <Text className="flex-1 text-dark text-[18px] font-sansMedium">
-                      {module.chapterIndex < 10
-                        ? '0' + module.chapterIndex
-                        : module.chapterIndex}
-                      : {module.chapterTitle}
+                      {module.title}
                     </Text>
-                    {!!module.pages?.length && (
-                      <Text className="font-sansMedium text-[#474348]">
-                        {module.pages?.length
-                          ? getProgressText(
-                              'read',
-                              module.pages,
-                              accessible ?? undefined,
-                            )
-                          : ''}
-                      </Text>
-                    )}
+                    <Text className="font-sansMedium text-[#474348]">
+                      {getPLProgress(currentBookProgress!, module._id!) || 0}/8
+                    </Text>
                   </Pressable>
                   {expandedModules[module._id] && (
                     <View>
-                      {!!!module?.pages?.length && (
-                        <View
-                          className={twMerge(
-                            'p-5 text-black flex items-center gap-4 cursor-pointer',
-                          )}
-                        >
-                          <View
-                            className={twMerge(
-                              'rounded-full p-2',
-                              'bg-[#EDF7ED]',
-                            )}
-                          >
-                            <ICONS.LibraryBooks
-                              width={16}
-                              height={16}
-                              stroke={'#3F9243'}
-                            />
-                          </View>
-                          <Text> Coming Soon...</Text>
-                        </View>
-                      )}
-                      {module?.pages?.map((p, i) => {
-                        const accessible = isPageAccessible(
+                      {module.lessons?.map((item, i) => {
+                        const {
+                          isAccessible: accessible,
+                          currentPageIndex,
+                          completedIndex,
+                        } = isPlayandLearnPageAccessible(
                           currentBookProgress!,
+                          item.index?.toString(),
                           module._id,
-                          p.index,
-                          module?.pages?.length,
                         );
-                        const status = getPageStatus(
-                          module.pages,
-                          accessible?.currentPageIndex,
-                          p.index,
-                        );
-                        const finishedPage = status.isFinished;
-                        const lockedPage = status.isLocked;
-                        const accessiblePage = status.isAccessible;
-                        const currentPage = status.isCurrent;
+
                         return (
                           <>
                             <Pressable
                               onPress={(e) => {
-                                if (!lockedPage) {
+                                if (accessible) {
                                   onSelectLesson(
                                     module._id,
-                                    'read',
-                                    p.index.toString(),
+                                    'play',
+                                    item._id,
+                                    item.index.toString(),
                                   );
                                   onClose();
                                 } else {
@@ -302,56 +466,117 @@ const CurriculumBar = ({
                               }}
                               className={twMerge(
                                 ' py-5 px-3 flex-row items-center gap-3',
-                                isActiveScene(module._id, p.index.toString()) &&
-                                  'bg-[#337535] text-white font-medium',
+                                isActiveScene(
+                                  module._id,
+                                  item.index.toString(),
+                                ) && 'bg-[#337535] text-white font-medium',
                               )}
                             >
                               <View
                                 className={twMerge(
                                   'w-10 h-10 rounded-full bg-[#1671D91A] items-center justify-center',
-                                  lockedPage
+                                  !accessible
                                     ? 'bg-[#D3D2D366]'
-                                    : // : p.index === "mid"
-                                      // ? "bg-[#DE21211A]"
-                                      // : p.index === "end"
-                                      // ? "bg-[#DF9B121A]"
-                                      getPageName(p as ChapterPage)
-                                          ?.toLowerCase()
-                                          ?.includes('activity')
+                                    : item.index === 'mid'
                                       ? 'bg-[#DE21211A]'
-                                      : 'bg-[#1671D91A]',
-                                  isActiveScene(module._id, p.index.toString())
+                                      : item.index === 'end'
+                                        ? 'bg-[#DF9B121A]'
+                                        : item.index === 'learn'
+                                          ? 'bg-[#1671D91A]'
+                                          : item.index === 'scenario'
+                                            ? 'bg-[#DE21211A]'
+                                            : item.index === 'journal'
+                                              ? 'bg-[#C821DE1A]'
+                                              : item.index === 'rewards'
+                                                ? 'bg-[#0991371A]'
+                                                : item.index?.toString() === '5'
+                                                  ? 'bg-[#0991371A]'
+                                                  : 'bg-[#1671D91A]',
+                                  isActiveScene(
+                                    module._id,
+                                    item.index.toString(),
+                                  )
                                     ? 'bg-[#FFFFFF1A]'
                                     : '',
                                 )}
                               >
-                                {getPageName(p as ChapterPage)
-                                  ?.toLowerCase()
-                                  ?.includes('activity') ? (
+                                {item.index === 'mid' ||
+                                item.index === 'end' ? (
                                   <ICONS.QuestionMark
                                     width={16}
                                     height={16}
                                     stroke={
-                                      lockedPage
+                                      !accessible
                                         ? '#6C686C'
                                         : isActiveScene(
                                               module._id,
-                                              p.index.toString(),
+                                              item.index.toString(),
                                             )
                                           ? 'white'
                                           : '#DE2121'
                                     }
+                                  />
+                                ) : item.index === 'scenario' ? (
+                                  <ICONS.Bulb
+                                    width={16}
+                                    height={16}
+                                    stroke={
+                                      !accessible
+                                        ? '#6C686C'
+                                        : isActiveScene(
+                                              module._id,
+                                              item.index.toString(),
+                                            )
+                                          ? 'white'
+                                          : '#DF9B12'
+                                    }
+                                  />
+                                ) : item.index === 'journal' ? (
+                                  <ICONS.Clipboard
+                                    width={16}
+                                    height={16}
+                                    stroke={
+                                      !accessible
+                                        ? '#6C686C'
+                                        : isActiveScene(
+                                              module._id,
+                                              item.index.toString(),
+                                            )
+                                          ? 'white'
+                                          : '#DF9B12'
+                                    }
+                                  />
+                                ) : item.index === 5 ? (
+                                  <ICONS.CookieMan
+                                    width={16}
+                                    height={16}
+                                    stroke={
+                                      !accessible
+                                        ? '#6C686C'
+                                        : isActiveScene(
+                                              module._id,
+                                              item.index.toString(),
+                                            )
+                                          ? 'white'
+                                          : '#1671D9'
+                                    }
+                                  />
+                                ) : item.index === 'rewards' ? (
+                                  <ICONS.Badges
+                                    width={16}
+                                    height={16}
+                                    color={accessible ? '#265828' : '#6C686C'}
                                   />
                                 ) : (
                                   <ICONS.Clipboard
                                     width={16}
                                     height={16}
                                     stroke={
-                                      lockedPage
+                                      !accessible
                                         ? '#6C686C'
                                         : isActiveScene(
                                               module._id,
-                                              p.index.toString(),
+                                              item.index.toString(),
                                             )
                                           ? 'white'
                                           : '#1671D9'
@@ -361,17 +586,17 @@ const CurriculumBar = ({
                               </View>
                               <Text
                                 className={twMerge(
-                                  'flex-1 text-dark text-[16px] font-sans',
+                                  'flex-1 text-dark text-[16px] font-sansMedium',
                                   isActiveScene(
                                     module._id,
-                                    p.index.toString(),
-                                  ) && 'text-white',
+                                    item.index.toString(),
+                                  ) && ' text-white ',
                                 )}
                               >
-                                {getPageName(p as ChapterPage)}
+                                {item.title}
                               </Text>
                               {/* <ICONS.PadLock/> */}
-                              {accessiblePage && (
+                              {completedIndex >= currentPageIndex && (
                                 <View className="flex items-center justify-end">
                                   <ICONS.CheckCircle
                                   // stroke={
@@ -385,7 +610,7 @@ const CurriculumBar = ({
                                   />
                                 </View>
                               )}
-                              {lockedPage && (
+                              {!accessible && (
                                 <View className="flex items-center justify-end">
                                   <ICONS.PadLock stroke="#6C686C" />
                                 </View>
@@ -394,19 +619,42 @@ const CurriculumBar = ({
                           </>
                         );
                       })}
+                      {module.lessons?.length < 1 && (
+                        <View
+                          className={twMerge(
+                            'p-5 text-black flex-row items-center gap-4 cursor-pointer',
+                          )}
+                        >
+                          <View
+                            className={twMerge(
+                              'rounded-full p-2',
+                              'bg-[#EDF7ED]',
+                            )}
+                          >
+                            <ICONS.Message2Question
+                              width={16}
+                              height={16}
+                              stroke={'#3F9243'}
+                            />
+                          </View>
+                          <Text className="text-[16px] font-sansMedium text-dark">
+                            Coming Soon...
+                          </Text>
+                        </View>
+                      )}
                     </View>
                   )}
                 </View>
               );
-            },
-          )}
-        </>
+            })}
+          </>
+        )}
+
         <ToolTip
           top={openLockedPosition}
           open={openLockedModal}
           onClose={() => setOPenLockedModal(false)}
         />
-        {/* )} */}
       </ScrollView>
     </ReactNativeModal>
   );

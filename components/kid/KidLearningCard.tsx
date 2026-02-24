@@ -7,6 +7,7 @@ import React from 'react';
 import { Image, Text, View } from 'react-native';
 import Button from '../Button';
 import ProgressBar from '../ProgressBar';
+import Skeleton from '../Skeleton';
 
 type ChapterProps = AssignedChapter & {
   bookImage: string;
@@ -21,7 +22,6 @@ const KidLearningCard = (props: ChapterProps) => {
     totalPages: props?.chapterId?.pages?.length,
   });
 
-  
   return (
     <View className="bg-white p-5 rounded-[20px] flex-col items-start z-20 border border-[#D3D2D366] mb-6">
       <Image
@@ -61,6 +61,20 @@ const KidLearningCard = (props: ChapterProps) => {
               : 'CONTINUE'
         }
       />
+    </View>
+  );
+};
+export const KidLearningCardSkeleton = () => {
+  return (
+    <View className="bg-white p-5 rounded-[20px] flex-col items-start z-20 border border-[#D3D2D366] mb-6">
+      <Skeleton
+        style={{ height: scaleHeight(144) }}
+        className="rounded-[20px] w-full h-full mb-5"
+      />
+      <Skeleton className="w-1/2 h-3 rounded-full mb-2" />
+      <Skeleton className="w-3/4 h-3 rounded-full mb-4" />
+      <Skeleton className="w-full h-5 rounded-full mb-4" />
+      <Skeleton className="w-full h-20 rounded-full" />
     </View>
   );
 };

@@ -3,7 +3,9 @@ import { ICONS } from '@/assets/icons';
 import { IMAGES } from '@/assets/images';
 import Button from '@/components/Button';
 import Container from '@/components/Container';
-import KidLearningCard from '@/components/kid/KidLearningCard';
+import KidLearningCard, {
+  KidLearningCardSkeleton,
+} from '@/components/kid/KidLearningCard';
 import Skeleton from '@/components/Skeleton';
 import useKidProfile from '@/hooks/useKidProfile';
 import { ensureHttps } from '@/utils';
@@ -131,11 +133,30 @@ const HomeKid = () => {
               </Text>
             </Pressable>
           </View>
-          {
-            latestChapters?.map((l, i) => (
-              <KidLearningCard {...l} key={i} />
-            ))
-          }
+          {latestChapters?.length < 1 && !isLoading && (
+            <>
+              <View className=" h-[40vh] items-center justify-center">
+                <ICONS.CircledClipboard />
+                <Text className="font-sansSemiBold text-[#265828] text-[18px] text-center my-4">
+                  No Courses Yet
+                </Text>
+                <Text className="font-sans text-[#474348] leading-[1.5] text-center px-10">
+                  Hang tight! Your parent/teacher will assign some fun courses
+                  for you soon.
+                </Text>
+              </View>
+            </>
+          )}
+          {isLoading && (
+            <>
+              {[1, 2]?.map((r) => (
+                <KidLearningCardSkeleton key={r} />
+              ))}
+            </>
+          )}
+          {latestChapters?.map((l, i) => (
+            <KidLearningCard {...l} key={i} />
+          ))}
         </View>
       </View>
     </Container>

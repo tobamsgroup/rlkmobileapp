@@ -50,6 +50,11 @@ const SeriesLearningList = () => {
                   (i) => i.chapterId?.seriesId === item?.seriesId._id,
                 )?.[0]?.chapterId?._id!
               }
+              lessonId={
+                series?.assignedChapters?.filter(
+                  (i) => i.chapterId?.seriesId === item?.seriesId._id,
+                )?.[0]?.chapterId?.lessons?.[0]?._id!
+              }
               progress={getSeriesProgress(
                 item.seriesId._id,
                 series?.assignedChapters! || [],
