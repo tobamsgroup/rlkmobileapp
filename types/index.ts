@@ -483,3 +483,4 @@ export interface Badge {
   subcategory:string;
   imageUrl: string;
 }
+

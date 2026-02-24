@@ -1,5 +1,5 @@
 import { IMAGES } from '@/assets/images';
-import React, { useState } from 'react';
+import React, { Dispatch, SetStateAction, useEffect, useState } from 'react';
 import { Image, Text, View } from 'react-native';
 import {
   Gesture,
@@ -18,26 +18,44 @@ type OptionType = {
   label: string;
 };
 
-const OPTIONS: OptionType[] = [
-  { id: '1', label: 'Does what they say they will do' },
-  { id: '2', label: 'Forgets to finish tasks' },
-];
+export default function Matching({
+  question,
+  isSubmitted,
+  setSelected,
+  selected,
+  resetTrigger,
+}: {
+  question: {
+    word: string;
+    answer: string;
+    options: string[];
+    feedback: { correct: string; incorrect: string };
+  };
+  isSubmitted: boolean;
+  setSelected: Dispatch<SetStateAction<string | boolean | null>>;
+  selected: string | boolean | null;
+  resetTrigger: number;
+}) {
+  const [isCorrect, setIsCorrect] = useState<boolean | null>(null);
 
-export default function Matching() {
   const [droppedOption, setDroppedOption] = useState<OptionType | null>(null);
+  useEffect(() => {
+    setDroppedOption(null);
+    setIsCorrect(null);
+    setSelected(null);
+  }, [resetTrigger, setSelected]);
 
   return (
     <GestureHandlerRootView className="flex-1">
       <View className="flex-1 bg-[#FFFFFF] p-6 py-8 rounded-[20px] relative z-30">
-     
         <Text className="text-[18px] font-sansMedium text-center font-semibold text-dark mb-8 z-30">
           Match each word with its child-friendly meaning
         </Text>
 
         {/* Word */}
         <View className="bg-[#3F9243] border-b border-b-[#88CA8A] self-center px-8 py-6 rounded-xl   mb-10">
-          <Text className="text-white text-[18px] font-sansMedium ">
-            RESPONSIBLE
+          <Text className="text-white text-[18px] font-sansMedium uppercase">
+            {question.word}
           </Text>
         </View>
 
@@ -52,36 +70,19 @@ export default function Matching() {
 
         {/* Options */}
         <View className="gap-6 z-30">
-          {OPTIONS.map((option) => (
+          {question.options.map((option) => (
             <DraggableOption
-              key={option.id}
-              option={option}
+              key={option}
+              option={{ id: option, label: option }}
               droppedOption={droppedOption}
-              onDrop={(opt) => setDroppedOption(opt)}
+              onDrop={(opt) => {
+                setDroppedOption(opt);
+                setSelected(opt.label);
+              }}
             />
           ))}
         </View>
-           <Image
-          source={IMAGES.Scenario_Corner_3}
-          alt="corner3"
-          className="absolute top-0 right-0  w-[55px] h-[55px] rounded-[20px]  z-[10] "
-        />
-        <Image
-          source={IMAGES.Scenario_Corner_1}
-          alt="corner1"
-          className="absolute bottom-0 left-0  w-[55px] h-[55px] rounded-[20px]  z-[10] "
-        />
-        <Image
-          source={IMAGES.Scenario_Corner_2}
-          alt="corner2"
-          className="absolute top-0 left-0  w-[55px] h-[55px] rounded-[20px]  z-[10] "
-        />
-        <Image
-          source={IMAGES.Scenario_Corner_4}
-          alt="corner4"
-          className="absolute bottom-0 right-0  w-[55px] h-[55px] rounded-[20px]  z-[10] "
-        />
-        
+       
       </View>
     </GestureHandlerRootView>
   );

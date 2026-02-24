@@ -15,7 +15,7 @@ const Settings = () => {
         </Text>
         <View className="bg-white rounded-[20px] p-8 mt-6 flex-1">
           <Button
-            onPress={() => router.push('/kid/AccentSettings')}
+            onPress={() => router.push('/kid/AccentSelection')}
             className="border-[#C3E4C5] bg-white border mb-5"
             textClassname="text-dark text-[16px]"
             text="Accent Settings"

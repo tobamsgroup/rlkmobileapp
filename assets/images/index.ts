@@ -46,6 +46,8 @@ const Star = require('./Star.png');
 const Chat = require('./chat.png');
 const SearchGlassCartoon = require('./SearchGlassCartoon.png');
 const NoBadge = require('./NoBadge.png');
+const Badge = require('./Badge.png');
+const LearnerTrophy = require('./LearnerTrophy.png');
 const Recording = require('./recording.png');
 const Scenario_Corner_1 = require('./Scenario_Corner_1.png');
 const Scenario_Corner_2 = require('./Scenario_Corner_2.png');
@@ -53,8 +55,22 @@ const Scenario_Corner_3 = require('./Scenario_Corner_3.png');
 const Scenario_Corner_4 = require('./Scenario_Corner_4.png');
 const Scenario_Avatar_1 = require('./Scenario_Avatar_1.png');
 const Scenario_Avatar_2 = require('./Scenario_Avatar_2.png');
+const SwitchKid_Female_1 = require('./SwitchKid_Female_1.png');
+const SwitchKid_Female_2 = require('./SwitchKid_Female_2.png');
+const SwitchKid_Female_3 = require('./SwitchKid_Female_3.png');
+const SwitchKid_Male = require('./SwitchKidMale.png');
+const rocket = require('./rocket.png');
+const quiz = require('./quiz.png');
 
 export const IMAGES = {
+  SwitchKid_Male,
+  SwitchKid_Female_1,
+  SwitchKid_Female_2,
+  SwitchKid_Female_3,
+  rocket,
+  quiz,
+  Badge,
+  LearnerTrophy,
   Recording,
   Chat,
   Scenario_Avatar_1,

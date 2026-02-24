@@ -16,6 +16,8 @@ module.exports = {
         sansSemiBold: ["Sans-SemiBold"],
         sansMedium: ["Sans-Medium"],
         sansItalic: ["Sans-Italic"],
+        lexend: ["Lexend-Regular"],
+        lexendMedium: ["Lexend-Medium"],
       },
       colors:{
         primary:'#337535',

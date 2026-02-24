@@ -84,7 +84,7 @@ const AvatarSelection = () => {
   );
 };
 
-const AvatarCard = ({
+export const AvatarCard = ({
   item,
   isSelected,
   onSelect,

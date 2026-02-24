@@ -102,9 +102,8 @@ const HomeKid = () => {
                   'Think Leadership',
                 ]}
               />
-              {
-                seriesGroup?.map((s) => {
-                   return (
+              {seriesGroup?.map((s) => {
+                return (
                   <View
                     key={s.name + series}
                     className="border border-[#D3D2D366] rounded-[20px] bg-white p-4"
@@ -114,13 +113,12 @@ const HomeKid = () => {
                     </Text>
                     <View className="mt-5 flex-row flex-wrap gap-2">
                       {s.badges?.map((b) => (
-                        <BadgeCard {...b} />
+                        <BadgeCard key={b._id} {...b} />
                       ))}
                     </View>
                   </View>
                 );
-                })
-              }
+              })}
             </>
           )}
         </View>
@@ -129,7 +127,7 @@ const HomeKid = () => {
   );
 };
 
-const BadgeCard = (props: Badge) => {
+export const BadgeCard = (props: Badge) => {
   return (
     <Pressable className="items-center gap-1.5 border border-[#D3D2D366] rounded-[12px] py-6 w-[48%]">
       <Image

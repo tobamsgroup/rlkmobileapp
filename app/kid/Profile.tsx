@@ -1,16 +1,42 @@
-import { ICONS } from "@/assets/icons";
-import { IMAGES } from "@/assets/images";
-import ProgressBar from "@/components/ProgressBar";
-import TopBackButton from "@/components/TopBackButton";
-import { scaleHeight, scaleWidth, SCREEN_WIDTH } from "@/utils/scale";
-import Constants from "expo-constants";
-import React from "react";
-import { Image, Pressable, ScrollView, Text, View } from "react-native";
+import { getRecentActivities } from '@/actions/kid';
+import { ICONS } from '@/assets/icons';
+import { IMAGES } from '@/assets/images';
+import ProgressBar from '@/components/ProgressBar';
+import TopBackButton from '@/components/TopBackButton';
+import useKidLearningOverview from '@/hooks/useKidLearning';
+import useKidProfile from '@/hooks/useKidProfile';
+import { ensureHttps, formatFriendlyDate } from '@/utils';
+import { calculateXpLevel, getFormattedSeriesOverview } from '@/utils/kid';
+import { scaleHeight, scaleWidth, SCREEN_WIDTH } from '@/utils/scale';
+import { useQuery } from '@tanstack/react-query';
+import Constants from 'expo-constants';
+import { router } from 'expo-router';
+import React, { useMemo } from 'react';
+import { Image, Pressable, ScrollView, Text, View } from 'react-native';
 
 const Profile = () => {
+  const { data } = useKidProfile();
+  const { data: overview } = useKidLearningOverview();
+
+  const xpInfo = useMemo(() => {
+    return calculateXpLevel(data?.totalXp || 0);
+  }, [data]);
+
+  const tracks = useMemo(() => {
+    if (!overview) return [];
+    return getFormattedSeriesOverview(overview);
+  }, [overview]);
+
+  const { data: activities } = useQuery({
+    queryKey: ['kid-activities'],
+    queryFn: async () => {
+      return await getRecentActivities();
+    },
+  });
+
   return (
     <ScrollView
-      style={{ flex: 1, backgroundColor: "#DBEFDC" }}
+      style={{ flex: 1, backgroundColor: '#DBEFDC' }}
       showsVerticalScrollIndicator={false}
     >
       <View className="bg-[#DBEFDC] flex-1 relative">
@@ -39,16 +65,17 @@ const Profile = () => {
             left: SCREEN_WIDTH / 2 - 81,
           }}
           source={
-            // data?.picture
-            // ? { uri: ensureHttps(data?.picture) }
-            IMAGES.KidProfilePlaceholder
+            data?.picture
+              ? { uri: ensureHttps(data?.picture) }
+              : IMAGES.KidProfilePlaceholder
           }
         />
         <Pressable
+          onPress={() => router.push('/kid/ChangeAvatar')}
           style={{ top: scaleHeight(256) + 23, left: SCREEN_WIDTH / 2 + 35 }}
           className="w-14 absolute h-14 bg-white rounded-full items-center justify-center border-[1.5px] border-[#DBEFDC]"
         >
-          <ICONS.Pencil stroke={"#3F9243"} />
+          <ICONS.Pencil stroke={'#3F9243'} />
         </Pressable>
         {/* )} */}
         <Pressable
@@ -73,14 +100,14 @@ const Profile = () => {
         >
           <View className="bg-white border-[#C3E4C5] border-[0.5px] p-5 rounded-[20px] w-full items-center">
             <Text className="text-[18px] font-sansMedium text-dark">
-              Alexandar Bob
+              {data?.name}
             </Text>
             <Text className="text-[16px] text-[#474348] font-sans mt-2">
-              @alexbob1
+              @{data?.username}
             </Text>
             <View>
               <Text className="text-[16px] text-[#474348] font-sans mt-2">
-                12 Years
+                {data?.age} Years
               </Text>
               <Text></Text>
             </View>
@@ -104,7 +131,7 @@ const Profile = () => {
                 <ICONS.Trophy />
               </View>
               <Text className="text-[20px] text-dark font-sansSemiBold">
-                Level 5
+                Level {xpInfo?.currentLevel}
               </Text>
             </View>
             <View className="flex-row items-center gap-2 mb-4">
@@ -112,7 +139,7 @@ const Profile = () => {
                 Total XP:
               </Text>
               <Text className="text-[20px] text-[#265828] font-sansSemiBold">
-                1000 XP
+                {xpInfo?.currentXp} XP
               </Text>
               <Image
                 style={{
@@ -122,19 +149,18 @@ const Profile = () => {
                 source={IMAGES.Star}
               />
             </View>
-            <ProgressBar height={14} percent={20} />
+            <ProgressBar height={14} percent={xpInfo?.progressPercent || 0} />
             <View className="mt-5 flex-row items-center justify-between">
               <Text className="text-[16px] text-[#6C686C] font-sans">
-                Next Level at
+                Next Level at{' '}
                 <Text className="text-[16px] font-sansSemiBold text-dark">
-                  {" "}
-                  1,500 XP
-                </Text>{" "}
+                  {xpInfo?.nextLevelXp} XP
+                </Text>{' '}
               </Text>
               <Text className="text-[16px] text-[#6C686C] font-sans">
                 <Text className="text-[16px] font-sansSemiBold text-dark">
-                  +260
-                </Text>{" "}
+                  +{xpInfo?.xpToNextLevel}
+                </Text>{' '}
                 to go!
               </Text>
             </View>
@@ -145,7 +171,10 @@ const Profile = () => {
               <Text className="text-[16px] text-dark font-sansSemiBold">
                 Badges
               </Text>
-              <Text className="font-sansMedium text-[#337535] underline">
+              <Text
+                onPress={() => router.push('/(tabs)/badges')}
+                className="font-sansMedium text-[#337535] underline"
+              >
                 VIEW ALL
               </Text>
             </View>
@@ -176,36 +205,20 @@ const Profile = () => {
               Recent Activity
             </Text>
 
-            <View className="p-3 flex-row rounded-[16px] gap-3 border border-[#D3D2D3] mb-6">
-              <ICONS.Star2 />
-              <View className="gap-1 flex-1">
-                <Text className="text-dark font-sansMedium text-[16px] mb-2">
-                  +20 XP – Completed Chapter Quiz
-                </Text>
-                {/* <Text className="font-sans text-[#474348]">{a?.title}</Text> */}
-                <Text className="font-sans text-[#474348]">Today, 3:12 PM</Text>
+            {activities?.slice(0, 5).map((a) => (
+              <View className="p-3 flex-row rounded-[16px] gap-3 border border-[#D3D2D3] mb-6">
+                <ICONS.Star2 />
+                <View className="gap-1 flex-1">
+                  <Text className="text-dark font-sansMedium text-[16px] mb-2">
+                    {a.activity}
+                  </Text>
+                  {/* <Text className="font-sans text-[#474348]">{a?.title}</Text> */}
+                  <Text className="font-sans text-[#474348]">
+                    {formatFriendlyDate(a.timestamp)}
+                  </Text>
+                </View>
               </View>
-            </View>
-            <View className="p-3 flex-row rounded-[16px] gap-3 border border-[#D3D2D3] mb-6">
-              <ICONS.Star2 />
-              <View className="gap-1 flex-1">
-                <Text className="text-dark font-sansMedium text-[16px] mb-2">
-                  +20 XP – Completed Chapter Quiz
-                </Text>
-                {/* <Text className="font-sans text-[#474348]">{a?.title}</Text> */}
-                <Text className="font-sans text-[#474348]">Today, 3:12 PM</Text>
-              </View>
-            </View>
-            <View className="p-3 flex-row rounded-[16px] gap-3 border border-[#D3D2D3] mb-6">
-              <ICONS.Star2 />
-              <View className="gap-1 flex-1">
-                <Text className="text-dark font-sansMedium text-[16px] mb-2">
-                  +20 XP – Completed Chapter Quiz
-                </Text>
-                {/* <Text className="font-sans text-[#474348]">{a?.title}</Text> */}
-                <Text className="font-sans text-[#474348]">Today, 3:12 PM</Text>
-              </View>
-            </View>
+            ))}
           </View>
         </View>
       </View>

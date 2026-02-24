@@ -119,3 +119,37 @@ export function maskEmail(email?: string): string {
   const [, domain] = email.split("@");
   return `***@${domain}`;
 }
+
+export function formatFriendlyDate(isoDate: string): string {
+  const date = new Date(isoDate);
+  const now = new Date();
+
+  const isSameDay = (d1: Date, d2: Date) =>
+    d1.getFullYear() === d2.getFullYear() &&
+    d1.getMonth() === d2.getMonth() &&
+    d1.getDate() === d2.getDate();
+
+  const isYesterday = (d: Date) => {
+    const yesterday = new Date();
+    yesterday.setDate(now.getDate() - 1);
+    return isSameDay(d, yesterday);
+  };
+
+  const timeFormatter = new Intl.DateTimeFormat(undefined, {
+    hour: "numeric",
+    minute: "2-digit",
+    hour12: true,
+  });
+
+  if (isSameDay(date, now)) {
+    return `Today, ${timeFormatter.format(date)}`;
+  } else if (isYesterday(date)) {
+    return `Yesterday, ${timeFormatter.format(date)}`;
+  } else {
+    const dateFormatter = new Intl.DateTimeFormat(undefined, {
+      month: "short",
+      day: "numeric",
+    });
+    return `${dateFormatter.format(date)}, ${timeFormatter.format(date)}`;
+  }
+}

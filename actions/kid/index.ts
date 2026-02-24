@@ -1,5 +1,5 @@
 import axios from '@/lib/axios';
-import { Badge } from '@/types';
+import { ActivityProps, Badge } from '@/types';
 import {
   ChapterPage,
   ChapterPageData,
@@ -11,6 +11,7 @@ import {
   ReadingProgressProps,
   ScenarioQuizQuestion,
 } from "@/types";
+import { cache } from 'react';
 
 export const fetchKidLearning = async (): Promise<KidLearningOverview[]> => {
   const res = await axios.get(`/kid/courses/my`);
@@ -173,3 +174,10 @@ export const getAllBadges = async (): Promise<Badge[]> => {
   const res = await axios.get(`/badges`);
   return res?.data.data;
 };
+
+export const getRecentActivities = cache(
+  async (): Promise<ActivityProps[]> => {
+    const resp = await axios.get(`/activities/recent`);
+    return resp?.data?.data;
+  }
+);

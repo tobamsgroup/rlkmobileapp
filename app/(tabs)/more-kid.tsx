@@ -1,7 +1,10 @@
 import { handleLogout } from '@/actions/logout';
 import { ICONS } from '@/assets/icons';
 import { IMAGES } from '@/assets/images';
+import Skeleton from '@/components/Skeleton';
 import { useAppDispatch } from '@/hooks/redux';
+import useKidProfile from '@/hooks/useKidProfile';
+import { ensureHttps } from '@/utils';
 import { scaleHeight, scaleWidth, SCREEN_WIDTH } from '@/utils/scale';
 import { router } from 'expo-router';
 import React from 'react';
@@ -16,6 +19,7 @@ import {
 
 const MoreKid = () => {
   const dispatch = useAppDispatch();
+  const { data, isLoading } = useKidProfile();
   return (
     <ScrollView
       style={{ flex: 1, backgroundColor: '#DBEFDC' }}
@@ -26,33 +30,33 @@ const MoreKid = () => {
           style={{ width: SCREEN_WIDTH, height: scaleHeight(256) }}
           source={IMAGES.MoreOverlay}
         />
-        {/* 
-      {isLoading ? (
-        <Skeleton
-          style={{
-            width: scaleWidth(130),
-            height: scaleWidth(130),
-            top: scaleHeight(256) - 75,
-            left: SCREEN_WIDTH / 2 - 81,
-          }}
-          className="border-2 border-white rounded-full absolute "
-        />
-      ) : ( */}
-        <Image
-          className="border-2 border-[#FFDE2A] rounded-full absolute "
-          style={{
-            width: scaleWidth(130),
-            height: scaleWidth(130),
-            top: scaleHeight(256) - 75,
-            left: SCREEN_WIDTH / 2 - 81,
-          }}
-          source={
-            // data?.picture
-            // ? { uri: ensureHttps(data?.picture) }
-            IMAGES.KidProfilePlaceholder
-          }
-        />
-        {/* )} */}
+
+        {isLoading ? (
+          <Skeleton
+            style={{
+              width: scaleWidth(130),
+              height: scaleWidth(130),
+              top: scaleHeight(256) - 75,
+              left: SCREEN_WIDTH / 2 - 81,
+            }}
+            className="border-2 border-white rounded-full absolute "
+          />
+        ) : (
+          <Image
+            className="border-2 border-[#FFDE2A] rounded-full absolute "
+            style={{
+              width: scaleWidth(130),
+              height: scaleWidth(130),
+              top: scaleHeight(256) - 75,
+              left: SCREEN_WIDTH / 2 - 81,
+            }}
+            source={
+              data?.picture
+                ? { uri: ensureHttps(data?.picture) }
+                : IMAGES.KidProfilePlaceholder
+            }
+          />
+        )}
 
         <Text
           style={{ top: scaleHeight(88) }}
@@ -64,13 +68,13 @@ const MoreKid = () => {
           style={{ marginTop: scaleHeight(80) }}
           className="items-center px-6 flex-1 pb-6"
         >
-          {/* {isLoading ? (
+          {isLoading ? (
           <Skeleton className="w-1/2 rounded-full" />
-        ) : ( */}
+        ) : (
           <Text className="text-[20px] font-sansSemiBold text-dark">
-            Hi, Alexandar Bob!
+            Hi, {data?.name}
           </Text>
-          {/* )} */}
+           )}
           <View className="flex-row items-center gap-2 rounded-full py-1 px-4 mt-2">
             <Image
               style={{

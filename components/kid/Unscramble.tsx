@@ -1,12 +1,20 @@
-import React, { useRef, useState } from "react";
-import { View, Text, findNodeHandle, UIManager } from "react-native";
+import React, {
+  Dispatch,
+  SetStateAction,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
+import { findNodeHandle, Text, UIManager, View } from 'react-native';
+import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withSpring,
   runOnJS,
-} from "react-native-reanimated";
-import { Gesture, GestureDetector } from "react-native-gesture-handler";
+  useAnimatedStyle,
+  useSharedValue,
+  withSpring,
+} from 'react-native-reanimated';
+import { twMerge } from 'tailwind-merge';
 
 type Letter = {
   id: string;
@@ -20,24 +28,53 @@ type Slot = {
   letterId: string | null;
 };
 
-const WORD = ["L", "D", "E", "R", "E", "A", "S", "P", "H", "I"];
+const WORD = ['L', 'D', 'E', 'R', 'E', 'A', 'S', 'P', 'H', 'I'];
 
-export default function UnscrambleGame() {
+export default function UnscrambleGame({
+  question,
+  isSubmitted,
+  setSelected,
+  resetTrigger,
+}: {
+  question: { answer: string };
+  isSubmitted: boolean;
+  setSelected: Dispatch<SetStateAction<string | boolean | null>>;
+  resetTrigger: number;
+}) {
+  const topLetters = useMemo(
+    () =>
+      question.answer
+        .split('')
+        .sort(() => Math.random() - 0.5)
+        ?.join('')
+        .toUpperCase(),
+    [question],
+  );
   const [letters, setLetters] = useState<Letter[]>(
-    WORD.map((l, i) => ({
+    topLetters?.split('')?.map((l, i) => ({
       id: String(i),
       value: l,
       placedSlotId: null,
-    }))
+    })),
   );
 
   const [slots, setSlots] = useState<Slot[]>(
-    Array.from({ length: 10 }).map((_, i) => ({
+    Array.from({ length: question.answer.length }).map((_, i) => ({
       id: i,
       layout: { x: 0, y: 0, width: 0, height: 0 },
       letterId: null,
-    }))
+    })),
   );
+
+  useEffect(() => {
+    setSlots(
+      Array.from({ length: question.answer.length }).map((_, i) => ({
+        id: i,
+        layout: { x: 0, y: 0, width: 0, height: 0 },
+        letterId: null,
+      })),
+    );
+  }, [resetTrigger, question.answer.length]);
 
   const slotRefs = useRef<View[]>([]);
 
@@ -54,12 +91,26 @@ export default function UnscrambleGame() {
       (x: number, y: number, width: number, height: number) => {
         setSlots((prev) =>
           prev.map((s) =>
-            s.id === index ? { ...s, layout: { x, y, width, height } } : s
-          )
+            s.id === index ? { ...s, layout: { x, y, width, height } } : s,
+          ),
         );
-      }
+      },
     );
   };
+
+  function verfifyAnswer() {
+    const answer = letters
+      .slice()
+      .sort((a, b) => (a.placedSlotId || 0) - (b.placedSlotId || 0))
+      ?.map((a) => a.value)
+      ?.join('');
+
+    return answer?.toLowerCase() === question?.answer?.toLowerCase()
+  }
+
+  const allFilled = slots.every((s) => s.letterId !== null);
+
+  //   console.log({slots, letters})
 
   /** Place or remove letter with swap support */
   const handleDrop = (letterId: string, absX: number, absY: number) => {
@@ -93,13 +144,13 @@ export default function UnscrambleGame() {
         } else {
           // Move dragged letter to empty slot
           newLetters = newLetters.map((l) =>
-            l.id === letterId ? { ...l, placedSlotId: targetSlot.id } : l
+            l.id === letterId ? { ...l, placedSlotId: targetSlot.id } : l,
           );
         }
       } else {
         // Dropped outside, return to tray
         newLetters = newLetters.map((l) =>
-          l.id === letterId ? { ...l, placedSlotId: null } : l
+          l.id === letterId ? { ...l, placedSlotId: null } : l,
         );
       }
 
@@ -126,6 +177,14 @@ export default function UnscrambleGame() {
     });
   };
 
+    useEffect(() => {
+    setSelected(allFilled ? letters
+      .slice()
+      .sort((a, b) => (a.placedSlotId || 0) - (b.placedSlotId || 0))
+      ?.map((a) => a.value)
+      ?.join('') : null);
+  }, [allFilled, letters]);
+
   return (
     <View className="flex-1 bg-[#A6D7A8] rounded-[20px]">
       <View className="bg-white p-4 py-6 mb-4 rounded-tr-[20px] rounded-tl-[20px]">
@@ -135,46 +194,46 @@ export default function UnscrambleGame() {
       </View>
 
       <View className="p-6">
+        {/* LETTER TRAY */}
+        <View className="flex-row flex-wrap justify-center mb-6">
+          {letters.map((letter) => (
+            <DraggableLetter
+              key={letter.id}
+              letter={letter}
+              onDrop={handleDrop}
+              allFilled={allFilled}
+              isCorrect={verfifyAnswer()}
+              isSubmitted={isSubmitted}
+            />
+          ))}
+        </View>
 
+        {/* DROP ZONE */}
+        <View className="bg-white rounded-[16px] p-6 border-2 border-[#88CA8A]">
+          <View className="flex-row flex-wrap justify-center">
+            {slots.map((slot, i) => {
+              const letter = letters.find((l) => l.id === slot.letterId);
 
-      {/* LETTER TRAY */}
-      <View className="flex-row flex-wrap justify-center mb-6">
-        {letters.map((letter) => (
-          <DraggableLetter
-            key={letter.id}
-            letter={letter}
-            onDrop={handleDrop}
-          />
-        ))}
-      </View>
-
-      {/* DROP ZONE */}
-      <View className="bg-white rounded-[16px] p-6 border-2 border-[#88CA8A]">
-        <View className="flex-row flex-wrap justify-center">
-          {slots.map((slot, i) => {
-            const letter = letters.find((l) => l.id === slot.letterId);
-
-            return (
-              <View
-                key={slot.id}
-                ref={(ref) => {
-                  if (ref) {
-                    slotRefs.current[i] = ref;
-                    setTimeout(() => measureSlot(i), 50);
-                  }
-                }}
-                className="w-16 h-16 m-2 rounded-2xl border-2 border-dashed border-[#88CA8A] bg-[#DBEFDC1A] items-center justify-center"
-              >
-                {letter && (
-                  <Text className="text-xl font-bold">{letter.value}</Text>
-                )}
-              </View>
-            );
-          })}
+              return (
+                <View
+                  key={slot.id}
+                  ref={(ref) => {
+                    if (ref) {
+                      slotRefs.current[i] = ref;
+                      setTimeout(() => measureSlot(i), 50);
+                    }
+                  }}
+                  className="w-16 h-16 m-2 rounded-2xl border-2 border-dashed border-[#88CA8A] bg-[#DBEFDC1A] items-center justify-center"
+                >
+                  {letter && (
+                    <Text className="text-xl font-bold">{letter.value}</Text>
+                  )}
+                </View>
+              );
+            })}
+          </View>
         </View>
       </View>
-      </View>
-
     </View>
   );
 }
@@ -184,9 +243,18 @@ export default function UnscrambleGame() {
 type DragProps = {
   letter: Letter;
   onDrop: (id: string, x: number, y: number) => void;
+  isCorrect: boolean;
+  isSubmitted: boolean;
+  allFilled: boolean;
 };
 
-const DraggableLetter: React.FC<DragProps> = ({ letter, onDrop }) => {
+const DraggableLetter: React.FC<DragProps> = ({
+  letter,
+  onDrop,
+  isCorrect,
+  isSubmitted,
+  allFilled,
+}) => {
   const tx = useSharedValue(0);
   const ty = useSharedValue(0);
   const dragging = useSharedValue(false);
@@ -217,12 +285,19 @@ const DraggableLetter: React.FC<DragProps> = ({ letter, onDrop }) => {
     <GestureDetector gesture={gesture}>
       <Animated.View
         style={style}
-        className={`w-16 h-16 m-2 rounded-2xl items-center justify-center shadow
-          ${isPlaced ? "bg-gray-300" : "bg-white"}`}
+        className={twMerge(
+          `w-16 h-16 m-2 rounded-2xl items-center justify-center shadow
+          ${isPlaced ? 'bg-gray-300' : 'bg-white'} `,
+          isCorrect && allFilled && isSubmitted && 'border-solid',
+          !isCorrect &&
+            allFilled &&
+            isSubmitted &&
+            'border-solid border-[#DE21214D] bg-[#DE212108]',
+        )}
       >
         <Text
           className={`text-xl font-bold ${
-            isPlaced ? "text-gray-400" : "text-gray-800"
+            isPlaced ? 'text-gray-400' : 'text-gray-800'
           }`}
         >
           {letter.value}

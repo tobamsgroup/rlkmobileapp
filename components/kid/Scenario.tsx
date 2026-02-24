@@ -88,7 +88,7 @@ export default function Scenario({
   }));
 
   return (
-    <View className="bg-white shadow-md px-5 py-6 rounded-2xl mx-4 mt-10">
+    <View className=" z-[150] rounded-2xl px-8 py-8 bg-white">
 
       <View className="flex-col items-center gap-4 bg-[#DBEFDC99] py-6 px-5 rounded-[16px]">
         <Text className="font-sansSemiBold text-[24px] text-[#337535] capitalize w-full">

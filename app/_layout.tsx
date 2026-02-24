@@ -1,25 +1,28 @@
-import { savePushToken } from "@/actions";
-import ToastAlert from "@/components/ToastAlert";
-import { SoundProvider } from "@/context/SoundContext";
-import { useAppDispatch, useAppSelector } from "@/hooks/redux";
-import { getData } from "@/lib/storage";
-import { registerForPushNotificationsAsync } from "@/notification";
-import { login, logout } from "@/redux/authSlice";
-import store from "@/redux/store";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { useFonts } from "expo-font";
-import * as Notifications from "expo-notifications";
-import { Stack } from "expo-router";
-import * as SplashScreen from "expo-splash-screen";
-import { StatusBar } from "expo-status-bar";
-import { useEffect, useState } from "react";
-import "react-native-reanimated";
-import Toast, { ToastConfig } from "react-native-toast-message";
-import { Provider } from "react-redux";
-import "./global.css";
-import { Platform } from "react-native";
-import { getDeviceId } from "@/utils";
+import "react-native-gesture-handler";
+import { savePushToken } from '@/actions';
+import ToastAlert from '@/components/ToastAlert';
+import { ReadSettingsProvider } from '@/context/ReadContext';
+import { SoundProvider } from '@/context/SoundContext';
+import { useAppDispatch, useAppSelector } from '@/hooks/redux';
+import { getData } from '@/lib/storage';
+import { registerForPushNotificationsAsync } from '@/notification';
+import { login, logout } from '@/redux/authSlice';
+import store from '@/redux/store';
+import { getDeviceId } from '@/utils';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { useFonts } from 'expo-font';
+import * as Notifications from 'expo-notifications';
+import { Stack } from 'expo-router';
+import * as SplashScreen from 'expo-splash-screen';
+import { StatusBar } from 'expo-status-bar';
+import { useEffect, useState } from 'react';
+import { Platform } from 'react-native';
+import 'react-native-reanimated';
+import Toast, { ToastConfig } from 'react-native-toast-message';
+import { Provider } from 'react-redux';
+import './global.css';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 SplashScreen.preventAutoHideAsync();
 export const queryClient = new QueryClient();
@@ -40,12 +43,14 @@ Notifications.setNotificationHandler({
 
 function AppContent() {
   const [loaded, error] = useFonts({
-    "Sans-Black": require("../assets/fonts/WorkSans-Black.ttf"),
-    "Sans-Bold": require("../assets/fonts/WorkSans-Bold.ttf"),
-    "Sans-Medium": require("../assets/fonts/WorkSans-Medium.ttf"),
-    "Sans-Regular": require("../assets/fonts/WorkSans-Regular.ttf"),
-    "Sans-SemiBold": require("../assets/fonts/WorkSans-SemiBold.ttf"),
-    "Sans-Italic": require("../assets/fonts/WorkSans-Italic.ttf"),
+    'Sans-Black': require('../assets/fonts/WorkSans-Black.ttf'),
+    'Sans-Bold': require('../assets/fonts/WorkSans-Bold.ttf'),
+    'Sans-Medium': require('../assets/fonts/WorkSans-Medium.ttf'),
+    'Sans-Regular': require('../assets/fonts/WorkSans-Regular.ttf'),
+    'Sans-SemiBold': require('../assets/fonts/WorkSans-SemiBold.ttf'),
+    'Sans-Italic': require('../assets/fonts/WorkSans-Italic.ttf'),
+    'Lexend-Regular': require('../assets/fonts/Lexend-Regular.ttf'),
+    'Lexend-Medium': require('../assets/fonts/Lexend-Medium.ttf'),
   });
 
   const isLoggedIn = useAppSelector((state) => state.auth.isLoggedIn);
@@ -53,7 +58,7 @@ function AppContent() {
 
   useEffect(() => {
     const restoreSession = async () => {
-      const user = await getData("user");
+      const user = await getData('user');
       if (user) {
         dispatch(login(user));
       } else {
@@ -87,7 +92,7 @@ function AppContent() {
         </Stack.Protected>
         <Stack.Screen
           name="modal"
-          options={{ presentation: "modal", title: "Modal" }}
+          options={{ presentation: 'modal', title: 'Modal' }}
         />
       </Stack>
       <StatusBar style="dark" />
@@ -102,7 +107,7 @@ function AppContent() {
 }
 
 export default function RootLayout() {
-  const [expoPushToken, setExpoPushToken] = useState("");
+  const [expoPushToken, setExpoPushToken] = useState('');
 
   useEffect(() => {
     let isMounted = true;
@@ -111,14 +116,14 @@ export default function RootLayout() {
       try {
         const token = await registerForPushNotificationsAsync();
         if (!token || !isMounted) return;
-        const storedToken = await AsyncStorage.getItem("PUSH_TOKEN");
+        const storedToken = await AsyncStorage.getItem('PUSH_TOKEN');
         if (storedToken === token) return;
-        const deviceId = await getDeviceId()
-        if(!deviceId) return
-        await savePushToken({ token, deviceType:Platform.OS, deviceId });
-        await AsyncStorage.setItem("PUSH_TOKEN", token);
+        const deviceId = await getDeviceId();
+        if (!deviceId) return;
+        await savePushToken({ token, deviceType: Platform.OS, deviceId });
+        await AsyncStorage.setItem('PUSH_TOKEN', token);
       } catch (error) {
-        console.error("Failed to register/save push token", error);
+        console.error('Failed to register/save push token', error);
       }
     };
 
@@ -145,9 +150,13 @@ export default function RootLayout() {
   return (
     <QueryClientProvider client={queryClient}>
       <SoundProvider>
-        <Provider store={store}>
-          <AppContent />
-        </Provider>
+        <ReadSettingsProvider>
+          <Provider store={store}>
+            <GestureHandlerRootView>
+            <AppContent />
+            </GestureHandlerRootView>
+          </Provider>
+        </ReadSettingsProvider>
       </SoundProvider>
     </QueryClientProvider>
   );

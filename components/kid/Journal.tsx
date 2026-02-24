@@ -62,7 +62,7 @@ const COLORS = [
 
 type Mode = 'TYPE' | 'DRAW' | 'RECORD';
 
-export default function Journal() {
+export default function Journal({ onNext }: { onNext: () => void }) {
   const [mode, setMode] = useState<Mode>('TYPE');
   const [textAnswer, setTextAnswer] = useState('');
 
@@ -557,7 +557,7 @@ export default function Journal() {
               <Text className='text-[20px] text-[#265828] font-sansSemiBold text-center leading-[1.5]'>High five! Answer{'\n'}submitted!</Text>
               <Text className='text-[16px] text-center mt-2 font-sansMedium text-dark leading-[1.5]'>Get ready for the next{'\n'}challenge 🚀</Text>
             </View>
-            <Button text="NEXT LESSON" />
+            <Button onPress={onNext} text="NEXT LESSON" />
             <Button
             onPress={() => setOpenModal(false)}
               text="TRY AGAIN"
