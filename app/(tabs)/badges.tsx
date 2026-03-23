@@ -4,10 +4,10 @@ import Container from '@/components/Container';
 import Select from '@/components/Select';
 import Skeleton from '@/components/Skeleton';
 import { Badge } from '@/types';
-import { scaleWidth } from '@/utils/scale';
+import { scaleHeight, scaleWidth } from '@/utils/scale';
 import { useQuery } from '@tanstack/react-query';
 import React, { useEffect, useState } from 'react';
-import { Image, Pressable, Text, View } from 'react-native';
+import { Image, Modal, Pressable, Text, View } from 'react-native';
 import { twMerge } from 'tailwind-merge';
 
 const HomeKid = () => {
@@ -140,20 +140,61 @@ const HomeKid = () => {
 };
 
 export const BadgeCard = (props: Badge) => {
+  const [visible, setVisible] = useState(false);
+
   return (
-    <Pressable className="items-center gap-1.5 border border-[#D3D2D366] rounded-[12px] py-6 w-[48%]">
-      <Image
-        style={{ width: scaleWidth(52), height: scaleWidth(52) }}
-        // source={{ uri: props?.imageUrl }}
-        source={IMAGES.NoBadge}
-      />
-      <Text
-        numberOfLines={1}
-        className="font-sansMedium text-dark text-center "
+    <>
+      <Pressable
+        onPress={() => setVisible(true)}
+        className="items-center gap-1.5 border border-[#D3D2D366] rounded-[12px] py-6 w-[48%]"
       >
-        {props?.name}
-      </Text>
-    </Pressable>
+        <Image
+          style={{ width: scaleWidth(52), height: scaleWidth(52) }}
+          source={IMAGES.NoBadge}
+        />
+        <Text
+          numberOfLines={1}
+          className="font-sansMedium text-dark text-center"
+        >
+          {props?.name}
+        </Text>
+      </Pressable>
+
+      <Modal
+        visible={visible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setVisible(false)}
+      >
+        <Pressable
+          onPress={() => setVisible(false)}
+          className="flex-1 bg-black/50 items-center justify-center"
+        >
+          <Pressable
+            onPress={(e) => e.stopPropagation()}
+            className="bg-white rounded-[20px] items-center justify-center  mx-6 relative"
+            style={{ width: scaleWidth(327), height:scaleHeight(360) }}
+          >
+            <Image
+              style={{ height: scaleWidth(230) }}
+              source={IMAGES.NoBadgeOverlay}
+              className='absolute w-full h-full left-0 top-0 '
+            />
+             <Image style={{ width: scaleWidth(100), height: scaleWidth(100) }}
+              source={IMAGES.LockedTrophy}
+            />
+            <Text className="font-sansSemiBold text-dark text-[16px] text-center mt-5">
+              {props?.name}
+            </Text>
+            {props?.description ? (
+              <Text className="font-sans text-[12px] text-[#474348] text-center mt-2 leading-[1.5] bg-[#F0F2F5] px-3 py-2 rounded-full">
+                {props?.description}
+              </Text>
+            ) : null}
+          </Pressable>
+        </Pressable>
+      </Modal>
+    </>
   );
 };
 export const BadgeCardSkeleton = () => {

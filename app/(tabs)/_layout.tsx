@@ -12,15 +12,17 @@ import { twMerge } from "tailwind-merge";
 
 export default function TabLayout() {
   const colorScheme = useColorScheme();
-  const [user, setUser] = useState<GuardianLoginSession | null>(null);
+  const [user, setUser] = useState<GuardianLoginSession | null | undefined>(undefined);
 
   useEffect(() => {
     const fetchUser = async () => {
       const data = await getData<GuardianLoginSession>("user");
-      setUser(data);
+      setUser(data ?? null);
     };
     fetchUser();
   }, []);
+
+  if (user === undefined) return null;
 
   return (
     <Tabs

@@ -19,9 +19,10 @@ const Notifications = () => {
   const [type, setType] = useState("all");
   const [loading, setLoading] = useState(false);
   const [data, setData] = useState<NotificationProp[]>([]);
+  const [unreadCount, setUnreadCount] = useState(0)
 
   const { data: notifications, isLoading } = useQuery({
-    queryKey: ["notificationssmfimiofmr"],
+    queryKey: ["notifications"],
     queryFn: async () => {
       return await getAllNotifications();
     },
@@ -30,7 +31,7 @@ const Notifications = () => {
 
   useEffect(() => {
     if (!notifications) return;
-
+    setUnreadCount(notifications.filter((n) => !n.isRead).length);
     if (type === "all") {
       setData(notifications);
     } else {
@@ -95,14 +96,23 @@ const Notifications = () => {
               type === "unread" && "border-b",
             )}
           >
-            <Text
-              className={twMerge(
-                "text-[16px] font-sansSemiBold text-dark",
-                type === "unread" && "text-primary",
+            <View className="flex-row items-center gap-1.5">
+              <Text
+                className={twMerge(
+                  "text-[16px] font-sansSemiBold text-dark",
+                  type === "unread" && "text-primary",
+                )}
+              >
+                UNREAD
+              </Text>
+              {unreadCount > 0 && (
+                <View className="bg-[#DE2121] rounded-full min-w-[18px] h-[18px] items-center justify-center px-1">
+                  <Text className="text-white text-[11px] font-sansSemiBold">
+                    {unreadCount > 99 ? "99+" : unreadCount}
+                  </Text>
+                </View>
               )}
-            >
-              UNREAD
-            </Text>
+            </View>
           </Pressable>
         </View>
 

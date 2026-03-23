@@ -1,4 +1,5 @@
 import { ICONS } from '@/assets/icons';
+import { IMAGES } from '@/assets/images';
 import Container from '@/components/Container';
 import TopBackButton from '@/components/TopBackButton';
 import { useReadSettings } from '@/context/ReadContext';
@@ -40,7 +41,7 @@ const ReadingSettings = () => {
             Reading Settings
           </Text>
           <Text className="text-[16px] leading-[1.5] text-[#474348] font-sans mt-2">
-            Make your reading more{'\n'}comfortable.
+            Make your reading more comfortable.
           </Text>
 
           <View className="border-t border-t-[#D3D2D366] mt-6" />
@@ -65,9 +66,7 @@ const ReadingSettings = () => {
               </Text>
 
               <Image
-                source={{
-                  uri: 'https://picsum.photos/600/300',
-                }}
+                source={IMAGES.TSCH1Hero}
                 className="w-full  mb-3"
                 style={{ height: scaleHeight(120) }}
                 resizeMode="cover"
@@ -185,33 +184,35 @@ const ReadingSettings = () => {
             </Text>
 
             <View className="bg-white rounded-2xl p-4 border border-[#D3D2D366] gap-4">
-              <View className="flex-row items-center justify-between relative">
-                <View className="flex-row items-center gap-2">
-                  <Text className="text-[16px] font-sans text-dark">
-                    Dyslexia-Friendly
-                  </Text>
-                  <Pressable
-                    onPress={() =>
-                      activeTooltip
-                        ? setActiveTooltip('')
-                        : setActiveTooltip('dyslexia')
-                    }
-                  >
-                    <ICONS.QuestionCircled />
-                  </Pressable>
+              <View className="relative">
+                <View className="flex-row items-center justify-between">
+                  <View className="flex-row items-center gap-2">
+                    <Text className="text-[16px] font-sans text-dark">
+                      Dyslexia-Friendly
+                    </Text>
+                    <Pressable
+                      onPress={() =>
+                        activeTooltip
+                          ? setActiveTooltip('')
+                          : setActiveTooltip('dyslexia')
+                      }
+                    >
+                      <ICONS.QuestionCircled />
+                    </Pressable>
+                  </View>
+                  <Switch
+                    style={{ transform: [{ scaleX: 0.8 }, { scaleY: 0.8 }] }}
+                    thumbColor={'white'}
+                    trackColor={{
+                      true: '#3F9243',
+                      false: '#D3D2D3',
+                    }}
+                    value={dyslexia}
+                    onChange={() => setDyslexia((prev) => !prev)}
+                  />
                 </View>
-                <Switch
-                  style={{ transform: [{ scaleX: 0.8 }, { scaleY: 0.8 }] }}
-                  thumbColor={'white'}
-                  trackColor={{
-                    true: '#3F9243',
-                    false: '#D3D2D3',
-                  }}
-                  value={dyslexia}
-                  onChange={() => setDyslexia((prev) => !prev)}
-                />
                 {activeTooltip === 'dyslexia' && (
-                  <View className="absolute w-full top-[30]">
+                  <View className="absolute left-0 right-0 top-8 left-[-20px] right-[-20px]  z-10">
                     <ToolTip
                       title="Dyslexia-Friendly Mode"
                       desc="Changes the font on reading screens to make words easier to read."
@@ -220,34 +221,35 @@ const ReadingSettings = () => {
                 )}
               </View>
 
-              <View className="flex-row items-center justify-between relative">
-                <View className="flex-row items-center gap-2">
-                  <Text className="text-[16px] font-sans text-dark">
-                    High Contrast
-                  </Text>
-                  <Pressable
-                    onPress={() =>
-                      activeTooltip
-                        ? setActiveTooltip('')
-                        : setActiveTooltip('contrast')
-                    }
-                  >
-                    <ICONS.QuestionCircled />
-                  </Pressable>
+              <View className="relative w-full ">
+                <View className="flex-row items-center justify-between">
+                  <View className="flex-row items-center gap-2">
+                    <Text className="text-[16px] font-sans text-dark">
+                      High Contrast
+                    </Text>
+                    <Pressable
+                      onPress={() =>
+                        activeTooltip
+                          ? setActiveTooltip('')
+                          : setActiveTooltip('contrast')
+                      }
+                    >
+                      <ICONS.QuestionCircled />
+                    </Pressable>
+                  </View>
+                  <Switch
+                    style={{ transform: [{ scaleX: 0.8 }, { scaleY: 0.8 }] }}
+                    thumbColor={'white'}
+                    trackColor={{
+                      true: '#3F9243',
+                      false: '#D3D2D3',
+                    }}
+                    value={highContrast}
+                    onChange={() => sethighContrast((prev) => !prev)}
+                  />
                 </View>
-
-                <Switch
-                  style={{ transform: [{ scaleX: 0.8 }, { scaleY: 0.8 }] }}
-                  thumbColor={'white'}
-                  trackColor={{
-                    true: '#3F9243',
-                    false: '#D3D2D3',
-                  }}
-                  value={highContrast}
-                  onChange={() => sethighContrast((prev) => !prev)}
-                />
                 {activeTooltip === 'contrast' && (
-                  <View className="absolute w-full top-[30]">
+                  <View className="absolute left-[-20px] right-[-20px] top-8 z-10">
                     <ToolTip
                       title="High Contrast Mode"
                       desc="Applies only to reading screens in the course player."
@@ -331,7 +333,7 @@ const ReadingSettings = () => {
 
 const ToolTip = ({ title, desc }: { title: string; desc: string }) => {
   return (
-    <View className="items-center w-full  z-[100]">
+    <View className="items-center w-full z-[100]">
       <Svg width={40} height={20} viewBox="0 0 40 20">
         <Path
           d="M0 20 L20 0 L40 20 Z"

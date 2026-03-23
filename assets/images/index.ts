@@ -61,8 +61,12 @@ const SwitchKid_Female_3 = require('./SwitchKid_Female_3.png');
 const SwitchKid_Male = require('./SwitchKidMale.png');
 const rocket = require('./rocket.png');
 const quiz = require('./quiz.png');
+const NoBadgeOverlay = require('./NoBadgeOverlay.png')
+const TSCH1Hero = require('./TSCH1Hero.png')
 
 export const IMAGES = {
+  TSCH1Hero,
+  NoBadgeOverlay,
   SwitchKid_Male,
   SwitchKid_Female_1,
   SwitchKid_Female_2,

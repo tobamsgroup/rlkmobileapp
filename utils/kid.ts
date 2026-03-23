@@ -153,13 +153,23 @@ type XpInfo = {
   progressPercent: number;
 };
 
-export const calculateXpLevel = (totalXp: number, xpPerLevel = 300): XpInfo => {
-  const currentLevel = Math.floor(totalXp / xpPerLevel) + 1;
-  const previousLevelXp = (currentLevel - 1) * xpPerLevel;
-  const nextLevelXp = currentLevel * xpPerLevel;
-  const xpToNextLevel = nextLevelXp - totalXp;
+const XP_THRESHOLDS = [0, 100, 250, 400, 600, 850, 1100, 1400, 1750, 2200];
 
-  const progressPercent = ((totalXp - previousLevelXp) / xpPerLevel) * 100;
+export const calculateXpLevel = (totalXp: number): XpInfo => {
+  let currentLevel = 1;
+  for (let i = XP_THRESHOLDS.length - 1; i >= 0; i--) {
+    if (totalXp >= XP_THRESHOLDS[i]) {
+      currentLevel = i + 1;
+      break;
+    }
+  }
+
+  const isMaxLevel = currentLevel >= XP_THRESHOLDS.length;
+  const previousLevelXp = XP_THRESHOLDS[currentLevel - 1];
+  const nextLevelXp = isMaxLevel ? XP_THRESHOLDS[XP_THRESHOLDS.length - 1] : XP_THRESHOLDS[currentLevel];
+  const xpToNextLevel = isMaxLevel ? 0 : nextLevelXp - totalXp;
+  const xpInLevel = nextLevelXp - previousLevelXp;
+  const progressPercent = isMaxLevel ? 100 : ((totalXp - previousLevelXp) / xpInLevel) * 100;
 
   return {
     currentLevel,

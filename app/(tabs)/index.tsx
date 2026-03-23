@@ -90,7 +90,7 @@ export default function HomeScreen() {
               <View className="relative">
                 <ICONS.Notifications width={20} height={20} fill={"#4CAF50"} />
                 {hasUnread && (
-                  <View className="w-3 border-2 border-white absolute right-[-2px] outline-none h-3 bg-[#DE2121] rounded-full" />
+                  <View className="w-3 border-2 border-white absolute top-[-2px] right-[-2px] h-3 bg-[#DE2121] rounded-full" />
                 )}
               </View>
             </Pressable>

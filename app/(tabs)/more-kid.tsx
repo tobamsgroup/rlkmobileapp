@@ -37,7 +37,7 @@ const MoreKid = () => {
               width: scaleWidth(130),
               height: scaleWidth(130),
               top: scaleHeight(256) - 75,
-              left: SCREEN_WIDTH / 2 - 81,
+              alignSelf: 'center',
             }}
             className="border-2 border-white rounded-full absolute "
           />
@@ -48,7 +48,7 @@ const MoreKid = () => {
               width: scaleWidth(130),
               height: scaleWidth(130),
               top: scaleHeight(256) - 75,
-              left: SCREEN_WIDTH / 2 - 81,
+              alignSelf: 'center',
             }}
             source={
               data?.picture

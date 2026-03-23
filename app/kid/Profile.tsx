@@ -1,6 +1,7 @@
-import { getRecentActivities } from '@/actions/kid';
+import { getAllBadges, getRecentActivities } from '@/actions/kid';
 import { ICONS } from '@/assets/icons';
 import { IMAGES } from '@/assets/images';
+import { BadgeCard, BadgeCardSkeleton } from '@/app/(tabs)/badges';
 import ProgressBar from '@/components/ProgressBar';
 import Skeleton from '@/components/Skeleton';
 import TopBackButton from '@/components/TopBackButton';
@@ -33,6 +34,13 @@ const Profile = () => {
     queryKey: ['kid-activities'],
     queryFn: async () => {
       return await getRecentActivities();
+    },
+  });
+
+  const { data: badges, isLoading: isLoadingBadges } = useQuery({
+    queryKey: ['badges'],
+    queryFn: async () => {
+      return await getAllBadges();
     },
   });
 
@@ -108,12 +116,22 @@ const Profile = () => {
               @{data?.username}
             </Text>
             <View>
-              <Text className="text-[16px] text-[#474348] font-sans mt-2">
+              <View className='flex-row items-center gap-2'>
+
+              <Text className="text-[16px] text-[#474348] font-sans mt-2 ">
                 {data?.age} Years
               </Text>
+            {data?.gender &&  <>
+              
+              <View className='w-2 h-2 rounded-full bg-[#FFD700] mt-2'/>
+              <Text className="text-[16px] text-[#474348] font-sans mt-2">
+                Male
+              </Text>
+              </>}
+              </View>
 
             </View>
-            <View className="p-4 rounded-[8px] bg-[#FFF7CCB2] w-full flex-row  items-center justify-center gap-3">
+            <View className="p-4 mt-5 rounded-[8px] bg-[#FFF7CCB2] w-full flex-row  items-center justify-center gap-3">
               <Image
                 style={{
                   width: scaleWidth(28),
@@ -168,7 +186,7 @@ const Profile = () => {
             </View>
           </View>
 
-          <View className="bg-white mt-6 border-[#D3D2D3] border p-5 rounded-[20px] w-full ">
+          <View className="bg-white mt-6 border-[#D3D2D3] border-[0.5px] p-5 rounded-[20px] w-full ">
             <View className="flex-row justify-between items-center mb-4">
               <Text className="text-[16px] text-dark font-sansSemiBold">
                 Badges
@@ -181,24 +199,10 @@ const Profile = () => {
               </Text>
             </View>
             <View className="flex-row flex-wrap gap-2">
-              {[1, 2, 3, 4]?.map((i) => (
-                <View
-                  key={i}
-                  className=" w-[48%] border-[#D3D2D366] rounded-[12px] border-[0.5px] p-3 items-center"
-                >
-                  <Image
-                    className=" rounded-full "
-                    style={{
-                      width: scaleWidth(56),
-                      height: scaleWidth(56),
-                    }}
-                    source={IMAGES.LockedTrophy}
-                  />
-                  <Text className="text-dark text-[12px] font-sansMedium mt-2">
-                    Lesson Lover
-                  </Text>
-                </View>
-              ))}
+              {isLoadingBadges
+                ? [1, 2, 3, 4].map((i) => <BadgeCardSkeleton key={i} />)
+                : badges?.slice(0, 4).map((b) => <BadgeCard key={b._id} {...b} />)
+              }
             </View>
           </View>
 

@@ -1,7 +1,8 @@
+import { ICONS } from '@/assets/icons';
 import { AssignedChapter } from '@/types';
 import { ensureHttps } from '@/utils';
 import { calculateChapterProgress } from '@/utils/kid';
-import { scaleHeight } from '@/utils/scale';
+import { scaleHeight, scaleWidth } from '@/utils/scale';
 import { router } from 'expo-router';
 import React from 'react';
 import { Image, Text, View } from 'react-native';
@@ -24,12 +25,23 @@ const KidLearningCard = (props: ChapterProps) => {
 
   return (
     <View className="bg-white p-5 rounded-[20px] flex-col items-start z-20 border border-[#D3D2D366] mb-6">
+      <View className='w-full relative'      style={{ height: scaleHeight(144) }}>
+
       <Image
-        style={{ height: scaleHeight(144) }}
+   
         source={{ uri: ensureHttps(props?.bookImage) }}
         className="rounded-[20px] w-full h-full mb-5"
         alt={props?.chapterId?.seriesId || 'card image'}
       />
+      <View className='w-full h-full bg-[#00000033] absolute top-0 left-0 rounded-[20px]'/>
+      <View style={{
+        width:scaleWidth(40),
+        height:scaleHeight(40)
+      }} className='bg-[#3F9243] items-center justify-center border border-white rounded-[8px] absolute top-[16px] left-[16px]'>
+        <ICONS.Curriculum  width={scaleWidth(24)}
+        height={scaleHeight(24)} fill={'white'}/>
+      </View>
+      </View>
       <View className=" rounded-full py-1.5 flex-row items-center gap-2.5 mb-4 bg-[#D3D2D333] px-3">
         <Text className="font-sans text-dark capitalize">
           {extractNameWithoutJpg(props?.bookImage)}

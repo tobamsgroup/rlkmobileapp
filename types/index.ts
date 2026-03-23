@@ -375,6 +375,7 @@ export type KidPRofile = {
   preferredLearningTopics?: string[];
   mood?: string;
   lastLogin: Date;
+  gender?:string;
   guardianId: string;
   picture?: string;
   earnedBadges: KidBadges[];

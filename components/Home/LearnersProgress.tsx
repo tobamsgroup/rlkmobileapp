@@ -10,10 +10,18 @@ import { FlatList, Image, Pressable, Text, View } from "react-native";
 import Button from "../Button";
 import Skeleton from "../Skeleton";
 import { twMerge } from "tailwind-merge";
+import { fetchKids } from "@/actions/learners";
 
 const LearnersProgress = ({ onAddChild }: { onAddChild: () => void }) => {
   const flatListRef = useRef<FlatList<GroupedByKid>>(null);
   const [currentIndex, setCurrentIndex] = useState(0);
+
+    const { data:allKids, isLoading:isLoadingALlKids } = useQuery({
+      queryKey: ["guardian-kids"],
+      queryFn: async () => {
+        return await fetchKids();
+      },
+    });
 
   const { data, isLoading } = useQuery({
     queryKey: ["kids-courses"],
@@ -23,9 +31,13 @@ const LearnersProgress = ({ onAddChild }: { onAddChild: () => void }) => {
   });
 
   const groupedData = useMemo(() => {
-    if (!data) return [];
-    return groupByKid(data);
-  }, [data]);
+    if (!allKids) return [];
+    const coursesByKid = groupByKid(data ?? []).reduce<Record<string, GroupedByKid>>(
+      (acc, g) => { acc[g.kid._id] = g; return acc; },
+      {}
+    );
+    return allKids.map((kid) => coursesByKid[kid._id] ?? { kid: kid as GroupedByKid["kid"], courses: [] });
+  }, [allKids, data]);
 
   const scrollToIndex = (index: number) => {
     if (index < 0 || index >= groupedData?.length) return;
@@ -44,7 +56,7 @@ const LearnersProgress = ({ onAddChild }: { onAddChild: () => void }) => {
         Track Learners' Progress
       </Text>
 
-      {isLoading && (
+      {(isLoading || isLoadingALlKids) && (
         <FlatList
           data={[1, 2, 3]}
           horizontal
@@ -116,7 +128,7 @@ const LearnersProgress = ({ onAddChild }: { onAddChild: () => void }) => {
         </>
       )}
 
-      {groupedData?.length < 1 && !isLoading && (
+      {groupedData?.length < 1 && !isLoading && !isLoadingALlKids && (
         <View className="items-center">
           <Image
             style={{
@@ -207,7 +219,7 @@ const KidProgessCard = (props: GroupedByKid) => {
         </Text>
         <View className="bg-white rounded-full px-3 py-2 mb-5 mt-3">
           <Text className="font-sans text-[#474348]">
-            {props?.courses?.length} tracks
+            {props?.courses?.length > 0 ? `${props.courses.length} Track${props.courses.length !== 1 ? "s" : ""}` : "0 Track"}
           </Text>
         </View>
         <Button

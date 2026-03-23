@@ -47,8 +47,8 @@ const HomeKid = () => {
             <View
               className="border border-[#3F9243]"
               style={{
-                height: scaleWidth(48),
-                width: scaleWidth(48),
+                height: scaleWidth(52),
+                width: scaleWidth(52),
                 borderRadius: 100,
               }}
             >
@@ -106,7 +106,7 @@ const HomeKid = () => {
           </Text>
           <Button
             textClassname="text-[#265828]"
-            className="bg-white border-b-[#FFD700] w-[50%] mt-6"
+            className="bg-white border-b-[#FFD700] border-b-2 border-l border-r border-r-[#FFD700] border-l-[#FFD700]  w-[50%] mt-6"
             text="EXPLORE TRACKS"
           />
           <Image

@@ -77,7 +77,7 @@ const Login = () => {
           rememberMe: true,
         });
       }
-      showToast("success", "Login Successful!");
+      // showToast("success", "Login Successful!");
       await storeData("user", res?.data?.data);
       dispatch(login(res?.data?.data));
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
