@@ -1,26 +1,27 @@
-import { getAllNotifications } from "@/actions/notification";
-import { ICONS } from "@/assets/icons";
-import { IMAGES } from "@/assets/images";
-import Container from "@/components/Container";
-import ActiveLearningTracks from "@/components/Home/ActiveLearningTracks";
-import CreateChildProfile from "@/components/Home/CreateChildProfile";
-import LearnersProgress from "@/components/Home/LearnersProgress";
-import RecommendedLearningTracks from "@/components/Home/RecommendedLearningTracks";
-import Skeleton from "@/components/Skeleton";
-import useGuardian from "@/hooks/useGuardianProfile";
-import { ensureHttps } from "@/utils";
-import { scaleWidth } from "@/utils/scale";
-import { useQuery } from "@tanstack/react-query";
-import { router } from "expo-router";
-import { useEffect, useState } from "react";
-import { Image, Pressable, Text, View } from "react-native";
+import { getAllNotifications } from '@/actions/notification';
+import { ICONS } from '@/assets/icons';
+import { IMAGES } from '@/assets/images';
+import Container from '@/components/Container';
+import ActiveLearningTracks from '@/components/Home/ActiveLearningTracks';
+import CreateChildProfile from '@/components/Home/CreateChildProfile';
+import LearnersProgress from '@/components/Home/LearnersProgress';
+import RecommendedLearningTracks from '@/components/Home/RecommendedLearningTracks';
+import Skeleton from '@/components/Skeleton';
+import useGuardian from '@/hooks/useGuardianProfile';
+import { ensureHttps } from '@/utils';
+import { scaleWidth } from '@/utils/scale';
+import { useQuery } from '@tanstack/react-query';
+import { LinearGradient } from 'expo-linear-gradient';
+import { router } from 'expo-router';
+import { useEffect, useState } from 'react';
+import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
 
 export default function HomeScreen() {
   const [openModal, setOpenModal] = useState(false);
   const { data, isLoading } = useGuardian();
   const [hasUnread, setHasUnread] = useState(false);
   const { data: notifications } = useQuery({
-    queryKey: ["notifications"],
+    queryKey: ['notifications'],
     queryFn: async () => {
       return await getAllNotifications();
     },
@@ -33,7 +34,7 @@ export default function HomeScreen() {
   }, [notifications]);
   return (
     <>
-      <Container edges={["top"]} scrollable backgroundColor="#DBEFDC">
+      <Container edges={['top']} scrollable backgroundColor="#DBEFDC">
         <View className="flex-1 px-6 py-5 relative z-10">
           <View className="flex-row gap-2 items-center">
             {isLoading ? (
@@ -80,7 +81,7 @@ export default function HomeScreen() {
               )}
             </View>
             <Pressable
-              onPress={() => router.push("/notifications")}
+              onPress={() => router.push('/notifications')}
               style={{
                 height: scaleWidth(44),
                 width: scaleWidth(44),
@@ -88,7 +89,7 @@ export default function HomeScreen() {
               className="rounded-[100px] bg-white items-center justify-center"
             >
               <View className="relative">
-                <ICONS.Notifications width={20} height={20} fill={"#4CAF50"} />
+                <ICONS.Notifications width={20} height={20} fill={'#4CAF50'} />
                 {hasUnread && (
                   <View className="w-3 border-2 border-white absolute top-[-2px] right-[-2px] h-3 bg-[#DE2121] rounded-full" />
                 )}
@@ -98,12 +99,12 @@ export default function HomeScreen() {
 
           <View className="mt-7 bg-white px-4 py-3 rounded-bl-[16px] rounded-tr-[16px] rounded-[4px] border border-[#4CAF50]">
             <Text className="font-sansMedium text-[14px] leading-[1.5] text-[#221D23]">
-              Let’s check in on the learners you’re{"\n"}guiding today.
+              Let’s check in on the learners you’re{'\n'}guiding today.
             </Text>
           </View>
 
-          <View className=" mt-7 rounded-[16px] bg-[#3F9243] py-4 px-3 flex-row justify-around items-center">
-            <View className="items-center gap-2">
+          <View className=" mt-7 rounded-[16px] bg-[#3F9243] py-4 px-3 flex-row justify-around items-center relative">
+            <View className="items-center gap-2 z-10">
               <View
                 style={{
                   height: scaleWidth(48),
@@ -114,7 +115,7 @@ export default function HomeScreen() {
                 <ICONS.ChildCare
                   width={scaleWidth(24)}
                   height={scaleWidth(24)}
-                  fill={"#FFFFFF"}
+                  fill={'#FFFFFF'}
                 />
               </View>
               {isLoading ? (
@@ -129,7 +130,7 @@ export default function HomeScreen() {
                 Learners
               </Text>
             </View>
-            <View className="items-center gap-2">
+            <View className="items-center gap-2 z-10">
               <View
                 style={{
                   height: scaleWidth(48),
@@ -140,7 +141,7 @@ export default function HomeScreen() {
                 <ICONS.Curriculum
                   width={scaleWidth(24)}
                   height={scaleWidth(24)}
-                  fill={"#FFFFFF"}
+                  fill={'#FFFFFF'}
                 />
               </View>
               {isLoading ? (
@@ -154,7 +155,7 @@ export default function HomeScreen() {
                 Active Tracks
               </Text>
             </View>
-            <View className="items-center gap-2">
+            <View className="items-center gap-2 z-10">
               <View
                 style={{
                   height: scaleWidth(48),
@@ -165,7 +166,7 @@ export default function HomeScreen() {
                 <ICONS.Activity
                   width={scaleWidth(24)}
                   height={scaleWidth(24)}
-                  fill={"#FFFFFF"}
+                  fill={'#FFFFFF'}
                 />
               </View>
               {isLoading ? (
@@ -177,6 +178,16 @@ export default function HomeScreen() {
                 Activities
               </Text>
             </View>
+            <LinearGradient
+              colors={['#265828', '#3F9243']}
+              start={{ x: 1, y: 0 }}
+              end={{ x: 0, y: 1 }}
+              style={{
+                ...StyleSheet.absoluteFillObject,
+                zIndex: 0,
+                borderRadius: 20,
+              }}
+            />
           </View>
           <LearnersProgress onAddChild={() => setOpenModal(true)} />
           <View className="bg-white rounded-[16px] p-5 mt-7">
@@ -194,12 +205,12 @@ export default function HomeScreen() {
                 <ICONS.ChildCare
                   width={scaleWidth(32)}
                   height={scaleWidth(32)}
-                  fill={"#1671D9"}
+                  fill={'#1671D9'}
                 />
               </View>
               <Pressable onPress={() => setOpenModal(true)} className="flex-1">
                 <Text className="font-sansMedium text-[16px] text-dark leading-[1.5]">
-                  Set Up New Child{"\n"}Profile
+                  Set Up New Child{'\n'}Profile
                 </Text>
                 <Text className="font-sans text-dark flex-shrink text-[14px] mt-2 leading-[1.5]">
                   Create a new profile to start a child's learning journey!
@@ -207,7 +218,7 @@ export default function HomeScreen() {
               </Pressable>
             </View>
             <Pressable
-              onPress={() => router.push("/(tabs)/curriculum")}
+              onPress={() => router.push('/(tabs)/curriculum')}
               className="border-2 border-[#D5B300] bg-[#D5B3001A] rounded-[20px] p-4 flex-row gap-4 mt-7"
             >
               <View
@@ -220,7 +231,7 @@ export default function HomeScreen() {
                 <ICONS.Curriculum
                   width={scaleWidth(32)}
                   height={scaleWidth(32)}
-                  fill={"#D5B300"}
+                  fill={'#D5B300'}
                 />
               </View>
               <View className="flex-1">
@@ -236,16 +247,15 @@ export default function HomeScreen() {
           <ActiveLearningTracks />
           <RecommendedLearningTracks />
         </View>
-
       </Container>
-        <CreateChildProfile
-          open={openModal}
-          onClose={() => setOpenModal(false)}
-        />
+      <CreateChildProfile
+        open={openModal}
+        onClose={() => setOpenModal(false)}
+      />
       <Pressable
-        onPress={() => setOpenModal(true)}
+        onPress={() => router.push('/guardian/AddLearner')}
         style={{
-          position: "absolute",
+          position: 'absolute',
           bottom: 30,
           right: 24,
         }}

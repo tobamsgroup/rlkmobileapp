@@ -105,6 +105,7 @@ const HomeKid = () => {
             Let’s Keep Learning{'\n'}and Having Fun!
           </Text>
           <Button
+          onPress={() => router.push('/kid/AIPopup')}
             textClassname="text-[#265828]"
             className="bg-white border-b-[#FFD700] border-b-2 border-l border-r border-r-[#FFD700] border-l-[#FFD700]  w-[50%] mt-6"
             text="EXPLORE TRACKS"

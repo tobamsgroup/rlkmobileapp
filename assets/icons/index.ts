@@ -99,8 +99,15 @@ import PartyingFace from "./PartyingFace";
 import Badges from "./Badges";
 import Message2Question from "./Message2Question";
 import CircledClipboard from "./CircledClipboard";
+import Checkbox from "@/components/Checkbox";
+import CheckOutline from "./CheckOutline";
+import BooksMultiple from "./BooksMultiple";
+import Checklist from "./Checklist";
 
 export const ICONS = {
+  Checklist,
+  BooksMultiple,
+  CheckOutline,
   CircledClipboard,
   Message2Question,
   Badges,

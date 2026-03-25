@@ -1,7 +1,7 @@
 import { getAllBadges, getRecentActivities } from '@/actions/kid';
+import { BadgeCard, BadgeCardSkeleton } from '@/app/(tabs)/badges';
 import { ICONS } from '@/assets/icons';
 import { IMAGES } from '@/assets/images';
-import { BadgeCard, BadgeCardSkeleton } from '@/app/(tabs)/badges';
 import ProgressBar from '@/components/ProgressBar';
 import Skeleton from '@/components/Skeleton';
 import TopBackButton from '@/components/TopBackButton';
@@ -116,20 +116,19 @@ const Profile = () => {
               @{data?.username}
             </Text>
             <View>
-              <View className='flex-row items-center gap-2'>
-
-              <Text className="text-[16px] text-[#474348] font-sans mt-2 ">
-                {data?.age} Years
-              </Text>
-            {data?.gender &&  <>
-              
-              <View className='w-2 h-2 rounded-full bg-[#FFD700] mt-2'/>
-              <Text className="text-[16px] text-[#474348] font-sans mt-2">
-                Male
-              </Text>
-              </>}
+              <View className="flex-row items-center gap-2">
+                <Text className="text-[16px] text-[#474348] font-sans mt-2 ">
+                  {data?.age} Years
+                </Text>
+                {data?.gender && (
+                  <>
+                    <View className="w-2 h-2 rounded-full bg-[#FFD700] mt-2" />
+                    <Text className="text-[16px] text-[#474348] font-sans mt-2">
+                      {data?.gender}
+                    </Text>
+                  </>
+                )}
               </View>
-
             </View>
             <View className="p-4 mt-5 rounded-[8px] bg-[#FFF7CCB2] w-full flex-row  items-center justify-center gap-3">
               <Image
@@ -201,8 +200,9 @@ const Profile = () => {
             <View className="flex-row flex-wrap gap-2">
               {isLoadingBadges
                 ? [1, 2, 3, 4].map((i) => <BadgeCardSkeleton key={i} />)
-                : badges?.slice(0, 4).map((b) => <BadgeCard key={b._id} {...b} />)
-              }
+                : badges
+                    ?.slice(0, 4)
+                    .map((b) => <BadgeCard key={b._id} {...b} />)}
             </View>
           </View>
 

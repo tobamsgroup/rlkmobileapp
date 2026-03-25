@@ -1,28 +1,19 @@
 import { Tabs } from "expo-router";
-import React, { useEffect, useState } from "react";
+import React from "react";
 
 import { ICONS } from "@/assets/icons";
 import { Colors } from "@/constants/theme";
 import { useColorScheme } from "@/hooks/use-color-scheme";
-import { getData } from "@/lib/storage";
-import { GuardianLoginSession } from "@/types";
+import { useAppSelector } from "@/hooks/redux";
 import { SCREEN_WIDTH } from "@/utils/scale";
 import { Text, View } from "react-native";
 import { twMerge } from "tailwind-merge";
 
 export default function TabLayout() {
   const colorScheme = useColorScheme();
-  const [user, setUser] = useState<GuardianLoginSession | null | undefined>(undefined);
+  const { user, isLoggedIn } = useAppSelector((state) => state.auth);
 
-  useEffect(() => {
-    const fetchUser = async () => {
-      const data = await getData<GuardianLoginSession>("user");
-      setUser(data ?? null);
-    };
-    fetchUser();
-  }, []);
-
-  if (user === undefined) return null;
+  if (!isLoggedIn) return null;
 
   return (
     <Tabs
@@ -47,7 +38,7 @@ export default function TabLayout() {
         tabBarLabel: () => null,
       }}
     >
-      <Tabs.Protected guard={user?.role?.toLowerCase() !== "kid"}>
+      <Tabs.Protected guard={(user as any)?.role?.toLowerCase() !== "kid"}>
         <Tabs.Screen
           name="index"
           options={() => ({
@@ -155,7 +146,7 @@ export default function TabLayout() {
         />
       </Tabs.Protected>
 
-      <Tabs.Protected guard={user?.role?.toLowerCase() === "kid"}>
+      <Tabs.Protected guard={(user as any)?.role?.toLowerCase() === "kid"}>
         <Tabs.Screen
           name="home-kid"
           options={() => ({

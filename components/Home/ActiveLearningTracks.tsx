@@ -1,12 +1,12 @@
-import { getActiveVolume } from "@/actions/curriculum";
-import { ICONS } from "@/assets/icons";
-import { IMAGES } from "@/assets/images";
-import { VolumeStat } from "@/types";
-import { ensureHttps } from "@/utils";
-import { scaleHeight, scaleWidth } from "@/utils/scale";
-import { useQuery } from "@tanstack/react-query";
-import { router } from "expo-router";
-import React, { useRef, useState } from "react";
+import { getActiveVolume } from '@/actions/curriculum';
+import { ICONS } from '@/assets/icons';
+import { IMAGES } from '@/assets/images';
+import { VolumeStat } from '@/types';
+import { ensureHttps } from '@/utils';
+import { scaleHeight, scaleWidth } from '@/utils/scale';
+import { useQuery } from '@tanstack/react-query';
+import { router } from 'expo-router';
+import React, { useRef, useState } from 'react';
 import {
   DimensionValue,
   FlatList,
@@ -14,16 +14,17 @@ import {
   Pressable,
   Text,
   View,
-} from "react-native";
-import Button from "../Button";
-import Skeleton from "../Skeleton";
+} from 'react-native';
+import { twMerge } from 'tailwind-merge';
+import Button from '../Button';
+import Skeleton from '../Skeleton';
 
 const ActiveLearningTracks = () => {
   const flatListRef = useRef<FlatList<VolumeStat>>(null);
   const [currentIndex, setCurrentIndex] = useState(0);
 
   const { data, isLoading } = useQuery({
-    queryKey: ["active-volumes"],
+    queryKey: ['active-volumes'],
     queryFn: async () => {
       return await getActiveVolume();
     },
@@ -42,11 +43,11 @@ const ActiveLearningTracks = () => {
   return (
     <View className="bg-[#000F1F] rounded-[16px] p-5 mt-7 z-20 relative">
       <ICONS.Ellipse
-        style={{ position: "absolute", top: scaleHeight(68), zIndex: 0 }}
+        style={{ position: 'absolute', top: scaleHeight(68), zIndex: 0 }}
       />
       <ICONS.Star
         style={{
-          position: "absolute",
+          position: 'absolute',
           top: scaleHeight(22),
           right: 18,
           zIndex: 0,
@@ -54,7 +55,7 @@ const ActiveLearningTracks = () => {
       />
       <ICONS.Flower
         style={{
-          position: "absolute",
+          position: 'absolute',
           top: scaleHeight(22),
           right: 37,
           zIndex: 0,
@@ -62,7 +63,7 @@ const ActiveLearningTracks = () => {
       />
       <ICONS.Flower
         style={{
-          position: "absolute",
+          position: 'absolute',
           bottom: scaleHeight(78),
           left: 0,
           zIndex: 0,
@@ -92,7 +93,7 @@ const ActiveLearningTracks = () => {
             })}
             snapToInterval={scaleWidth(256)}
             decelerationRate="fast"
-            renderItem={({ item }) => <TrackCard item={item} />}
+            renderItem={({ item }) => <TrackCard item={item} width={data?.volumeStats?.length === 1 ? scaleWidth(300) : scaleWidth(256)} />}
             keyExtractor={(_, index) => index.toString()}
             contentContainerClassName="gap-4"
             onMomentumScrollEnd={(e) => {
@@ -112,10 +113,13 @@ const ActiveLearningTracks = () => {
                 width: scaleWidth(48),
                 height: scaleWidth(40),
               }}
-              className="bg-[#CCDBEB] rounded-[32px] items-center justify-center"
+              className={twMerge(
+                'bg-[#CCDBEB] rounded-[32px] items-center justify-center',
+                currentIndex === 0 && 'bg-gray-200',
+              )}
             >
               <ICONS.KeyboardArrowLeft
-                fill={"#004D99"}
+                fill={currentIndex === 0 ? '#9c9c9c' :'#004D99'}
                 width={32}
                 height={32}
               />
@@ -126,17 +130,20 @@ const ActiveLearningTracks = () => {
                 width: scaleWidth(48),
                 height: scaleWidth(40),
               }}
-              className="bg-[#CCDBEB] rounded-[32px] items-center justify-center"
+              className={twMerge(
+                'bg-[#CCDBEB] rounded-[32px] items-center justify-center',
+                currentIndex + 1 === data?.volumeStats?.length && 'bg-gray-200',
+              )}
             >
               <ICONS.KeyboardArrowRight
-                fill={"#004D99"}
+                fill={currentIndex + 1 === data?.volumeStats?.length ? '#9c9c9c' :'#004D99'}
                 width={32}
                 height={32}
               />
             </Pressable>
           </View>
           <Button
-            onPress={() => router.push("/(tabs)/curriculum")}
+            onPress={() => router.push('/(tabs)/curriculum')}
             className="bg-[#004D99] border-[#003366]"
             text="VIEW ALL"
           />
@@ -168,7 +175,7 @@ const ActiveLearningTracks = () => {
             child to track their learning journey.
           </Text>
           <Button
-            onPress={() => router.push("/(tabs)/curriculum")}
+            onPress={() => router.push('/(tabs)/curriculum')}
             className="w-full bg-[#004D99] border-[#003366]"
             text="ASSIGN CHILD"
           />
@@ -204,7 +211,7 @@ export const TrackCard = ({
         Series {item?.index}: {item?.title}
       </Text>
       <View className="bg-[#D3D2D333] rounded-full py-1.5 px-3 flex-row items-center gap-2.5 my-4">
-        <ICONS.ChildCare fill={"#3F9243"} />
+        <ICONS.ChildCare fill={'#3F9243'} />
         <Text className="font-sansMedium text-[#474348]">
           {item?.assignedCount} Learners
         </Text>

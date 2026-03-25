@@ -18,7 +18,7 @@ import { Pressable, Text, TouchableWithoutFeedback, View } from "react-native";
 
 const CurriculumSeriesOverview = () => {
   const params = useLocalSearchParams();
-  const [status, setStatus] = useState("");
+  const [status, setStatus] = useState("All");
   const [search, setSearch] = useState("");
   const [sort, setSort] = useState("");
   const [openStatus, setOpenStatus] = useState(false);

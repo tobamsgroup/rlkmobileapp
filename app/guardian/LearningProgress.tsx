@@ -1,33 +1,35 @@
-import { getAllKids } from "@/actions/curriculum";
-import { getKidsOverview } from "@/actions/home";
+import { getAllKids } from '@/actions/curriculum';
+import { getKidsOverview } from '@/actions/home';
 import {
   getKidAverageQuizScore,
   getKidOverallChapterCompletionRate,
   loginKidAsGuardian,
-} from "@/actions/learners";
-import { ICONS } from "@/assets/icons";
-import { IMAGES } from "@/assets/images";
-import Button from "@/components/Button";
-import Container from "@/components/Container";
-import EditChildProfile from "@/components/Learners/EditChildProfile";
-import ProgressBar from "@/components/ProgressBar";
-import Skeleton from "@/components/Skeleton";
-import TopBackButton from "@/components/TopBackButton";
-import { storeData } from "@/lib/storage";
-import { scaleWidth } from "@/utils/scale";
-import { showToast } from "@/utils/toast";
-import { useQuery } from "@tanstack/react-query";
-import { router, useLocalSearchParams } from "expo-router";
-import React, { useMemo, useState } from "react";
+} from '@/actions/learners';
+import { ICONS } from '@/assets/icons';
+import { IMAGES } from '@/assets/images';
+import Button from '@/components/Button';
+import Container from '@/components/Container';
+import EditChildProfile from '@/components/Learners/EditChildProfile';
+import ProgressBar from '@/components/ProgressBar';
+import Skeleton from '@/components/Skeleton';
+import TopBackButton from '@/components/TopBackButton';
+import { useAppDispatch } from '@/hooks/redux';
+import { storeData } from '@/lib/storage';
+import { login } from '@/redux/authSlice';
+import { scaleWidth } from '@/utils/scale';
+import { showToast } from '@/utils/toast';
+import { useQuery } from '@tanstack/react-query';
+import { router, useLocalSearchParams } from 'expo-router';
+import React, { useMemo, useState } from 'react';
 import {
   Image,
   Pressable,
   Text,
   TouchableWithoutFeedback,
   View,
-} from "react-native";
-import { LineChart, PieChart } from "react-native-gifted-charts";
-import { twMerge } from "tailwind-merge";
+} from 'react-native';
+import { LineChart, PieChart } from 'react-native-gifted-charts';
+import { twMerge } from 'tailwind-merge';
 
 const LearningProgress = () => {
   const params = useLocalSearchParams();
@@ -35,9 +37,12 @@ const LearningProgress = () => {
   const [openEdit, setOpenEdit] = useState(false);
   const [kid, setKid] = useState(params?.id);
   const [loading, setLoading] = useState(false);
+  const dispatch = useAppDispatch();
   const pieData = [
-    { value: 40, color: "#D5B300" },
-    { value: 20, color: "#4CAF50" },
+    { value: 100, color: '#9c9c9c' },
+    // { value: 0, color: '#4CAF50' },
+    // { value: 100, color: '#D5B300' },
+    // { value: 0, color: '#4CAF50' },
   ];
   // const data = [
   //   { value: 250, label: "Mon" },
@@ -49,14 +54,14 @@ const LearningProgress = () => {
   // ];
 
   const { data, isLoading } = useQuery({
-    queryKey: ["learning-overview", kid],
+    queryKey: ['learning-overview', kid],
     queryFn: async () => {
       return await getKidsOverview(kid as string);
     },
   });
 
   const { data: allKids } = useQuery({
-    queryKey: ["kids"],
+    queryKey: ['kids'],
     queryFn: async () => {
       return await getAllKids();
     },
@@ -68,13 +73,13 @@ const LearningProgress = () => {
   }, [allKids, data, kid]);
 
   const { data: completionRateDetails } = useQuery({
-    queryKey: ["completion-rate", kid],
+    queryKey: ['completion-rate', kid],
     queryFn: async () => {
       return await getKidOverallChapterCompletionRate(kid as string);
     },
   });
   const { data: averageScore } = useQuery({
-    queryKey: ["average-score", kid],
+    queryKey: ['average-score', kid],
     queryFn: async () => {
       return await getKidAverageQuizScore(kid as string);
     },
@@ -85,13 +90,13 @@ const LearningProgress = () => {
     setLoading(true);
     try {
       const kidData = await loginKidAsGuardian(kidId);
-      await storeData("user", kidData);
-      showToast("success", "Login Successful!");
-
-      router.push("/(tabs)/home-kid");
+      await storeData('user', kidData);
+      dispatch(login(kidData));
+      showToast('success', 'Login Successful!');
+      router.replace('/(tabs)/home-kid');
     } catch (error: any) {
-      console.error("Switch session error:", error);
-      showToast("error", "Login Failed");
+      console.error('Switch session error:', error);
+      showToast('error', 'Login Failed');
     } finally {
       setLoading(false);
     }
@@ -108,7 +113,7 @@ const LearningProgress = () => {
           <View className="relative">
             <Pressable
               onPress={() => setOpenRemaining(!openRemaining)}
-              className="bg-white rounded-[12px] p-4 flex-row items-center justify-between relative z-10"
+              className="bg-white rounded-[12px] p-4 py-[12px] flex-row items-center justify-between relative z-10"
             >
               <View className="flex-row items-center gap-3">
                 {isLoading ? (
@@ -125,8 +130,8 @@ const LearningProgress = () => {
                         : IMAGES.KidProfilePlaceholder
                     }
                     className={twMerge(
-                      "rounded-full border-[#D5B300]",
-                      data?.kid?.picture && "border",
+                      'rounded-full border-[#D5B300]',
+                      data?.kid?.picture && 'border',
                     )}
                   />
                 )}
@@ -141,18 +146,7 @@ const LearningProgress = () => {
               <ICONS.ChevronDown />
             </Pressable>
             {openRemaining && (
-              <View
-                style={{
-                  elevation: 2,
-                  shadowColor: "black",
-                  shadowOpacity: 0.3,
-                  shadowOffset: {
-                    width: 5,
-                    height: 2,
-                  },
-                }}
-                className="p-4 rounded-[20px] bg-white absolute top-[70px] w-full z-20"
-              >
+              <View className="p-4 rounded-[20px] shadow-md bg-white absolute top-[70px] w-full z-20">
                 {remainingKids?.map((r) => (
                   <Pressable
                     onPress={() => {
@@ -173,8 +167,8 @@ const LearningProgress = () => {
                             : IMAGES.KidProfilePlaceholder
                         }
                         className={twMerge(
-                          "rounded-full border-[#D5B300]",
-                          data?.kid?.picture && "border",
+                          'rounded-full border-[#D5B300]',
+                          data?.kid?.picture && 'border',
                         )}
                       />
                       <Text className="text-[16px] font-sansMedium text-dark">
@@ -187,7 +181,7 @@ const LearningProgress = () => {
             )}
           </View>
 
-          <Pressable className="bg-white rounded-[12px] p-4 flex-row items-center justify-between mt-5">
+          <Pressable className="bg-white rounded-[12px] p-4 py-[18px] flex-row items-center justify-between mt-5">
             <Text className="text-[16px] font-sansMedium text-dark">
               Export Report
             </Text>
@@ -210,8 +204,8 @@ const LearningProgress = () => {
                       : IMAGES.KidProfilePlaceholder
                   }
                   className={twMerge(
-                    "rounded-full border-[#D5B300]",
-                    data?.kid?.picture && "border",
+                    'rounded-full border-[#D5B300]',
+                    data?.kid?.picture && 'border',
                   )}
                 />
               )}
@@ -240,9 +234,21 @@ const LearningProgress = () => {
             {isLoading ? (
               <Skeleton className="w-2/5 rounded-full mb-2" />
             ) : (
-              <Text className="text-[16px] text-[#474348] font-sans mb-2">
-                {data?.kid?.age} Years
-              </Text>
+              <View>
+                <View className="flex-row items-center gap-2">
+                  <Text className="text-[16px] text-[#474348] font-sans mt-2 ">
+                    {data?.kid?.age} Years
+                  </Text>
+                  {data?.kid?.gender && (
+                    <>
+                      <View className="w-2 h-2 rounded-full bg-[#FFD700] mt-2" />
+                      <Text className="text-[16px] text-[#474348] font-sans mt-2">
+                        {data?.kid?.gender}
+                      </Text>
+                    </>
+                  )}
+                </View>
+              </View>
             )}
             <View className="bg-[#FFF7CCB2] p-3 flex-row item justify-between items-center mt-4">
               <View className="flex-row items-center gap-2">
@@ -367,7 +373,7 @@ const LearningProgress = () => {
             {/* audio vs text */}
             <View className="bg-white rounded-[20px] p-5 mt-5  border border-[#D3D2D366]">
               <Text className="text-dark font-sansMedium text-[18px]">
-                Audio vs. Text Usage {"\n"}(Read Aloud)
+                Audio vs. Text Usage {'\n'}(Read Aloud)
               </Text>
               <View className="mt-5 border border-[#D3D2D366] rounded-[24px] py-3 px-5 flex-row items-center gap-6">
                 <PieChart
@@ -464,20 +470,28 @@ const LearningProgress = () => {
                 hideDataPoints1
                 stepValue={50}
                 curved
-                data={[]}
+                data={[
+                  { value: 0, label: 'Mon' },
+                  { value: 0, label: 'Tue' },
+                  { value: 0, label: 'Wed' },
+                  { value: 0, label: 'Thu' },
+                  { value: 0, label: 'Fri' },
+                  { value: 0, label: 'Sat' },
+                  { value: 0, label: 'Sun' },
+                ]}
                 color1="#4CAF50"
                 yAxisTextStyle={{
-                  fontFamily: "Sans-Regular",
-                  color: "#474348",
+                  fontFamily: 'Sans-Regular',
+                  color: '#474348',
                   fontSize: 12,
                 }}
                 xAxisLabelTextStyle={{
-                  fontFamily: "Sans-Regular",
-                  color: "#474348",
+                  fontFamily: 'Sans-Regular',
+                  color: '#474348',
                   fontSize: 12,
                 }}
-                xAxisColor={"#D3D2D366"}
-                yAxisColor={"#D3D2D366"}
+                xAxisColor={'#D3D2D366'}
+                yAxisColor={'#D3D2D366'}
               />
             </View>
           </View>

@@ -1,31 +1,35 @@
-import { IMAGES } from "@/assets/images";
-import Button from "@/components/Button";
-import { useUser } from "@/hooks/useUser";
+import { IMAGES } from '@/assets/images';
+import Button from '@/components/Button';
+import { useUser } from '@/hooks/useUser';
 import {
   scaleHeight,
   scaleWidth,
   SCREEN_HEIGHT,
   SCREEN_WIDTH,
-} from "@/utils/scale";
-import Constants from "expo-constants";
-import { ImageBackground } from "expo-image";
-import { router } from "expo-router";
-import React from "react";
-import { Image, Text, View } from "react-native";
+} from '@/utils/scale';
+import Constants from 'expo-constants';
+import { ImageBackground } from 'expo-image';
+import { router } from 'expo-router';
+import React from 'react';
+import { Image, Text, View } from 'react-native';
 
 const AIPopup = () => {
-    const data = useUser()
+  const data = useUser();
   return (
     <ImageBackground
       source={IMAGES.KidSelectionOverlay}
       style={{
         width: SCREEN_WIDTH,
         height: SCREEN_HEIGHT,
-        paddingVertical: Constants.statusBarHeight,
+        //
         flex: 1,
       }}
     >
-      <View className="py-20 px-6  flex-1">
+      <View className="absolute top-0 left-0 w-full h-full bg-[#193A1B] opacity-60"/>
+      <View
+        style={{ marginVertical: Constants.statusBarHeight }}
+        className="py-20 px-6  flex-1 relative"
+      >
         <View className="flex-1 items-end justify-end relative">
           <Image
             style={{ height: scaleHeight(249), width: scaleWidth(233) }}
@@ -41,11 +45,15 @@ const AIPopup = () => {
             }}
             className="absolute top-0  left-[20%] "
           >
-            <Text numberOfLines={1} className="text-dark text-[24px] font-sansSemiBold text-center">
-              Hey there, {data?.user?.username}
+            <Text
+              numberOfLines={1}
+              className="text-dark text-[24px] font-sansSemiBold text-center"
+            >
+              Hey there,{' '}
+              <Text className="capitalize">{data?.user?.username}</Text>
             </Text>
             <Text className="text-center text-[16px] text-[#474348] font-sans leading-[1.5] mt-2 mb-12">
-              Ready to unlock today’s{"\n"} mission?
+              Ready to unlock today’s{'\n'} mission?
             </Text>
           </View>
           <Image
@@ -58,7 +66,12 @@ const AIPopup = () => {
             source={IMAGES.AI}
           />
         </View>
-        <Button onPress={() => router.navigate('/(tabs)')} text="YES, LETS GO! 🚀" />
+        <Button
+          className="bg-white border-white"
+          onPress={() => router.navigate('/(tabs)')}
+          textClassname="text-[#265828]"
+          text="YES, LETS GO! 🚀"
+        />
       </View>
     </ImageBackground>
   );

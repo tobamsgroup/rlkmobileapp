@@ -1,13 +1,13 @@
-import { updateKidProfile } from "@/actions/home";
-import { ICONS } from "@/assets/icons";
-import { HAPTIC } from "@/utils/haptic";
-import { invalidateQueries } from "@/utils/query";
-import { scaleWidth } from "@/utils/scale";
-import { showToast } from "@/utils/toast";
-import { zodResolver } from "@hookform/resolvers/zod";
-import Constant from "expo-constants";
-import React, { useEffect, useState } from "react";
-import { useForm } from "react-hook-form";
+import { updateKidProfile } from '@/actions/home';
+import { ICONS } from '@/assets/icons';
+import { HAPTIC } from '@/utils/haptic';
+import { invalidateQueries } from '@/utils/query';
+import { scaleWidth } from '@/utils/scale';
+import { showToast } from '@/utils/toast';
+import { zodResolver } from '@hookform/resolvers/zod';
+import Constant from 'expo-constants';
+import React, { useEffect, useState } from 'react';
+import { useForm } from 'react-hook-form';
 import {
   KeyboardAvoidingView,
   Platform,
@@ -15,20 +15,22 @@ import {
   ScrollView,
   Text,
   View,
-} from "react-native";
-import ReactNativeModal from "react-native-modal";
-import { z } from "zod";
-import Button from "../Button";
-import Input, { SimpleInput } from "../Input";
+} from 'react-native';
+import ReactNativeModal from 'react-native-modal';
+import { z } from 'zod';
+import Button from '../Button';
+import Input, { SimpleInput } from '../Input';
 
 export const childProfileSchema = z.object({
   name: z.string().regex(/^[a-zA-Z]+ [a-zA-Z]+$/, {
-    message: "Kid's name must be FirstName and LastName",
+    message: "Child's name must be FirstName and LastName",
   }),
+  username: z.string().min(2, 'Username is required'),
+  gender: z.string().min(2, 'Please select a gender'),
   age: z
-    .number({ error: "Age is required" })
-    .min(7, "Age must be between 7-14")
-    .max(14, "Age must be between 7-14"),
+    .number({ error: 'Age is required' })
+    .min(7, 'Age must be between 7-14')
+    .max(14, 'Age must be between 7-14'),
 });
 
 type ChildProfileSetupFormData = z.infer<typeof childProfileSchema>;
@@ -46,6 +48,7 @@ const EditChildProfile = ({
     age: number;
     picture: string;
     id: string;
+    gender?: string;
   };
 }) => {
   const [loading, setLoading] = useState(false);
@@ -54,13 +57,16 @@ const EditChildProfile = ({
     handleSubmit,
     setValue,
     reset,
+    watch,
     getValues,
     formState: { errors },
   } = useForm<ChildProfileSetupFormData>({
     resolver: zodResolver(childProfileSchema),
     defaultValues: {
-      name: "",
+      name: '',
       age: undefined,
+      username: '',
+      gender: '',
     },
   });
 
@@ -68,22 +74,22 @@ const EditChildProfile = ({
     if (loading) return;
     setLoading(true);
     try {
-       await updateKidProfile(kid?.id, data);
-      invalidateQueries("overview");
-      invalidateQueries("kids-courses");
-      invalidateQueries("guardian-kids");
-      invalidateQueries("kids")
-      invalidateQueries("learning-overview")
+      await updateKidProfile(kid?.id, data);
+      invalidateQueries('overview');
+      invalidateQueries('kids-courses');
+      invalidateQueries('guardian-kids');
+      invalidateQueries('kids');
+      invalidateQueries('learning-overview');
       HAPTIC.success();
       onClose();
-      showToast("success", "Child Profile Updated Successfully");
+      showToast('success', 'Child Profile Updated Successfully');
     } catch (err: any) {
       console.log(err);
       HAPTIC.error();
       alert(
         (err.response?.data as any)?.message ||
           err.message ||
-          "Something went wrong",
+          'Something went wrong',
       );
     }
 
@@ -92,14 +98,16 @@ const EditChildProfile = ({
 
   useEffect(() => {
     if (!kid) return;
-    setValue("name", kid?.name);
-    setValue("age", kid?.age);
+    setValue('name', kid?.name);
+    setValue('age', kid?.age);
+    setValue('username', kid.username);
+    setValue('gender', kid?.gender || '');
   }, [kid]);
 
   return (
     <ReactNativeModal style={{ padding: 0, margin: 0 }} isVisible={open}>
       <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={{ flex: 1 }}
       >
         <View
@@ -108,7 +116,10 @@ const EditChildProfile = ({
         >
           <View className="px-6">
             <Pressable
-              onPress={onClose}
+              onPress={() => {
+                reset();
+                onClose();
+              }}
               style={{
                 width: scaleWidth(32),
                 height: scaleWidth(32),
@@ -143,6 +154,14 @@ const EditChildProfile = ({
                 name="username"
                 label="Child’s Username"
                 error={errors.username?.message}
+              />
+              <Select
+                error={errors?.gender?.message}
+                wrapperClassname="mb-6"
+                label="Gender"
+                options={['Male', 'Female']}
+                value={getValues('gender')}
+                onChange={(text) => setValue('gender', text)}
               /> */}
               <SimpleInput
                 type="number"
@@ -150,8 +169,8 @@ const EditChildProfile = ({
                 error={errors.age?.message}
                 name="age"
                 label="Age"
-                value={getValues("age")}
-                handleChange={(text) => setValue("age", Number(text))}
+                value={watch('age') != null ? String(watch('age')) : ''}
+                handleChange={(text) => setValue('age', Number(text))}
               />
               {/* <Input
                 error={errors.password?.message}

@@ -156,6 +156,7 @@ export type LearningOverviewResponse = {
     age: number;
     picture: string;
     id: string;
+    gender:string
   };
   thisWeek: {
     lastLogin: string | null;

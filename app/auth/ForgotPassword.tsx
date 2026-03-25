@@ -73,7 +73,7 @@ const ForgotPassword = () => {
         setError("")
       } else {
         await parentForgotPassword(email);
-        showToast("success", "Reset OTP sent successfully");
+        showToast("success", "OTP sent successfully");
         setMode("otp");
       }
     } catch (error: any) {
@@ -179,7 +179,7 @@ const ForgotPassword = () => {
       };
       try {
         await parentResetPassword(payload);
-        showToast("success", "Password reset successfully");
+        // showToast("success", "Password reset successfully");s
         setEmail("");
         setResetToken("");
         setStep(3);
@@ -336,7 +336,7 @@ const ForgotPassword = () => {
             </Text>
 
             <Button
-              onPress={() => router.navigate("/auth/Login?profile=adult")}
+              onPress={() => router.back()}
               className="my-8 w-full"
               text="GO TO LOGIN"
             />

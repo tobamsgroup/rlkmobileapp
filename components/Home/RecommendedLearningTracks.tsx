@@ -175,17 +175,11 @@ const RecommendedLearningTracks = () => {
           <Button
             onPress={() => router.push("/(tabs)/curriculum")}
             style={{
-              elevation: 2,
-              shadowColor: "#000",
-              shadowOpacity: 0.6,
-              shadowOffset: {
-                width: 5,
-                height: 3,
-              },
+
               paddingVertical: scaleHeight(12),
             }}
             textClassname="text-[#3F9243]"
-            className="bg-[#FFFFFF] border-[#265828] border-0 gap-2 items-center"
+            className="bg-[#FFFFFF] border-[#265828] border-0 gap-2 items-center shadow-md"
           >
             <Text className="text-[#3F9243] text-[16px] font-sansMedium">
               DISCOVER MORE
@@ -201,11 +195,13 @@ const RecommendedLearningTracks = () => {
 const TrackCard = (props: VolumeStat) => {
   return (
     <View
-      className="bg-white p-5 rounded-[20px] flex-col items-start z-20"
+      className="bg-white p-5 rounded-[20px] flex-col items-start z-20 justify-between"
       style={{
         width: scaleWidth(256),
       }}
     >
+      <>
+
       <Image
         style={{ height: scaleHeight(144) }}
         source={{ uri: ensureHttps(props?.book?.image!) }}
@@ -215,9 +211,10 @@ const TrackCard = (props: VolumeStat) => {
       <Text className=" font-sansMedium bg-[#004D99] text-white px-3 py-1 rounded-full mb-4">
         {props?.book?.title}
       </Text>
-      <Text className="text-[18px] font-sansMedium mb-4">
+      <Text numberOfLines={2} className="text-[18px] font-sansMedium mb-4">
         Series {props?.index}: {props?.title}
       </Text>
+      </>
       <Button
         onPress={() =>
           router.push(

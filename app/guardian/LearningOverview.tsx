@@ -1,21 +1,21 @@
-import { getAllKids } from "@/actions/curriculum";
-import { getKidsOverview } from "@/actions/home";
-import { ICONS } from "@/assets/icons";
-import { IMAGES } from "@/assets/images";
-import Container from "@/components/Container";
-import TopBackButton from "@/components/TopBackButton";
-import { formatDateSlash, timeAgo } from "@/utils";
-import { scaleWidth } from "@/utils/scale";
-import { useQuery } from "@tanstack/react-query";
-import { useLocalSearchParams } from "expo-router";
-import React, { useMemo, useState } from "react";
+import { getAllKids } from '@/actions/curriculum';
+import { getKidsOverview } from '@/actions/home';
+import { ICONS } from '@/assets/icons';
+import { IMAGES } from '@/assets/images';
+import Container from '@/components/Container';
+import TopBackButton from '@/components/TopBackButton';
+import { formatDateSlash, timeAgo } from '@/utils';
+import { scaleWidth } from '@/utils/scale';
+import { useQuery } from '@tanstack/react-query';
+import { router, useLocalSearchParams } from 'expo-router';
+import React, { useMemo, useState } from 'react';
 import {
   Image,
   Pressable,
   Text,
   TouchableWithoutFeedback,
   View,
-} from "react-native";
+} from 'react-native';
 
 const LearningOverview = () => {
   const params = useLocalSearchParams();
@@ -23,14 +23,14 @@ const LearningOverview = () => {
   const [kid, setKid] = useState(params?.id);
 
   const { data } = useQuery({
-    queryKey: ["learning-overview", kid],
+    queryKey: ['learning-overview', kid],
     queryFn: async () => {
       return await getKidsOverview(kid as string);
     },
   });
 
   const { data: allKids } = useQuery({
-    queryKey: ["kids"],
+    queryKey: ['kids'],
     queryFn: async () => {
       return await getAllKids();
     },
@@ -74,7 +74,7 @@ const LearningOverview = () => {
               <View
                 style={{
                   elevation: 2,
-                  shadowColor: "black",
+                  shadowColor: 'black',
                   shadowOpacity: 0.3,
                   shadowOffset: {
                     width: 5,
@@ -85,7 +85,7 @@ const LearningOverview = () => {
               >
                 {remainingKids?.map((r) => (
                   <Pressable
-                  key={r._id}
+                    key={r._id}
                     onPress={() => {
                       setKid(r?._id);
                       setOpenRemaining(false);
@@ -121,7 +121,7 @@ const LearningOverview = () => {
               <Text className="flex-shrink-0 text-[20px] font-sansSemiBold text-dark">
                 {data?.thisWeek?.lastLogin
                   ? formatDateSlash(data?.thisWeek?.lastLogin)
-                  : "-"}
+                  : '-'}
               </Text>
               <View className="w-12 h-12 rounded-full bg-[#FFF7CC] items-center justify-center">
                 <ICONS.Clock />
@@ -132,10 +132,10 @@ const LearningOverview = () => {
             <Text className="text-[#474348] font-sans">Lessons Completed</Text>
             <View className="mt-3 flex-row items-center justify-between gap-5">
               <Text className="flex-shrink-0 text-[20px] font-sansSemiBold text-dark">
-                {data?.thisWeek.lessonsCompleted || "-"}
+                {data?.thisWeek.lessonsCompleted || '-'}
               </Text>
               <View className="w-12 h-12 rounded-full bg-[#0991371A] items-center justify-center">
-                <ICONS.Check stroke={"#099137"} />
+                <ICONS.Check stroke={'#099137'} />
               </View>
             </View>
           </View>
@@ -143,10 +143,12 @@ const LearningOverview = () => {
             <Text className="text-[#474348] font-sans">Quiz Passed</Text>
             <View className="mt-3 flex-row items-center justify-between gap-5">
               <Text className="flex-shrink-0 text-[20px] font-sansSemiBold text-dark">
-                {data?.thisWeek.assignmentsPassed !== "0/0" ? data?.thisWeek.assignmentsPassed : '-'}
+                {data?.thisWeek.assignmentsPassed !== '0/0'
+                  ? data?.thisWeek.assignmentsPassed
+                  : '-'}
               </Text>
               <View className="w-12 h-12 rounded-full bg-[#1671D91A] items-center justify-center">
-                <ICONS.Check stroke={"#004D99"} />
+                <ICONS.Check stroke={'#004D99'} />
               </View>
             </View>
           </View>
@@ -154,10 +156,12 @@ const LearningOverview = () => {
             <Text className="text-[#474348] font-sans">Total Time Spent</Text>
             <View className="mt-3 flex-row items-center justify-between gap-5">
               <Text className="flex-shrink-0 text-[20px] font-sansSemiBold text-dark">
-                {data?.thisWeek.totalTimeSpent === "0m" ? '-' : data?.thisWeek.totalTimeSpent}
+                {data?.thisWeek.totalTimeSpent === '0m'
+                  ? '-'
+                  : data?.thisWeek.totalTimeSpent}
               </Text>
               <View className="w-12 h-12 rounded-full bg-[#C821DE1A] items-center justify-center">
-                <ICONS.Clock stroke={"#004D99"} />
+                <ICONS.Clock stroke={'#004D99'} />
               </View>
             </View>
           </View>
@@ -167,12 +171,23 @@ const LearningOverview = () => {
               Assigned Courses
             </Text>
             {data?.assignedCourses?.map((d, index) => (
-              <View
+              <Pressable
+                onPress={() =>
+                  router.push(
+                    `/guardian/SeriesOverview?seriesId=${d.seriesId}&kidId=${data?.kid?.id}&title=${encodeURIComponent(d.title)}&book=${encodeURIComponent(d.book)}&index=${d.index}&progress=${d.progress}&completed=${d.assignmentStatus.completed}&total=${d.assignmentStatus.total}`,
+                  )
+                }
                 key={index}
                 className="p-3 border border-[#D3D2D3] rounded-[16px] mt-5"
               >
                 <View className="flex-row items-center gap-2 mb-4">
-                  <ICONS.Leaf />
+                  {d?.book === 'Think Sustainability' ? (
+                    <ICONS.Leaf />
+                  ) : d?.book === 'Think Finance' ? (
+                    <ICONS.Chart />
+                  ) : (
+                    <ICONS.Star2 />
+                  )}
                   <Text className="font-sansMedium text-[16px] text-dark">
                     Series {d.index}: {d.title}
                   </Text>
@@ -193,8 +208,19 @@ const LearningOverview = () => {
                     <Text className="font-sans text-[12px]">Assignment</Text>
                   </View>
                 </View>
-              </View>
+              </Pressable>
             ))}
+            {!!!data?.assignedCourses?.length && (
+              <View className=" items-center justify-center pt-[56px] pb-[33px]">
+                <ICONS.BooksMultiple />
+                <Text className="font-sansSemiBold text-[#265828] text-[18px] text-center my-4">
+                  No Courses Assigned
+                </Text>
+                <Text className="font-sans text-[#474348] leading-[1.5] text-center px-10">
+                  You haven’t assigned any courses to your child yet.
+                </Text>
+              </View>
+            )}
           </View>
 
           <View className=" mb-5 border-[0.5px] p-5 rounded-[12px] bg-white border-[#C3E4C5]">
@@ -208,13 +234,29 @@ const LearningOverview = () => {
                 </View>
                 <View className="gap-1 flex-1">
                   <Text className="text-dark font-sansMedium text-[16px]">
-                   {a.activity}
+                    {a.activity}
                   </Text>
                   <Text className="font-sans text-[#474348]">{a?.title}</Text>
                 </View>
-                <Text className="font-sans text-[#474348]"> {timeAgo(a.timestamp)}</Text>
+                <Text className="font-sans text-[#474348]">
+                  {' '}
+                  {timeAgo(a.timestamp)}
+                </Text>
               </View>
             ))}
+
+            {!!!data?.activityService?.activities && (
+              <View className=" items-center justify-center pt-[56px] pb-[33px]">
+                <ICONS.Checklist />
+                <Text className="font-sansSemiBold text-[#265828] text-[18px] text-center my-4">
+                  No Recent Activity
+                </Text>
+                <Text className="font-sans text-[#474348] leading-[1.5] text-center px-10">
+                  Your child hasn’t started any new lessons or activities
+                  recently.
+                </Text>
+              </View>
+            )}
           </View>
         </View>
       </TouchableWithoutFeedback>

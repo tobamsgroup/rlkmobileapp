@@ -1,30 +1,30 @@
-import { fetchKidsCourses } from "@/actions/curriculum";
-import { ICONS } from "@/assets/icons";
-import { IMAGES } from "@/assets/images";
-import { ensureHttps, groupByKid, GroupedByKid } from "@/utils";
-import { scaleHeight, scaleWidth } from "@/utils/scale";
-import { useQuery } from "@tanstack/react-query";
-import { router } from "expo-router";
-import React, { useMemo, useRef, useState } from "react";
-import { FlatList, Image, Pressable, Text, View } from "react-native";
-import Button from "../Button";
-import Skeleton from "../Skeleton";
-import { twMerge } from "tailwind-merge";
-import { fetchKids } from "@/actions/learners";
+import { fetchKidsCourses } from '@/actions/curriculum';
+import { fetchKids } from '@/actions/learners';
+import { ICONS } from '@/assets/icons';
+import { IMAGES } from '@/assets/images';
+import { ensureHttps, groupByKid, GroupedByKid } from '@/utils';
+import { scaleHeight, scaleWidth } from '@/utils/scale';
+import { useQuery } from '@tanstack/react-query';
+import { router } from 'expo-router';
+import React, { useMemo, useRef, useState } from 'react';
+import { FlatList, Image, Pressable, Text, View } from 'react-native';
+import { twMerge } from 'tailwind-merge';
+import Button from '../Button';
+import Skeleton from '../Skeleton';
 
 const LearnersProgress = ({ onAddChild }: { onAddChild: () => void }) => {
   const flatListRef = useRef<FlatList<GroupedByKid>>(null);
   const [currentIndex, setCurrentIndex] = useState(0);
 
-    const { data:allKids, isLoading:isLoadingALlKids } = useQuery({
-      queryKey: ["guardian-kids"],
-      queryFn: async () => {
-        return await fetchKids();
-      },
-    });
+  const { data: allKids, isLoading: isLoadingALlKids } = useQuery({
+    queryKey: ['guardian-kids'],
+    queryFn: async () => {
+      return await fetchKids();
+    },
+  });
 
   const { data, isLoading } = useQuery({
-    queryKey: ["kids-courses"],
+    queryKey: ['kids-courses'],
     queryFn: async () => {
       return await fetchKidsCourses();
     },
@@ -32,11 +32,19 @@ const LearnersProgress = ({ onAddChild }: { onAddChild: () => void }) => {
 
   const groupedData = useMemo(() => {
     if (!allKids) return [];
-    const coursesByKid = groupByKid(data ?? []).reduce<Record<string, GroupedByKid>>(
-      (acc, g) => { acc[g.kid._id] = g; return acc; },
-      {}
+    const coursesByKid = groupByKid(data ?? []).reduce<
+      Record<string, GroupedByKid>
+    >((acc, g) => {
+      acc[g.kid._id] = g;
+      return acc;
+    }, {});
+    return allKids.map(
+      (kid) =>
+        coursesByKid[kid._id] ?? {
+          kid: kid as GroupedByKid['kid'],
+          courses: [],
+        },
     );
-    return allKids.map((kid) => coursesByKid[kid._id] ?? { kid: kid as GroupedByKid["kid"], courses: [] });
   }, [allKids, data]);
 
   const scrollToIndex = (index: number) => {
@@ -96,10 +104,13 @@ const LearnersProgress = ({ onAddChild }: { onAddChild: () => void }) => {
                 width: scaleWidth(48),
                 height: scaleWidth(40),
               }}
-              className="bg-[#DBEFDC] rounded-[32px] items-center justify-center"
+              className={twMerge(
+                'bg-[#DBEFDC] rounded-[32px] items-center justify-center',
+                currentIndex === 0 && 'bg-gray-200',
+              )}
             >
               <ICONS.KeyboardArrowLeft
-                fill={"#3F9243"}
+                fill={currentIndex === 0 ? '#9c9c9c' : '#3F9243'}
                 width={32}
                 height={32}
               />
@@ -110,21 +121,27 @@ const LearnersProgress = ({ onAddChild }: { onAddChild: () => void }) => {
                 width: scaleWidth(48),
                 height: scaleWidth(40),
               }}
-              className="bg-[#DBEFDC] rounded-[32px] items-center justify-center"
+              className={twMerge(
+                'bg-[#DBEFDC] rounded-[32px] items-center justify-center',
+                currentIndex + 1 === groupedData?.length && 'bg-gray-200',
+              )}
             >
               <ICONS.KeyboardArrowRight
-                fill={"#3F9243"}
+                fill={
+                  currentIndex + 1 === groupedData?.length
+                    ? '#9c9c9c'
+                    : '#3F9243'
+                }
                 width={32}
                 height={32}
               />
             </Pressable>
           </View>
           <Button
-            onPress={() => router.push("/(tabs)/learners")}
+            onPress={() => router.push('/(tabs)/learners')}
             textClassname="text-[16px]"
             text="VIEW ALL LEARNERS"
           />
-        
         </>
       )}
 
@@ -139,15 +156,15 @@ const LearnersProgress = ({ onAddChild }: { onAddChild: () => void }) => {
             source={IMAGES.Superkid}
           />
           <Text className="text-[#265828] font-sansSemiBold text-[20px] text-center mb-4">
-            No Learners Added Yet{" "}
+            No Learners Added Yet{' '}
           </Text>
           <Text className="text-dark text-center font-sans mb-6">
             Start by adding a child to begin tracking their learning progress.
           </Text>
           <Button
             className="w-full"
-            onPress={onAddChild}
-            text="ADD KID PROFILE"
+            onPress={() => router.push('/guardian/AddLearner')}
+            text="ADD CHILD"
           />
         </View>
       )}
@@ -188,7 +205,10 @@ const KidProgessCard = (props: GroupedByKid) => {
   return (
     <View className="relative">
       <View
-        className={twMerge("border-2 border-[#FFD700] rounded-full bg-white absolute top-0 left-0 z-30")}
+        className={twMerge(
+          'border-2 border-[#FFD700] rounded-full bg-white absolute top-0 left-0 z-30',
+          // props?.kid?.picture && ' border-[#FFD700]',
+        )}
         style={{
           height: scaleWidth(104),
           width: scaleWidth(104),
@@ -219,7 +239,9 @@ const KidProgessCard = (props: GroupedByKid) => {
         </Text>
         <View className="bg-white rounded-full px-3 py-2 mb-5 mt-3">
           <Text className="font-sans text-[#474348]">
-            {props?.courses?.length > 0 ? `${props.courses.length} Track${props.courses.length !== 1 ? "s" : ""}` : "0 Track"}
+            {props?.courses?.length > 0
+              ? `${props.courses.length} Track${props.courses.length !== 1 ? 's' : ''}`
+              : '0 Track'}
           </Text>
         </View>
         <Button
