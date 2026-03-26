@@ -73,7 +73,8 @@
           "supportsBackgroundPlayback": true,
           "supportsPictureInPicture": true
         }
-      ]
+      ],
+      "expo-print"
     ],
     "experiments": {
       "typedRoutes": true,
