@@ -118,7 +118,7 @@ const LearningProgress = () => {
       // Fetch and base64-encode kid avatar using expo-file-system
       // (FileReader / Blob are Web APIs unavailable in React Native / Hermes)
       let avatarBase64: string | null = null;
-      if (data?.kid?.picture && FileSystem.documentDirectory) {
+      if (data?.kid?.picture) {
         try {
           const tmpPath = `${FileSystem.cacheDirectory}avatar_tmp.jpg`;
           const downloadResult = await FileSystem.downloadAsync(
@@ -128,6 +128,7 @@ const LearningProgress = () => {
           avatarBase64 = await FileSystem.readAsStringAsync(downloadResult.uri, {
             encoding: FileSystem.EncodingType.Base64,
           });
+          await FileSystem.deleteAsync(tmpPath, { idempotent: true });
         } catch {
           avatarBase64 = null;
         }
@@ -173,9 +174,7 @@ const LearningProgress = () => {
       await FileSystem.makeDirectoryAsync(reportsDir, { intermediates: true });
 
       const safeName = (data.kid?.name ?? 'Kid').replace(/\s+/g, '-');
-      const dateStamp = new Date()
-        .toLocaleDateString('en-GB')
-        .replace(/\//g, '-');
+      const dateStamp = generatedDate.replace(/\//g, '-');
       const destUri = `${reportsDir}${safeName}-report-${dateStamp}.pdf`;
 
       await FileSystem.copyAsync({ from: tempUri, to: destUri });
