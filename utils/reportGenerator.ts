@@ -20,6 +20,16 @@ function getInitials(name: string): string {
     .slice(0, 2);
 }
 
+function escapeHtml(text: string | null | undefined): string {
+  if (text == null) return '-';
+  return String(text)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
 export function generateKidReportHtml(params: ReportParams): string {
   const {
     data,
@@ -36,7 +46,8 @@ export function generateKidReportHtml(params: ReportParams): string {
   const assignedCourses = data?.assignedCourses ?? [];
   const activities = data?.activityService?.activities ?? [];
   const completionRate = completionRateDetails?.completionRate ?? 0;
-  const avgScore = averageScore?.averageScore ?? averageScore ?? null;
+  const rawAvgScore = averageScore?.averageScore ?? averageScore ?? null;
+  const avgScore = typeof rawAvgScore === 'number' && !isNaN(rawAvgScore) ? rawAvgScore : null;
 
   const initials = kid?.name ? getInitials(kid.name) : '?';
 
@@ -47,7 +58,7 @@ export function generateKidReportHtml(params: ReportParams): string {
   const lastLogin = thisWeek?.lastLogin
     ? formatDateSlash(thisWeek.lastLogin)
     : '-';
-  const lessonsCompleted = thisWeek?.lessonsCompleted || '-';
+  const lessonsCompleted = thisWeek?.lessonsCompleted ?? '-';
   const quizPassed =
     thisWeek?.assignmentsPassed && thisWeek.assignmentsPassed !== '0/0'
       ? thisWeek.assignmentsPassed
@@ -63,8 +74,8 @@ export function generateKidReportHtml(params: ReportParams): string {
           .map(
             (d) => `
         <div class="course-card">
-          <div class="course-header">Series ${d.index}: ${d.title}</div>
-          <div class="course-book">${d.book}</div>
+          <div class="course-header">Series ${d.index}: ${escapeHtml(d.title)}</div>
+          <div class="course-book">${escapeHtml(d.book)}</div>
           <div class="badge-row">
             <div class="badge">
               <span class="badge-value">${d.progress}%</span>
@@ -89,8 +100,8 @@ export function generateKidReportHtml(params: ReportParams): string {
         <div class="activity-row">
           <div class="activity-icon">&#127299;</div>
           <div class="activity-content">
-            <div class="activity-name">${a.activity}</div>
-            <div class="activity-sub">${a.title}</div>
+            <div class="activity-name">${escapeHtml(a.activity)}</div>
+            <div class="activity-sub">${escapeHtml(a.title)}</div>
           </div>
           <div class="activity-time">${timeAgo(a.timestamp)}</div>
         </div>
@@ -326,12 +337,12 @@ export function generateKidReportHtml(params: ReportParams): string {
   <div class="report-header">
     ${avatarHtml}
     <div class="kid-info">
-      <div class="kid-name">${kid?.name ?? '-'}</div>
-      <div class="kid-username">@${kid?.username ?? '-'}</div>
+      <div class="kid-name">${escapeHtml(kid?.name)}</div>
+      <div class="kid-username">@${escapeHtml(kid?.username)}</div>
       <div class="kid-meta">
         ${kid?.age ? `<span>${kid.age} Years</span>` : ''}
         ${genderDot}
-        ${kid?.gender ? `<span>${kid.gender}</span>` : ''}
+        ${kid?.gender ? `<span>${escapeHtml(kid?.gender)}</span>` : ''}
       </div>
       <div class="report-date">Report generated: ${generatedDate}</div>
     </div>
