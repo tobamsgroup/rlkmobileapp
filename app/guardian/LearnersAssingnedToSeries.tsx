@@ -1,29 +1,29 @@
 import {
   fetchKidsCourseBySeries,
   KidCourseWithPopulatedKid,
-} from "@/actions/curriculum";
-import { ICONS } from "@/assets/icons";
-import { IMAGES } from "@/assets/images";
-import Button from "@/components/Button";
-import Container from "@/components/Container";
-import { SimpleInput } from "@/components/Input";
-import ProgressBar from "@/components/ProgressBar";
-import Skeleton from "@/components/Skeleton";
-import TopBackButton from "@/components/TopBackButton";
-import { formatDate } from "@/utils";
-import { scaleHeight, scaleWidth } from "@/utils/scale";
-import { useQuery } from "@tanstack/react-query";
-import { router, useLocalSearchParams } from "expo-router";
-import React, { useEffect, useState } from "react";
-import { Image, Pressable, Text, View } from "react-native";
+} from '@/actions/curriculum';
+import { ICONS } from '@/assets/icons';
+import { IMAGES } from '@/assets/images';
+import Button from '@/components/Button';
+import Container from '@/components/Container';
+import { SimpleInput } from '@/components/Input';
+import ProgressBar from '@/components/ProgressBar';
+import Skeleton from '@/components/Skeleton';
+import TopBackButton from '@/components/TopBackButton';
+import { formatDate } from '@/utils';
+import { scaleHeight, scaleWidth } from '@/utils/scale';
+import { useQuery } from '@tanstack/react-query';
+import { router, useLocalSearchParams } from 'expo-router';
+import React, { useEffect, useState } from 'react';
+import { Image, Pressable, Text, View } from 'react-native';
 
 const LearnersAssingnedToSeries = () => {
   const params = useLocalSearchParams();
-  const [search, setSearch] = useState("");
+  const [search, setSearch] = useState('');
   const [kidsData, setKidsData] = useState<KidCourseWithPopulatedKid[]>([]);
 
   const { data, isLoading } = useQuery({
-    queryKey: ["kids-volume", params?.id],
+    queryKey: ['kids-volume', params?.id],
     queryFn: async () => {
       return await fetchKidsCourseBySeries(params?.id as string);
     },
@@ -44,123 +44,126 @@ const LearnersAssingnedToSeries = () => {
   }, [data, search]);
 
   return (
-    <Container>
-      <View className="px-6 py-5">
-        <TopBackButton />
-        <Text className="font-sansSemiBold text-dark text-[20px] my-4 mb-8">
-          Learners Assigned to {params?.title}
-        </Text>
-        <SimpleInput
-          name="search"
-          containerClass="bg-white border-0"
-          displayIcon={<ICONS.Search />}
-          placeholder="Search by kid’s name..."
-          value={search}
-          handleChange={setSearch}
-        />
-        <Text className="text-[16px] font-sansSemiBold text-dark mt-5 ">
-          Total Kids: {kidsData?.length}
-        </Text>
-        <View className="bg-[#000F1F] p-6  px-8 rounded-[16px] mt-8 relative">
+    <>
+      <Container scrollable>
+        <View className="px-6 py-5">
+          <TopBackButton />
+          <Text className="font-sansSemiBold text-dark text-[20px] my-4 mb-8">
+            Learners Assigned to {params?.title}
+          </Text>
+          <SimpleInput
+            name="search"
+            containerClass="bg-white border-0"
+            displayIcon={<ICONS.Search />}
+            placeholder="Search by kid’s name..."
+            value={search}
+            handleChange={setSearch}
+          />
           {!!kidsData?.length && (
-            <Pressable
-              onPress={() =>
-                router.push(
-                  `/guardian/AssignChild?title=${params?.title}&id=${params?.id}&seriesTitle=${params?.seriesTitle}`,
-                )
-              }
+            <Text className="text-[16px] font-sansSemiBold text-dark mt-5 ">
+              Total Kids: {kidsData?.length}
+            </Text>
+          )}
+          <View className="bg-[#000F1F] p-6  px-8 rounded-[16px] mt-8 relative">
+            <ICONS.Ellipse
+              style={{ position: 'absolute', top: scaleHeight(68), zIndex: 0 }}
+            />
+            <ICONS.Star
               style={{
-                top: scaleHeight(343),
+                position: 'absolute',
+                top: scaleHeight(9),
+                right: 8,
+                zIndex: 0,
               }}
-              className="flex-row self-end gap-2 items-center bg-[#3F9243] border-b-primary py-3 px-6 rounded-full absolute z-50"
-            >
-              <ICONS.Assignmentadd />
-              <Text className="text-white font-sansMedium text-[16px]">
-                ASSIGN
-              </Text>
-            </Pressable>
-          )}
-          <ICONS.Ellipse
-            style={{ position: "absolute", top: scaleHeight(68), zIndex: 0 }}
-          />
-          <ICONS.Star
-            style={{
-              position: "absolute",
-              top: scaleHeight(9),
-              right: 8,
-              zIndex: 0,
-            }}
-          />
-          <ICONS.Flower
-            style={{
-              position: "absolute",
-              top: scaleHeight(57),
-              right: 37,
-              zIndex: 0,
-            }}
-          />
-          <ICONS.Flower
-            style={{
-              position: "absolute",
-              bottom: scaleHeight(78),
-              left: 0,
-              zIndex: 0,
-            }}
-          />
-          <ICONS.Star
-            style={{
-              position: "absolute",
-              top: scaleHeight(89),
-              left: 0,
-              zIndex: 0,
-            }}
-            fill={"#FFDE2A"}
-          />
+            />
+            <ICONS.Flower
+              style={{
+                position: 'absolute',
+                top: scaleHeight(57),
+                right: 37,
+                zIndex: 0,
+              }}
+            />
+            <ICONS.Flower
+              style={{
+                position: 'absolute',
+                bottom: scaleHeight(78),
+                left: 0,
+                zIndex: 0,
+              }}
+            />
+            <ICONS.Star
+              style={{
+                position: 'absolute',
+                top: scaleHeight(89),
+                left: 0,
+                zIndex: 0,
+              }}
+              fill={'#FFDE2A'}
+            />
 
-          {!!!kidsData?.length && !isLoading && (
-            <View className="items-center z-50 relative">
-              <Image
-                style={{
-                  height: scaleWidth(72),
-                  width: scaleWidth(72),
-                }}
-                className="rounded-full border-[1.8px] border-[#FFD700] mb-6"
-                source={IMAGES.Superkid}
-              />
-              <Text className="text-white font-sansSemiBold text-[20px] text-center mb-4">
-                No Learners Assigned Yet.
-              </Text>
-              <Text className="text-white text-center font-sansMedium mb-6">
-                Once you assign child and they will appear here.
-              </Text>
-              <Button
-                onPress={() =>
-                  router.push(
-                    `/guardian/AssignChild?title=${params?.title}&id=${params?.id}&seriesTitle=${params?.seriesTitle}`,
-                  )
-                }
-                className="w-full bg-[#004D99] border-[#003366]"
-                text="ASSIGN KIDS"
-              />
-            </View>
-          )}
-          {isLoading && (
-            <>
-              {[1, 2]?.map((i) => (
-                <KidProgessCardSkeleton key={i} />
-              ))}
-            </>
-          )}
-          {!isLoading && !!kidsData?.length && (
-            <>
-              {kidsData?.map((k, i) => (
-                <KidProgessCard key={k._id} {...k} />
-              ))}
-            </>
-          )}
+            {!!!kidsData?.length && !isLoading && (
+              <View className="items-center z-50 relative">
+                <Image
+                  style={{
+                    height: scaleWidth(72),
+                    width: scaleWidth(72),
+                  }}
+                  className="rounded-full border-[1.8px] border-[#FFD700] mb-6"
+                  source={IMAGES.Superkid}
+                />
+                <Text className="text-white font-sansSemiBold text-[20px] text-center mb-4">
+                  No Learners Assigned Yet.
+                </Text>
+                <Text className="text-white text-center font-sansMedium mb-6">
+                  Once you assign child and they will appear here.
+                </Text>
+                <Button
+                  onPress={() =>
+                    router.push(
+                      `/guardian/AssignChild?title=${params?.title}&id=${params?.id}&seriesTitle=${params?.seriesTitle}`,
+                    )
+                  }
+                  className="w-full bg-[#004D99] border-[#003366]"
+                  text="ASSIGN KIDS"
+                />
+              </View>
+            )}
+            {isLoading && (
+              <>
+                {[1, 2]?.map((i) => (
+                  <KidProgessCardSkeleton key={i} />
+                ))}
+              </>
+            )}
+            {!isLoading && !!kidsData?.length && (
+              <>
+                {kidsData?.map((k, i) => (
+                  <KidProgessCard key={k._id} {...k} />
+                ))}
+              </>
+            )}
+          </View>
         </View>
-      </View>
-    </Container>
+      </Container>
+      {!!kidsData?.length && (
+        <Pressable
+          onPress={() =>
+            router.push(
+              `/guardian/AssignChild?title=${params?.title}&id=${params?.id}&seriesTitle=${params?.seriesTitle}`,
+            )
+          }
+          style={{
+            position: 'absolute',
+            bottom: scaleHeight(40),
+          }}
+          className="flex-row self-end gap-2 items-center bg-[#3F9243] border-b-primary py-3 px-6 rounded-full absolute z-50"
+        >
+          <ICONS.Assignmentadd />
+          <Text className="text-white font-sansMedium text-[16px]">ASSIGN</Text>
+        </Pressable>
+      )}
+    </>
   );
 };
 
@@ -172,7 +175,7 @@ const KidProgessCard = (props: KidCourseWithPopulatedKid) => {
         style={{
           height: scaleWidth(104),
           width: scaleWidth(104),
-          left: "33%",
+          left: '33%',
         }}
       >
         <Image
@@ -193,7 +196,7 @@ const KidProgessCard = (props: KidCourseWithPopulatedKid) => {
         className="border-2 border-primary rounded-[20px] bg-white items-center px-11 pb-5"
       >
         <Text className="text-[#193A1B] font-sansMedium text-[16px]">
-          {props?.kidId?.username}
+          {props?.kidId?.name}
         </Text>
         <Text className="font-sans text-[#474348] mt-3 mb-4">
           Assigned {formatDate(props?.assignedSeries?.[0]?.assignedAt)}
@@ -225,7 +228,7 @@ const KidProgessCardSkeleton = () => {
         style={{
           height: scaleWidth(104),
           width: scaleWidth(104),
-          left: "33%",
+          left: '33%',
         }}
         className=" border-2 border-black/15 rounded-full bg-white absolute top-0 left-0 z-30"
       />

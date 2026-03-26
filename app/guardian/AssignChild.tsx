@@ -126,7 +126,7 @@ const AssignChild = () => {
     );
   };
   return (
-    <Container scrollable={step !== 2}>
+    <Container scrollable={true}>
       <View className="px-6  relative flex-1">
         <TopBackButton />
         <ICONS.StarFlower
@@ -168,7 +168,7 @@ const AssignChild = () => {
           style={{ marginTop: scaleHeight(96), marginBottom: scaleHeight(72) }}
         >
           {step === 1 && (
-            <View className="bg-[#3F9243] rounded-[20px] p-5 w-full z-10">
+            <View className="bg-[#3F9243] border-b-4 border-b-[#FFD700] border-r rounded-[20px] border-r-[#3F9243] border-l-[#3F9243] border-l  p-5 w-full z-10">
               <Text className="text-[18px] font-sansSemiBold text-white leading-[1.3] mb-6">
                 Assign {params?.title}:{" "}
                 <Text className="text-[#FFD700]">{params?.seriesTitle}</Text> to
@@ -215,7 +215,7 @@ const AssignChild = () => {
             </View>
           )}
           {step > 1 && (
-            <View className="rounded-[20px] bg-[#193A1B] p-5">
+            <View className="rounded-[20px] bg-[#193A1B] border-b-4 border-b-[#FFD700] border-r border-l border-r-[#193A1B] border-l-[#193A1B]  p-5">
               <Stepper
                 totalStep={2}
                 currentStep={step - 1}
@@ -274,14 +274,14 @@ const AssignChild = () => {
                           width: scaleWidth(64),
                           height: scaleWidth(64),
                         }}
-                        source={IMAGES.BookOpened}
+                        source={IMAGES.BookClosed}
                       />
                       <Checkbox
                         check={selectedScope === "entire"}
                         rounded
                         backgroundColor="#3F9243"
                         borderColor={
-                          selectedScope === "entire" ? "#3F9243" : "#3F9243"
+                          selectedScope === "entire" ? "#3F9243" : "#918E91"
                         }
                       />
                     </View>
@@ -309,14 +309,14 @@ const AssignChild = () => {
                           width: scaleWidth(64),
                           height: scaleWidth(64),
                         }}
-                        source={IMAGES.BookClosed}
+                        source={IMAGES.BookOpened}
                       />
                       <Checkbox
                         check={selectedScope === "some"}
                         rounded
                         backgroundColor="#3F9243"
                         borderColor={
-                          selectedScope === "some" ? "#3F9243" : "#3F9243"
+                          selectedScope === "some" ? "#3F9243" : "#918E91"
                         }
                       />
                     </View>
@@ -364,7 +364,7 @@ const AssignChild = () => {
               <Button
                 onPress={() => setStep((step) => step - 1)}
                 textClassname="text-dark"
-                className="flex-1 bg-white border-[#918E91] border-0"
+                className="flex-1 bg-white border-[#918E91]  border-b-2 border-b-[#918E91] border-r border-l border-r-gray-300 border-l-gray-300"
                 text="BACK"
               />
               <Button

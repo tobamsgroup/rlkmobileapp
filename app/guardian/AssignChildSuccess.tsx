@@ -28,7 +28,7 @@ const AssignChildSuccess = () => {
       }}
       className="bg-[#193A1B] flex-1 px-6"
     >
-      <TopBackButton />
+      {/* <TopBackButton /> */}
 
       <ICONS.HalfCloud
         fill={"#FFFFFF80"}
@@ -89,9 +89,9 @@ const AssignChildSuccess = () => {
               }}
               className="text-[#265828] text-[14px] font-sansMedium text-center leading-[1.5] absolute"
             >
-              Your selected series/{"\n"}chapter(s) have been {"\n"}successfully
-              assigned to [{selectedKids?.length} {"\n"}learner{" "}
-              {selectedKids?.length > 1 ? "s" : ""}]🚀
+              Your selected {selectedModule?.length < 1 ? "series" : "chapter(s)"} {"\n"} have been successfully
+              {"\n"}assigned to {selectedKids?.length} learner{" "}
+              {selectedKids?.length > 1 ? "s" : ""}🚀
             </Text>
             <Image
               style={{ height: scaleHeight(182), width: scaleWidth(200) }}
@@ -111,9 +111,9 @@ const AssignChildSuccess = () => {
                   </Text>
                 </View>
                 <Text className="text-[16px] font-sans leading-[1.5] text-dark mt-2">
-                  {params?.title} :{"\n"} {params?.seriesTitle}
+                  {params?.title}: {params?.seriesTitle}
                 </Text>
-                <View className="flex-row items-center gap-2 mt-2 pt-2 border-t border-t-[#FFEB80CC]">
+                <View className="flex-row items-center gap-2 mt-3 pt-2 border-t border-t-[#FFEB80CC]">
                   <ICONS.BookOpenedSmall />
                   <Text className="text-dar text-[16px] font-sansMedium">
                     Chapters Assigned
@@ -140,7 +140,7 @@ const AssignChildSuccess = () => {
                 <View className="flex-row items-center gap-2">
                   <ICONS.ChildCare fill={"#004D99"} />
                   <Text className="text-dar text-[16px] font-sansMedium">
-                    Kids Assigned
+                    Learners Assigned
                   </Text>
                 </View>
 

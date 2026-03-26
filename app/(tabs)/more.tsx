@@ -75,7 +75,7 @@ export default function More() {
             Parent / Teacher
           </Text>
         </View>
-        <View className="w-full bg-[#FFFFFF] rounded-[20px] p-5 mt-5 flex-1">
+        <View className="w-full bg-[#FFFFFF] rounded-[20px] p-5 mt-5 ">
           <Pressable
             onPress={() => router.push("/guardian/Profile")}
             className="flex-row items-center gap-2 pb-6 border-b border-b-[#D3D2D366]"
@@ -100,7 +100,7 @@ export default function More() {
             </Text>
             <ICONS.ChevronRight />
           </Pressable>
-          <View className="flex-1" />
+          <View className="mt-20" />
           <View className="flex-row items-center justify-around">
             <Text
               onPress={() =>

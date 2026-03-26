@@ -1,36 +1,35 @@
-import { getSeriesVolume } from "@/actions/curriculum";
-import { ICONS } from "@/assets/icons";
-import CheckDropdown from "@/components/CheckDropdown";
-import Container from "@/components/Container";
+import { getSeriesVolume } from '@/actions/curriculum';
+import { ICONS } from '@/assets/icons';
+import CheckDropdown from '@/components/CheckDropdown';
+import Container from '@/components/Container';
 import SeriesOverviewCard, {
   SeriesOverviewCardSkeleton,
-} from "@/components/Curriculum/SeriesOverviewCard";
-import { SimpleInput } from "@/components/Input";
-import ProgressBar from "@/components/ProgressBar";
-import Skeleton from "@/components/Skeleton";
-import TopBackButton from "@/components/TopBackButton";
-import { VolumeStat } from "@/types";
-import { scaleHeight } from "@/utils/scale";
-import { useQuery } from "@tanstack/react-query";
-import { useLocalSearchParams } from "expo-router";
-import React, { useEffect, useState } from "react";
-import { Pressable, Text, TouchableWithoutFeedback, View } from "react-native";
+} from '@/components/Curriculum/SeriesOverviewCard';
+import { SimpleInput } from '@/components/Input';
+import ProgressBar from '@/components/ProgressBar';
+import Skeleton from '@/components/Skeleton';
+import TopBackButton from '@/components/TopBackButton';
+import { VolumeStat } from '@/types';
+import { scaleHeight } from '@/utils/scale';
+import { useQuery } from '@tanstack/react-query';
+import { useLocalSearchParams } from 'expo-router';
+import React, { useEffect, useState } from 'react';
+import { Pressable, Text, TouchableWithoutFeedback, View } from 'react-native';
 
 const CurriculumSeriesOverview = () => {
   const params = useLocalSearchParams();
-  const [status, setStatus] = useState("All");
-  const [search, setSearch] = useState("");
-  const [sort, setSort] = useState("");
+  const [status, setStatus] = useState('All');
+  const [search, setSearch] = useState('');
+  const [sort, setSort] = useState('');
   const [openStatus, setOpenStatus] = useState(false);
   const [openSort, setOpenSort] = useState(false);
   const [volumeData, setVolumeData] = useState<VolumeStat[]>([]);
   const { data, isLoading } = useQuery({
-    queryKey: ["series-volume", params?.id],
+    queryKey: ['series-volume', params?.id],
     queryFn: async () => {
       return await getSeriesVolume(params?.id as string);
     },
   });
-
 
   useEffect(() => {
     if (!data?.volumeStats) return;
@@ -42,15 +41,15 @@ const CurriculumSeriesOverview = () => {
       result = result.filter((v) => v.title?.toLowerCase().includes(query));
     }
 
-    if (status === "Assigned") {
+    if (status === 'Assigned') {
       result = result.filter((v) => v.assignedCount > 0);
     }
 
-    if (status === "Unassigned") {
+    if (status === 'Unassigned') {
       result = result.filter((v) => v.assignedCount < 1);
     }
 
-    if (sort === "A-Z") {
+    if (sort === 'A-Z') {
       result.sort((a, b) => a.title.localeCompare(b.title));
     }
 
@@ -90,7 +89,7 @@ const CurriculumSeriesOverview = () => {
               <Text className="text-[16px] text-white font-sansMedium">
                 Status
               </Text>
-              <ICONS.ChevronDown stroke={"white"} />
+              <ICONS.ChevronDown stroke={'white'} />
             </Pressable>
             <Pressable
               onPress={() => {
@@ -103,30 +102,30 @@ const CurriculumSeriesOverview = () => {
               <Text className="text-[16px] text-white font-sansMedium">
                 Sort
               </Text>
-              <ICONS.ChevronDown stroke={"white"} />
+              <ICONS.ChevronDown stroke={'white'} />
             </Pressable>
             {openStatus && (
               <CheckDropdown
                 selected={status}
                 onSelect={setStatus}
-                options={["All", "Assigned", "Unassigned"]}
+                options={['All', 'Assigned', 'Unassigned']}
               />
             )}
             {openSort && (
               <CheckDropdown
                 selected={sort}
                 onSelect={setSort}
-                options={["A-Z", "Most Popular", "Recently Added"]}
+                options={['A-Z', 'Most Popular', 'Recently Added']}
               />
             )}
           </View>
           <View className="bg-[#000F1F] rounded-[16px] p-6 mt-8 relative">
             <ICONS.Ellipse
-              style={{ position: "absolute", top: scaleHeight(68), zIndex: 0 }}
+              style={{ position: 'absolute', top: scaleHeight(68), zIndex: 0 }}
             />
             <ICONS.Star
               style={{
-                position: "absolute",
+                position: 'absolute',
                 top: scaleHeight(9),
                 right: 8,
                 zIndex: 0,
@@ -134,7 +133,7 @@ const CurriculumSeriesOverview = () => {
             />
             <ICONS.Flower
               style={{
-                position: "absolute",
+                position: 'absolute',
                 top: scaleHeight(57),
                 right: 37,
                 zIndex: 0,
@@ -142,7 +141,7 @@ const CurriculumSeriesOverview = () => {
             />
             <ICONS.Flower
               style={{
-                position: "absolute",
+                position: 'absolute',
                 bottom: scaleHeight(78),
                 left: 0,
                 zIndex: 0,
@@ -150,17 +149,23 @@ const CurriculumSeriesOverview = () => {
             />
             <ICONS.Star
               style={{
-                position: "absolute",
+                position: 'absolute',
                 top: scaleHeight(89),
                 left: 0,
                 zIndex: 0,
               }}
-              fill={"#FFDE2A"}
+              fill={'#FFDE2A'}
             />
             {isLoading ? (
               <Skeleton className="rounded-full w-full" />
             ) : (
-              <ProgressBar percent={((data?.assignedVolumes || 0) / (data?.totalVolumes || 1)) * 100} height={18} />
+              <ProgressBar
+                percent={
+                  ((data?.assignedVolumes || 0) / (data?.totalVolumes || 1)) *
+                  100
+                }
+                height={18}
+              />
             )}
             {isLoading ? (
               <Skeleton className="rounded-full w-1/2 mt-4 mb-8" />
@@ -182,6 +187,21 @@ const CurriculumSeriesOverview = () => {
                 {volumeData?.map((s) => (
                   <SeriesOverviewCard key={s.index} {...s} />
                 ))}
+              </>
+            )}
+            {!isLoading && volumeData?.length < 1 && (
+              <>
+                <View className=" items-center justify-center pt-[56px] pb-[33px]">
+                  <ICONS.BooksMultiple />
+                  <Text className="font-sansSemiBold text-white text-[18px] text-center my-4">
+                    {search ? 'Course not found' : ' No Courses Assigned'}
+                  </Text>
+                  <Text className="font-sans text-white leading-[1.5] text-center px-10">
+                    {search
+                      ? 'This course cannot be found, please try changing your search parameters!'
+                      : 'You haven’t assigned any courses to your child yet.'}
+                  </Text>
+                </View>
               </>
             )}
           </View>

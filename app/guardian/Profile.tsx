@@ -31,7 +31,7 @@ const Profile = () => {
         <Text className="text-dark text-[20px] font-sansSemiBold mt-4">
           My Profile
         </Text>
-        <Text className="mt-2 text-dark font-sans leading-[1.5]">
+        <Text className="mt-2 text-[16px] text-dark font-sans leading-[1.5]">
           See your personal info, preferences, and connected learners.
         </Text>
         <View className="  mt-6">
@@ -45,7 +45,7 @@ const Profile = () => {
               ) : (
                 <Image
                   style={{ height: scaleWidth(95), width: scaleWidth(95) }}
-                  className="rounded-full"
+                  className="rounded-full border-2 border-[#FAFDFF]"
                   source={
                     data?.picture
                       ? { uri: ensureHttps(data?.picture) }
@@ -96,7 +96,7 @@ const Profile = () => {
             ) : (
               <Button
                 onPress={() => setOpenEdit(true)}
-                className="gap-2.5 bg-white border-2 border-[#D3D2D3] mt-6"
+                className="gap-2.5 bg-white border-2 border-[#D3D2D3] mt-6 py-3"
               >
                 <ICONS.Pencil />
                 <Text className="text-dark font-sansMedium text-[16px]">
@@ -181,6 +181,12 @@ const EditForm = ({
   const [error, setError] = useState({ firstName: "", lastName: "" });
   const [image, setImage] = useState<ImagePickerAsset>();
 
+  const hasChanges =
+    firstName !== (data?.firstName || '') ||
+    lastName !== (data?.lastName || '') ||
+    phoneNumber !== (data?.phoneNumber || '') ||
+    !!image;
+
   const onSubmit = async () => {
     setError({ firstName: "", lastName: "" });
     if (!firstName || !lastName) {
@@ -222,8 +228,11 @@ const EditForm = ({
   };
 
   useEffect(() => {
-    if (!data?.email) return;
-    setEmail(data?.email);
+    if(!data) return
+    setEmail(data?.email || "");
+    setFirstName(data?.firstName || "");
+    setLastName(data?.lastName || "");
+    setPhoneNumber(data?.phoneNumber || "");
   }, [data]);
 
   const selectImage = async () => {
@@ -298,7 +307,7 @@ const EditForm = ({
             value={phoneNumber}
           />
           <Button
-            disabled={loading || !firstName || !lastName}
+            disabled={loading || !firstName || !lastName || !hasChanges}
             onPress={onSubmit}
             loading={loading}
             className="w-full mt-6"
