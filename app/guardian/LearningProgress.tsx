@@ -22,6 +22,7 @@ import { useQuery } from '@tanstack/react-query';
 import { router, useLocalSearchParams } from 'expo-router';
 import React, { useMemo, useRef, useState } from 'react';
 import {
+  ActivityIndicator,
   Image,
   Pressable,
   Text,
@@ -30,6 +31,10 @@ import {
 } from 'react-native';
 import { LineChart, PieChart } from 'react-native-gifted-charts';
 import { twMerge } from 'tailwind-merge';
+import * as FileSystem from 'expo-file-system/legacy';
+import * as Print from 'expo-print';
+import { captureRef } from 'react-native-view-shot';
+import { generateKidReportHtml } from '@/utils/reportGenerator';
 
 const LearningProgress = () => {
   const params = useLocalSearchParams();
@@ -37,6 +42,7 @@ const LearningProgress = () => {
   const [openEdit, setOpenEdit] = useState(false);
   const [kid, setKid] = useState(params?.id);
   const [loading, setLoading] = useState(false);
+  const [exportLoading, setExportLoading] = useState(false);
   const pieChartContainerRef = useRef<View>(null);
   const lineChartContainerRef = useRef<View>(null);
   const dispatch = useAppDispatch();
@@ -103,6 +109,86 @@ const LearningProgress = () => {
       setLoading(false);
     }
   };
+  const handleExportReport = async () => {
+    if (exportLoading || !data) return;
+    setExportLoading(true);
+    try {
+      const generatedDate = new Date().toLocaleDateString('en-GB');
+
+      // Fetch and base64-encode kid avatar using expo-file-system
+      // (FileReader / Blob are Web APIs unavailable in React Native / Hermes)
+      let avatarBase64: string | null = null;
+      if (data?.kid?.picture && FileSystem.documentDirectory) {
+        try {
+          const tmpPath = `${FileSystem.cacheDirectory}avatar_tmp.jpg`;
+          const downloadResult = await FileSystem.downloadAsync(
+            data.kid.picture,
+            tmpPath,
+          );
+          avatarBase64 = await FileSystem.readAsStringAsync(downloadResult.uri, {
+            encoding: FileSystem.EncodingType.Base64,
+          });
+        } catch {
+          avatarBase64 = null;
+        }
+      }
+
+      // Capture chart screenshots
+      let pieChartBase64: string | null = null;
+      let lineChartBase64: string | null = null;
+      try {
+        pieChartBase64 = await captureRef(pieChartContainerRef, {
+          format: 'png',
+          quality: 1,
+          result: 'base64',
+        });
+      } catch {
+        pieChartBase64 = null;
+      }
+      try {
+        lineChartBase64 = await captureRef(lineChartContainerRef, {
+          format: 'png',
+          quality: 1,
+          result: 'base64',
+        });
+      } catch {
+        lineChartBase64 = null;
+      }
+
+      // Build HTML and generate PDF
+      const html = generateKidReportHtml({
+        data,
+        completionRateDetails,
+        averageScore,
+        pieChartBase64,
+        lineChartBase64,
+        avatarBase64,
+        generatedDate,
+      });
+
+      const { uri: tempUri } = await Print.printToFileAsync({ html });
+
+      // Save to Documents/rlk-reports/
+      const reportsDir = `${FileSystem.documentDirectory}rlk-reports/`;
+      await FileSystem.makeDirectoryAsync(reportsDir, { intermediates: true });
+
+      const safeName = (data.kid?.name ?? 'Kid').replace(/\s+/g, '-');
+      const dateStamp = new Date()
+        .toLocaleDateString('en-GB')
+        .replace(/\//g, '-');
+      const destUri = `${reportsDir}${safeName}-report-${dateStamp}.pdf`;
+
+      await FileSystem.copyAsync({ from: tempUri, to: destUri });
+
+      showToast('success', 'Report saved to Documents');
+    } catch (error: any) {
+      console.error('Export report error:', error);
+      showToast('error', 'Failed to generate report');
+    } finally {
+      setExportLoading(false);
+    }
+  };
+
   return (
     <Container scrollable>
       <TouchableWithoutFeedback onPress={() => setOpenRemaining(false)}>
@@ -183,11 +269,19 @@ const LearningProgress = () => {
             )}
           </View>
 
-          <Pressable className="bg-white rounded-[12px] p-4 py-[18px] flex-row items-center justify-between mt-5">
+          <Pressable
+            onPress={handleExportReport}
+            disabled={exportLoading}
+            className="bg-white rounded-[12px] p-4 py-[18px] flex-row items-center justify-between mt-5"
+          >
             <Text className="text-[16px] font-sansMedium text-dark">
-              Export Report
+              {exportLoading ? 'Generating...' : 'Export Report'}
             </Text>
-            <ICONS.Export />
+            {exportLoading ? (
+              <ActivityIndicator size="small" color="#265828" />
+            ) : (
+              <ICONS.Export />
+            )}
           </Pressable>
 
           <View className="bg-white rounded-[20px] p-5 mt-5">
