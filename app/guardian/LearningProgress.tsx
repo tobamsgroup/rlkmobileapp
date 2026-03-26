@@ -20,7 +20,7 @@ import { scaleWidth } from '@/utils/scale';
 import { showToast } from '@/utils/toast';
 import { useQuery } from '@tanstack/react-query';
 import { router, useLocalSearchParams } from 'expo-router';
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useRef, useState } from 'react';
 import {
   Image,
   Pressable,
@@ -37,6 +37,8 @@ const LearningProgress = () => {
   const [openEdit, setOpenEdit] = useState(false);
   const [kid, setKid] = useState(params?.id);
   const [loading, setLoading] = useState(false);
+  const pieChartContainerRef = useRef<View>(null);
+  const lineChartContainerRef = useRef<View>(null);
   const dispatch = useAppDispatch();
   const pieData = [
     { value: 100, color: '#9c9c9c' },
@@ -371,7 +373,7 @@ const LearningProgress = () => {
               </View>
             </View>
             {/* audio vs text */}
-            <View className="bg-white rounded-[20px] p-5 mt-5  border border-[#D3D2D366]">
+            <View ref={pieChartContainerRef} className="bg-white rounded-[20px] p-5 mt-5  border border-[#D3D2D366]">
               <Text className="text-dark font-sansMedium text-[18px]">
                 Audio vs. Text Usage {'\n'}(Read Aloud)
               </Text>
@@ -459,7 +461,7 @@ const LearningProgress = () => {
                 </Text>
               </View>
             </View>
-            <View className="flex-1">
+            <View ref={lineChartContainerRef} className="flex-1">
               <Text className="font-sansMedium text-[18px] text-dark mb-6">
                 Time on Task (Last 7 Days)
               </Text>
