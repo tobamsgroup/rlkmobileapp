@@ -33,6 +33,7 @@ import { LineChart, PieChart } from 'react-native-gifted-charts';
 import { twMerge } from 'tailwind-merge';
 import * as FileSystem from 'expo-file-system/legacy';
 import * as Print from 'expo-print';
+import * as Sharing from 'expo-sharing';
 import { captureRef } from 'react-native-view-shot';
 import { generateKidReportHtml } from '@/utils/reportGenerator';
 
@@ -169,17 +170,19 @@ const LearningProgress = () => {
 
       const { uri: tempUri } = await Print.printToFileAsync({ html });
 
-      // Save to Documents/rlk-reports/
-      const reportsDir = `${FileSystem.documentDirectory}rlk-reports/`;
-      await FileSystem.makeDirectoryAsync(reportsDir, { intermediates: true });
+      const isAvailable = await Sharing.isAvailableAsync();
+      if (!isAvailable) {
+        showToast('error', 'Sharing is not available on this device');
+        return;
+      }
 
-      const safeName = (data.kid?.name ?? 'Kid').replace(/\s+/g, '-');
-      const dateStamp = generatedDate.replace(/\//g, '-');
-      const destUri = `${reportsDir}${safeName}-report-${dateStamp}.pdf`;
+      await Sharing.shareAsync(tempUri, {
+        mimeType: 'application/pdf',
+        dialogTitle: `${data.kid?.name ?? 'Kid'} Learning Report`,
+        UTI: 'com.adobe.pdf',
+      });
 
-      await FileSystem.copyAsync({ from: tempUri, to: destUri });
-
-      showToast('success', 'Report saved to Documents');
+      await FileSystem.deleteAsync(tempUri, { idempotent: true });
     } catch (error: any) {
       console.error('Export report error:', error);
       showToast('error', 'Failed to generate report');
