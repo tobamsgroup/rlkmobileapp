@@ -545,7 +545,12 @@ const Playground = () => {
         open={openSidebar}
         onClose={() => setOpenSidebar(false)}
       />
-      <XpDropdown open={openXp} onClose={() => setOpenXp(false)} />
+      <XpDropdown
+        open={openXp}
+        onClose={() => setOpenXp(false)}
+        seriesCategory={data?.find((d) => d.bookId?._id === book)?.bookId?.title?.split(' ').slice(1).join(' ')}
+        seriesIndex={targetSeries?.seriesId?.index}
+      />
     </ScrollView>
   );
 };

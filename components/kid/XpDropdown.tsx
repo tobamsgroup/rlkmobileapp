@@ -1,8 +1,11 @@
+import { getAllBadges } from '@/actions/kid';
 import { ICONS } from '@/assets/icons';
 import { IMAGES } from '@/assets/images';
 import useKidProfile from '@/hooks/useKidProfile';
+import { Badge } from '@/types';
 import { calculateXpLevel } from '@/utils/kid';
 import { scaleWidth } from '@/utils/scale';
+import { useQuery } from '@tanstack/react-query';
 import React, { useMemo } from 'react';
 import { Image, Pressable, ScrollView, Text, View } from 'react-native';
 import ReactNativeModal from 'react-native-modal';
@@ -12,9 +15,13 @@ import ProgressBar from '../ProgressBar';
 const XpDropdown = ({
   open,
   onClose,
+  seriesCategory,
+  seriesIndex,
 }: {
   open: boolean;
   onClose: () => void;
+  seriesCategory?: string;
+  seriesIndex?: number;
 }) => {
   const { data: profile } = useKidProfile();
 
@@ -22,13 +29,28 @@ const XpDropdown = ({
     return calculateXpLevel(profile?.totalXp || 0);
   }, [profile]);
 
+  const { data: allBadges } = useQuery({
+    queryKey: ['badges'],
+    queryFn: getAllBadges,
+  });
+
+  const seriesBadges = useMemo((): Badge[] => {
+    if (!allBadges || !seriesCategory || seriesIndex == null) return [];
+    return allBadges.filter(
+      (b) =>
+        b.category?.toLowerCase() === seriesCategory.toLowerCase() &&
+        b.subcategory === `Series ${seriesIndex}`,
+    );
+  }, [allBadges, seriesCategory, seriesIndex]);
+
   return (
     <ReactNativeModal
       isVisible={open}
+      onBackdropPress={onClose}
       style={{ margin: 0, padding: 0 }}
       backdropColor="#0000004D"
     >
-      <Pressable className="flex-1 bg-black/40 justify-center items-center px-6">
+      <Pressable onPress={onClose} className="flex-1 bg-black/40 justify-center items-center px-6">
         <View
           style={{ paddingRight: scaleWidth(100) }}
           className="w-full items-end"
@@ -112,39 +134,41 @@ const XpDropdown = ({
             </View>
 
             {/* Badges Section */}
-            <View className="mt-6 bg-[#FFF7CC] rounded-xl p-4 border-2 border-b-4 border-[#FFDE2A]">
-              <Text className="text-black text-[16px] font-sansMedium">
-                🏅 Badges to Unlock
-              </Text>
+            {seriesBadges.length > 0 && (
+              <View className="mt-6 bg-[#FFF7CC] rounded-xl p-4 border-2 border-b-4 border-[#FFDE2A]">
+                <Text className="text-black text-[16px] font-sansMedium">
+                  🏅 Badges to Unlock
+                </Text>
 
-              <View className="mt-4 gap-3">
-                {[1, 2, 3].map((item) => (
-                  <View
-                    key={item}
-                    className="bg-[#FAFDFF] rounded-lg p-3 flex-row items-center gap-3"
-                  >
-                    <Image
-                      style={{
-                        width: scaleWidth(48),
-                        height: scaleWidth(48),
-                      }}
-                      source={IMAGES.NoBadge}
-                      className="w-8 h-8"
-                      resizeMode="contain"
-                    />
+                <View className="mt-4 gap-3">
+                  {seriesBadges.map((badge) => (
+                    <View
+                      key={badge._id}
+                      className="bg-[#FAFDFF] rounded-lg p-3 flex-row items-center gap-3"
+                    >
+                      <Image
+                        style={{
+                          width: scaleWidth(48),
+                          height: scaleWidth(48),
+                        }}
+                        source={badge.imageUrl ? { uri: badge.imageUrl } : IMAGES.NoBadge}
+                        resizeMode="contain"
+                      />
 
-                    <View>
-                      <Text className="font-sansMedium text-[16px] text-black">
-                        Deep Thinker
-                      </Text>
-                      <Text className="text-[#474348] font-sans ">
-                        Unlock at {xpInfo?.nextLevelXp} XP
-                      </Text>
+                      <View className="flex-1">
+                        <Text className="font-sansMedium text-[16px] text-black">
+                          {badge.name}
+                        </Text>
+                        <Text className="text-[#474348] font-sans">
+                          {badge.subcategory} 
+                          {/* {badge.subcategory} · Unlock at {xpInfo?.nextLevelXp} XP */}
+                        </Text>
+                      </View>
                     </View>
-                  </View>
-                ))}
+                  ))}
+                </View>
               </View>
-            </View>
+            )}
           </ScrollView>
         </Pressable>
       </Pressable>

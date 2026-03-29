@@ -73,7 +73,7 @@ const KidSeriesProgressCard = ({ item }: { item: KidLearningOverview }) => {
         )}
       />
 
-      <View className="flex-row items-center gap-8 justify-end pt-4 pb-6">
+    {item?.assignedSeries?.length > 1 &&  <View className="flex-row items-center gap-8 justify-end pt-4 pb-6">
         <Pressable
           onPress={() => scrollToIndex(currentIndex - 1)}
           style={{ width: scaleWidth(32), height: scaleWidth(32) }}
@@ -100,7 +100,7 @@ const KidSeriesProgressCard = ({ item }: { item: KidLearningOverview }) => {
             stroke={currentIndex === dataLength - 1 ? '#474348' : '#3F9243'}
           />
         </Pressable>
-      </View>
+      </View>}
       <Button
         onPress={() => router.push(`/kid/SeriesLearningList?id=${item._id}`)}
         className="w-full mt-4"
@@ -129,18 +129,24 @@ export const KidSeriesProgressCardInner = ({
       className="border border-[#D3D2D366] rounded-[20px] p-4"
     >
       <View className="rounded-[20px] w-full items-center relative">
-        {/* <View
+        <View
           className={twMerge(
             'absolute left-3 top-3 w-[28px] h-[28px] rounded-[6px] items-center justify-center',
-            iconType === 'read' ? 'bg-[#2E6F32]' : 'bg-[#2F5CC8]',
+            // iconType === 'read' ? 'bg-[#2E6F32]' : 'bg-[#2F5CC8]',
+             'bg-[#2E6F32]',
           )}
         >
-          {iconType === 'read' ? (
+          {/* {iconType === 'read' ? ( */}
+            <ICONS.BookOpenedSmall width={16} height={16} />
+          {/* ) : (
+            <ICONS.Puzzle width={16} height={16} />
+          )} */}
+          {/* {iconType === 'read' ? (
             <ICONS.BookOpenedSmall width={16} height={16} />
           ) : (
             <ICONS.Puzzle width={16} height={16} />
-          )}
-        </View> */}
+          )} */}
+        </View>
         <Image
           source={{ uri: ensureHttps(series?.seriesId?.image) }}
           style={{ height: scaleHeight(164) }}
