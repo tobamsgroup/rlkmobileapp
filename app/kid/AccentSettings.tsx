@@ -1,12 +1,81 @@
 import Container from '@/components/Container';
 import TopBackButton from '@/components/TopBackButton';
-import React, { useState } from 'react';
+import { getData, storeData } from '@/lib/storage';
+import { updateReadingSettings } from '@/actions/kid';
+import { showToast } from '@/utils/toast';
+import { HAPTIC } from '@/utils/haptic';
+import { createAudioPlayer, AudioPlayer } from 'expo-audio';
+import React, { useEffect, useRef, useState } from 'react';
 import { Text, View } from 'react-native';
 import { AccentCard, ACCENTS } from './AccentSelection';
 import Button from '@/components/Button';
 
+// Maps accent display name → API country code
+const ACCENT_CODE: Record<string, string> = {
+  British: 'uk',
+  American: 'us',
+  Australian: 'au',
+  Indian: 'in',
+};
+
+// Maps stored voiceStyle → API voice-type prefix
+const VOICE_STYLE_KEY: Record<string, string> = {
+  'kid Male': 'young-male',
+  'kid Female': 'young-female',
+  'adult Male': 'adult-male',
+  'adult Female': 'adult-female',
+};
+
 const AccentSettings = () => {
   const [selectedAccent, setSelectedAccent] = useState('');
+  const [isSaving, setIsSaving] = useState(false);
+  const playerRef = useRef<AudioPlayer | null>(null);
+
+  useEffect(() => {
+    getData<string>('kid_accent').then((saved) => {
+      if (saved) setSelectedAccent(saved);
+    });
+
+    return () => {
+      playerRef.current?.pause();
+      playerRef.current?.remove();
+    };
+  }, []);
+
+  const handlePlaySound = (soundFile: any) => {
+    if (playerRef.current) {
+      playerRef.current.pause();
+      playerRef.current.remove();
+    }
+    playerRef.current = createAudioPlayer(soundFile);
+    playerRef.current.play();
+  };
+
+  const handleSave = async () => {
+    if (!selectedAccent || isSaving) return;
+    setIsSaving(true);
+    try {
+      await storeData('kid_accent', selectedAccent);
+
+      const accentCode = ACCENT_CODE[selectedAccent] ?? 'us';
+
+      // Use already-saved voice style if present, else default to adult-female
+      const savedVoiceStyle = await getData<string>('kid_voice_style');
+      const voiceTypeKey = savedVoiceStyle
+        ? (VOICE_STYLE_KEY[savedVoiceStyle] ?? 'adult-female')
+        : 'adult-female';
+
+      await updateReadingSettings(`${voiceTypeKey}-${accentCode}`);
+      HAPTIC.success();
+      showToast('success', 'Accent saved successfully!');
+    } catch {
+      HAPTIC.error();
+      showToast('error', 'Failed to save accent. Please try again.');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   return (
     <Container scrollable>
       <View className="p-6 flex-1">
@@ -24,10 +93,14 @@ const AccentSettings = () => {
               key={a.name}
               accent={a}
               onPress={() => setSelectedAccent(a.name)}
+              onPlaySound={() => handlePlaySound(a.sound)}
             />
           ))}
         </View>
-        <Button  text="SAVE MY SETTINGS" />
+        <Button
+          onPress={handleSave}
+          text={isSaving ? 'SAVING...' : 'SAVE MY SETTINGS'}
+        />
       </View>
     </Container>
   );

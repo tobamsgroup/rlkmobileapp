@@ -212,6 +212,18 @@ const CurriculumBar = ({
                   module.chapterIndex,
                   module?.pages?.length,
                 );
+                const prevChapter = module.chapterIndex > 1
+                  ? currentBookProgress?.chapters?.find(
+                      (c) => c.index === module.chapterIndex - 1,
+                    )
+                  : null;
+                const chapterIsUnlocked =
+                  module.chapterIndex <= 1 ||
+                  (!!prevChapter &&
+                    prevChapter.currentPageIndex >= prevChapter.totalPages);
+                const progressForDisplay = chapterIsUnlocked
+                  ? accessible ?? undefined
+                  : { currentPageIndex: 0 };
                 return (
                   <View className="" key={module._id}>
                     <Pressable
@@ -241,7 +253,7 @@ const CurriculumBar = ({
                             ? getProgressText(
                                 'read',
                                 module.pages,
-                                accessible ?? undefined,
+                                progressForDisplay,
                               )
                             : ''}
                         </Text>
@@ -271,6 +283,17 @@ const CurriculumBar = ({
                           </View>
                         )}
                         {module?.pages?.map((p, i) => {
+                          const prevChapterProgress = module.chapterIndex > 1
+                            ? currentBookProgress?.chapters?.find(
+                                (c) => c.index === module.chapterIndex - 1,
+                              )
+                            : null;
+                          const chapterUnlocked =
+                            module.chapterIndex <= 1 ||
+                            (!!prevChapterProgress &&
+                              prevChapterProgress.currentPageIndex >=
+                                prevChapterProgress.totalPages);
+
                           const accessible = isPageAccessible(
                             currentBookProgress!,
                             module._id,
@@ -283,7 +306,7 @@ const CurriculumBar = ({
                             p.index,
                           );
                           const finishedPage = status.isFinished;
-                          const lockedPage = status.isLocked;
+                          const lockedPage = !chapterUnlocked || status.isLocked;
                           const accessiblePage = status.isAccessible;
                           const currentPage = status.isCurrent;
                           return (
@@ -742,6 +765,6 @@ const getPageStatus = (
     isFinished: targetPos < effectiveCurrentPos || end,
     isCurrent: targetPos === effectiveCurrentPos,
     isLocked: targetPos > effectiveCurrentPos && !end,
-    isAccessible: targetPos <= effectiveCurrentPos,
+    isAccessible: targetPos < effectiveCurrentPos,
   };
 };

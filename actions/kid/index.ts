@@ -174,6 +174,10 @@ export const getAllBadges = async (): Promise<Badge[]> => {
   const res = await axios.get(`/badges`);
   return res?.data.data;
 };
+export const getAllBadgesWithStatus = async (): Promise<Badge[]> => {
+  const res = await axios.get(`/kid/badges-with-earned/all`);
+  return res?.data.data;
+};
 
 export const getRecentActivities = cache(
   async (): Promise<ActivityProps[]> => {
@@ -181,3 +185,15 @@ export const getRecentActivities = cache(
     return resp?.data?.data;
   }
 );
+
+export const updateReadingSettings = async (voice: string): Promise<void> => {
+  await axios.patch('/kid/me/reading-settings', { voice });
+};
+
+export const fetchChapterPageAudio = async (
+  chapterId: string,
+  page: number,
+): Promise<string> => {
+  const res = await axios.get(`/tts/${chapterId}/audio`, { params: { page } });
+  return res?.data?.data?.audioUrl;
+};

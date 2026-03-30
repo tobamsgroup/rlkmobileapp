@@ -63,8 +63,14 @@ const rocket = require('./rocket.png');
 const quiz = require('./quiz.png');
 const NoBadgeOverlay = require('./NoBadgeOverlay.png')
 const TSCH1Hero = require('./TSCH1Hero.png')
+const BadgeOverlay1 = require('./BadgeOverlay1.png')
+const BadgeOverlay2 = require('./BadgeOverlay2.png')
+const BadgeOverlay3 = require('./BadgeOverlay3.png')
 
 export const IMAGES = {
+  BadgeOverlay1,
+  BadgeOverlay2,
+  BadgeOverlay3,
   TSCH1Hero,
   NoBadgeOverlay,
   SwitchKid_Male,

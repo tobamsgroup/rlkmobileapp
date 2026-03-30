@@ -1,9 +1,10 @@
-import { getAllBadges } from '@/actions/kid';
+import { getAllBadgesWithStatus } from '@/actions/kid';
 import { IMAGES } from '@/assets/images';
 import Container from '@/components/Container';
 import Select from '@/components/Select';
 import Skeleton from '@/components/Skeleton';
 import { Badge } from '@/types';
+import { ensureHttps } from '@/utils';
 import { scaleHeight, scaleWidth } from '@/utils/scale';
 import { useQuery } from '@tanstack/react-query';
 import React, { useEffect, useState } from 'react';
@@ -15,9 +16,9 @@ const HomeKid = () => {
   const [tab, setTab] = useState('journey');
   const [seriesGroup, setSeriesGroup] = useState<SeriesGroup[]>([]);
   const { data, isLoading } = useQuery({
-    queryKey: ['badges'],
+    queryKey: ['badges-earned'],
     queryFn: async () => {
-      return await getAllBadges();
+      return await getAllBadgesWithStatus();
     },
   });
 
@@ -25,6 +26,7 @@ const HomeKid = () => {
     if (!data || !series) return;
     setSeriesGroup(groupBadgesBySeries(data, series?.split(' ')?.[1]?.trim()));
   }, [series, data]);
+
   return (
     <Container scrollable edges={['top']}>
       <View className="p-6">
@@ -84,9 +86,11 @@ const HomeKid = () => {
                     <View className="mt-5 flex-row flex-wrap gap-2">
                       {!isLoading ? (
                         <>
-                          {badges?.map((b) => (
-                            <BadgeCard key={b._id} {...b} />
-                          ))}
+                          {badges
+                            ?.sort((a, b) => (a.index || 0) - (b.index || 0))
+                            ?.map((b) => (
+                              <BadgeCard key={b._id} {...b} />
+                            ))}
                         </>
                       ) : (
                         <>
@@ -124,9 +128,11 @@ const HomeKid = () => {
                       {s.name}
                     </Text>
                     <View className="mt-5 flex-row flex-wrap gap-2">
-                      {s.badges?.map((b) => (
-                        <BadgeCard key={b._id} {...b} />
-                      ))}
+                      {s.badges
+                        ?.sort((a, b) => (a.index || 0) - (b.index || 0))
+                        ?.map((b) => (
+                          <BadgeCard key={b._id} {...b} />
+                        ))}
                     </View>
                   </View>
                 );
@@ -150,7 +156,11 @@ export const BadgeCard = (props: Badge) => {
       >
         <Image
           style={{ width: scaleWidth(52), height: scaleWidth(52) }}
-          source={IMAGES.NoBadge}
+          source={
+            props?.earned
+              ? { uri: ensureHttps(props?.imageUrl) }
+              : IMAGES.NoBadge
+          }
         />
         <Text
           numberOfLines={1}
@@ -158,6 +168,34 @@ export const BadgeCard = (props: Badge) => {
         >
           {props?.name}
         </Text>
+        {props?.category === 'Motivation' && (
+          <Text
+            numberOfLines={1}
+            style={{
+              backgroundColor:
+                props?.index === 1
+                  ? '#CD7F32'
+                  : props?.index === 2
+                    ? '#C0C0C0'
+                    : props?.index === 3
+                      ? '#FFD700'
+                      : props?.index === 4
+                        ? '#E5E4E2'
+                        : '#B9F2FF',
+            }}
+            className="font-sansMedium text-dark text-center py-1 px-2 rounded-full mt-2"
+          >
+            {props?.index === 1
+              ? 'Bronze'
+              : props?.index === 2
+                ? 'Silver'
+                : props?.index === 3
+                  ? 'Gold'
+                  : props?.index === 4
+                    ? 'Platinum'
+                    : 'Diamond'}
+          </Text>
+        )}
       </Pressable>
 
       <Modal
@@ -173,22 +211,45 @@ export const BadgeCard = (props: Badge) => {
           <Pressable
             onPress={(e) => e.stopPropagation()}
             className="bg-white rounded-[20px] items-center justify-center  mx-6 relative"
-            style={{ width: scaleWidth(327), height:scaleHeight(360) }}
+            style={{ width: scaleWidth(327), height: scaleHeight(360) }}
           >
             <Image
               style={{ height: scaleWidth(230) }}
-              source={IMAGES.NoBadgeOverlay}
-              className='absolute w-full h-full left-0 top-0 '
+              source={
+                !props?.earned
+                  ? IMAGES.NoBadgeOverlay
+                  : props?.index === 1
+                    ? IMAGES.BadgeOverlay1
+                    : props?.index === 2
+                      ? IMAGES.BadgeOverlay2
+                      : props?.index === 3
+                        ? IMAGES.BadgeOverlay3
+                        : IMAGES.NoBadgeOverlay
+              }
+              className="absolute w-full h-full left-0 top-0 "
             />
-             <Image style={{ width: scaleWidth(100), height: scaleWidth(100) }}
-              source={IMAGES.LockedTrophy}
+            <Image
+              style={{ width: scaleWidth(100), height: scaleWidth(100) }}
+              source={
+                props?.earned
+                  ? { uri: ensureHttps(props?.imageUrl) }
+                  : IMAGES.NoBadge
+              }
             />
             <Text className="font-sansSemiBold text-dark text-[16px] text-center mt-5">
               {props?.name}
             </Text>
             {props?.description ? (
               <Text className="font-sans text-[12px] text-[#474348] text-center mt-2 leading-[1.5] bg-[#F0F2F5] px-3 py-2 rounded-full">
-                {props?.description}
+                {props?.type !== 'All Series' && props?.description}
+                {props?.type === 'All Series' &&
+                  (props?.index === 1
+                    ? 'Completed first lesson in series'
+                    : props?.index === 2
+                      ? 'Completed half of the lesson in series'
+                      : props?.index === 3
+                        ? 'Completes entire series'
+                        : props?.description)}
               </Text>
             ) : null}
           </Pressable>

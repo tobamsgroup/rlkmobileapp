@@ -1,27 +1,31 @@
-import * as Speech from 'expo-speech';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Image, Pressable, Text, View } from 'react-native';
 
+import { fetchChapterPageAudio } from '@/actions/kid';
 import { ICONS } from '@/assets/icons';
 import { useReadSettings } from '@/context/ReadContext';
 import { ChapterPage as ChapterPageType, PageParagraph } from '@/types';
-import { twMerge } from 'tailwind-merge';
-import { buildSegments, createManualKaraoke, Segment } from '../../utils/kid';
+import { buildSegments, Segment } from '../../utils/kid';
 import Button, { SecondaryButton } from '../Button';
 import { KaraokeText } from './KaraokeText';
+import { twMerge } from 'tailwind-merge';
+import { createAudioPlayer, AudioPlayer } from 'expo-audio';
+import { ActivityIndicator } from 'react-native';
 
 export const Chapter = ({
   data,
   handlePageIndex,
   canGoNext,
   canGoPrev,
-  title
+  title,
+  chapterId,
 }: {
   data: ChapterPageType | null;
   handlePageIndex: (type: 'prev' | 'next') => void;
   canGoNext: boolean;
   canGoPrev: boolean;
-  title?:string
+  title?: string;
+  chapterId?: string;
 }) => {
   const { readingSettings, updateReadingSettings, saveSettings } =
     useReadSettings();
@@ -49,31 +53,29 @@ export const Chapter = ({
   const [openHelper, setOpenHelper] = useState(false);
   const [helper, setHelper] = useState('');
 
+  /** Audio */
+  const audioRef = useRef<AudioPlayer | null>(null);
+  const karaokeTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const [audioUrl, setAudioUrl] = useState<string | null>(null);
+  const [isLoadingAudio, setIsLoadingAudio] = useState(false);
+
   /** Segments */
   const segments = useMemo(() => buildSegments(data), [data]);
   const segmentsRef = useRef<Segment[]>([]);
 
   useEffect(() => {
     segmentsRef.current = segments;
-    queueIndexRef.current = 0;
   }, [segments]);
 
-  /** Session + State refs */
-  const sessionIdRef = useRef(0);
-  const queueIndexRef = useRef(0);
-  const lastCharIndexRef = useRef(0);
-
+  /** Playback state */
   const isPlayingRef = useRef(false);
   const isPausedRef = useRef(false);
-
-  const manualKaraokeRef = useRef<any>(null);
 
   const [isPlaying, setIsPlaying] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
   const [currentSegIndex, setCurrentSegIndex] = useState(-1);
   const [currentCharIndex, setCurrentCharIndex] = useState<number | null>(null);
 
-  /** Helpers */
   const setPlayingState = (v: boolean) => {
     isPlayingRef.current = v;
     setIsPlaying(v);
@@ -84,151 +86,148 @@ export const Chapter = ({
     setIsPaused(v);
   };
 
-  const invalidateSession = () => {
-    sessionIdRef.current += 1;
+  /** Karaoke: map audio currentTime → segment + char index */
+  const updateKaraokeFromTime = (currentTime: number, duration: number) => {
+    const segs = segmentsRef.current;
+    if (!segs.length || duration <= 0) return;
+
+    const ratio = Math.min(currentTime / duration, 1);
+    const totalChars = segs.reduce((s, seg) => s + seg.text.length + 1, 0);
+    const targetOffset = Math.floor(ratio * totalChars);
+
+    let charCount = 0;
+    for (let i = 0; i < segs.length; i++) {
+      const segLen = segs[i].text.length + 1;
+      if (charCount + segLen > targetOffset) {
+        setCurrentSegIndex(i);
+        setCurrentCharIndex(targetOffset - charCount);
+        return;
+      }
+      charCount += segLen;
+    }
+  };
+
+  const stopKaraokePolling = () => {
+    if (karaokeTimerRef.current) {
+      clearInterval(karaokeTimerRef.current);
+      karaokeTimerRef.current = null;
+    }
+  };
+
+  const startKaraokePolling = () => {
+    stopKaraokePolling();
+    //@ts-ignore
+    karaokeTimerRef.current = setInterval(() => {
+      const player = audioRef.current;
+      if (!player) return;
+
+      const ct = player.currentTime;
+      const dur = player.duration;
+
+      if (dur > 0 && ct >= dur - 0.15) {
+        // Reached end — reset state
+        stopKaraokePolling();
+        setPlayingState(false);
+        setPausedState(false);
+        setCurrentSegIndex(-1);
+        setCurrentCharIndex(null);
+        return;
+      }
+
+      if (isPlayingRef.current) {
+        updateKaraokeFromTime(ct, dur);
+      }
+    }, 100);
   };
 
   /** STOP */
   const stopTTS = () => {
-    invalidateSession();
-
-    Speech.stop();
-
-    manualKaraokeRef.current?.stopManualTiming?.();
-
-    queueIndexRef.current = 0;
-    lastCharIndexRef.current = 0;
-
+    stopKaraokePolling();
+    audioRef.current?.pause();
+    audioRef.current?.seekTo(0);
     setPlayingState(false);
     setPausedState(false);
     setCurrentSegIndex(-1);
     setCurrentCharIndex(null);
   };
 
-  /** PLAY NEXT SEGMENT */
-  const playNext = (resumeFromChar = 0) => {
-    const list = segmentsRef.current;
-    const idx = queueIndexRef.current;
+  /** PLAY — fetches URL on first press if not yet loaded */
+  const playTTS = async () => {
+    if (isLoadingAudio) return;
 
-    if (!list || idx >= list.length) {
-      stopTTS();
-      return;
-    }
+    let url = audioUrl;
 
-    setCurrentSegIndex(idx);
-
-    const seg = list[idx];
-
-    let textToSpeak = seg.text;
-    let charOffset = 0;
-
-    if (resumeFromChar > 0 && resumeFromChar < seg.text.length) {
-      textToSpeak = seg.text.slice(resumeFromChar);
-      charOffset = resumeFromChar;
-    }
-
-    const mySession = sessionIdRef.current;
-
-    /** Karaoke timing */
-    const manualKaraoke = createManualKaraoke(
-      textToSpeak,
-      1,
-      (charIndex: number) => {
-        if (mySession !== sessionIdRef.current) return;
-
-        const actual = charIndex + charOffset;
-
-        lastCharIndexRef.current = actual;
-        setCurrentCharIndex(actual);
-      },
-    );
-
-    manualKaraokeRef.current = manualKaraoke;
-    manualKaraoke.startManualTiming();
-
-    /** Speak */
-    Speech.speak(textToSpeak, {
-      language: 'en-US',
-      rate: 0.5,
-      pitch: 1,
-      onDone: finish,
-      onStopped: finish,
-      onError: finish,
-    });
-
-    function finish() {
-      manualKaraoke.stopManualTiming();
-
-      if (mySession !== sessionIdRef.current) return;
-
-      queueIndexRef.current += 1;
-      lastCharIndexRef.current = 0;
-
-      if (!isPausedRef.current) {
-        setTimeout(() => playNext(), 30);
+    if (!url) {
+      if (!chapterId || !data || typeof data.index !== 'number') return;
+      setIsLoadingAudio(true);
+      try {
+        url = await fetchChapterPageAudio(chapterId, data.index as number);
+        setAudioUrl(url);
+      } catch (err) {
+        console.log('[TTS] fetch error:', err);
+        setIsLoadingAudio(false);
+        return;
       }
+      setIsLoadingAudio(false);
     }
+
+    audioRef.current?.pause();
+    audioRef.current?.remove();
+    audioRef.current = createAudioPlayer({ uri: url });
+    audioRef.current.play();
+
+    setPlayingState(true);
+    setPausedState(false);
+    setCurrentSegIndex(0);
+    setCurrentCharIndex(0);
+    startKaraokePolling();
   };
 
-  /** SPEAK FROM INDEX */
-  const speakFrom = (startIdx = 0) => {
-    invalidateSession();
-    Speech.stop();
-
-    setTimeout(() => {
-      queueIndexRef.current = startIdx;
-
-      setPlayingState(true);
-      setPausedState(false);
-
-      playNext();
-    }, 30);
-  };
-
-  /** PAUSE (simulated) */
-  const pauseTTS = async () => {
-    try {
-      await Speech.stop();
-
-      manualKaraokeRef.current?.pauseManualTiming?.();
-
-      setPausedState(true);
-      setPlayingState(false);
-    } catch {}
+  /** PAUSE */
+  const pauseTTS = () => {
+    audioRef.current?.pause();
+    stopKaraokePolling();
+    setPausedState(true);
+    setPlayingState(false);
   };
 
   /** RESUME */
   const resumeTTS = () => {
-    if (!isPausedRef.current) return;
-
-    invalidateSession();
-
-    setTimeout(() => {
-      setPlayingState(true);
-      setPausedState(false);
-
-      playNext(lastCharIndexRef.current);
-    }, 30);
+    if (!isPausedRef.current || !audioRef.current) return;
+    audioRef.current.play();
+    setPlayingState(true);
+    setPausedState(false);
+    startKaraokePolling();
   };
 
   /** RESET */
   const resetTTS = () => {
-    invalidateSession();
-    Speech.stop();
-
-    queueIndexRef.current = 0;
-    lastCharIndexRef.current = 0;
-
+    if (!audioUrl) return;
+    stopKaraokePolling();
+    audioRef.current?.pause();
+    audioRef.current?.seekTo(0);
+    audioRef.current?.play();
     setPlayingState(true);
     setPausedState(false);
-
-    playNext();
+    setCurrentSegIndex(0);
+    setCurrentCharIndex(0);
+    startKaraokePolling();
   };
 
-  /** Cleanup */
+  /** Reset audio state when page changes */
   useEffect(() => {
-    return () => stopTTS();
-  }, [data]);
+    stopTTS();
+    setAudioUrl(null);
+  }, [chapterId, data?.index]);
+
+  /** Cleanup on unmount */
+  useEffect(() => {
+    return () => {
+      stopKaraokePolling();
+      audioRef.current?.pause();
+      audioRef.current?.remove();
+    };
+  }, []);
 
   const activeSeg =
     currentSegIndex >= 0 && currentSegIndex < segmentsRef.current.length
@@ -238,55 +237,59 @@ export const Chapter = ({
   return (
     <View className="flex-1 bg-[#FAFDFF] p-8 rounded-[12px]">
       <View className="gap-6">
-{data ?
-        <>
+        {data ? (
+          <>
+            {data?.title && (
+              <Text
+                style={{ fontSize: readingSettings.fontSize.header }}
+                className="font-sansSemiBold"
+              >
+                {data.title}
+              </Text>
+            )}
 
-        {data?.title && (
-          <Text
-            style={{ fontSize: readingSettings.fontSize.header }}
-            className="font-sansSemiBold"
-          >
-            {data.title}
-          </Text>
-        )}
-
-        {data?.paragraphs?.map((p, i) => (
-          <Paragraph
-            key={i}
-            data={p}
-            index={i}
-            active={activeSeg}
-            currentCharIndex={currentCharIndex}
-          />
-        ))}
-        </>:
-         <View className="h-[50vh] flex flex-col items-center justify-center">
-            <Text className="font-sansSemiBold text-[24px] lg:text-[48px]">{title}</Text>
+            {data?.paragraphs?.map((p, i) => (
+              <Paragraph
+                key={i}
+                data={p}
+                index={i}
+                active={activeSeg}
+                currentCharIndex={currentCharIndex}
+              />
+            ))}
+          </>
+        ) : (
+          <View className="h-[50vh] flex flex-col items-center justify-center">
+            <Text className="font-sansSemiBold text-[24px] lg:text-[48px]">
+              {title}
+            </Text>
             <Text className="font-sansSemiBold text-[24px] lg:text-[24px]">
               Coming Soon...
             </Text>
           </View>
-        }
+        )}
 
-       {data && <View className="flex-row justify-center gap-4">
-          {canGoPrev && (
-            <SecondaryButton
-              className="flex-1"
-              onPress={() => handlePageIndex('prev')}
-              text="PREVIOUS"
-            />
-          )}
+        {data && (
+          <View className="flex-row justify-center gap-4">
+            {canGoPrev && (
+              <SecondaryButton
+                className="flex-1"
+                onPress={() => handlePageIndex('prev')}
+                text="PREVIOUS"
+              />
+            )}
 
-          {canGoNext && (
-            <Button
-              className="flex-1"
-              onPress={() => handlePageIndex('next')}
-              text="NEXT"
-            />
-          )}
-        </View>}
-
+            {canGoNext && (
+              <Button
+                className="flex-1"
+                onPress={() => handlePageIndex('next')}
+                text="NEXT"
+              />
+            )}
+          </View>
+        )}
       </View>
+
       {openHelper && (
         <View className="absolute z-50 shadow bg-white py-4 px-3 rounded-[16px] items-center right-[-16px] top-[143px]">
           {!helper && (
@@ -304,24 +307,32 @@ export const Chapter = ({
               </Pressable>
             </>
           )}
+
           {helper === 'sound' && (
             <>
               <Pressable
+                disabled={isLoadingAudio}
                 onPress={() => {
                   if (isPlaying) pauseTTS();
                   else if (isPaused) resumeTTS();
-                  else speakFrom(0);
+                  else playTTS();
                 }}
               >
-                <ICONS.ReadModeSpeakerYellow />
+                {isLoadingAudio ? (
+                  <ActivityIndicator size="small" color="#265828" />
+                ) : (
+                  <ICONS.ReadModeSpeakerYellow />
+                )}
               </Pressable>
-              <View className=" my-3 w-full" />
-              <Pressable     onPress={resetTTS}>
+              <View className="my-3 w-full" />
+              <Pressable
+                disabled={isLoadingAudio || !audioUrl}
+                onPress={resetTTS}
+              >
                 <ICONS.ReadModeReset />
               </Pressable>
-              <View className=" my-3 w-full" />
-
-              <Pressable     onPress={stopTTS}>
+              <View className="my-3 w-full" />
+              <Pressable onPress={stopTTS}>
                 <ICONS.ReadModePause />
               </Pressable>
               <View className="border border-[#D3D2D366] my-3 w-full" />
@@ -330,12 +341,13 @@ export const Chapter = ({
               </Pressable>
             </>
           )}
+
           {helper === 'font' && (
             <>
               <Pressable onPress={() => updateFont('increase')}>
                 <ICONS.APlus />
               </Pressable>
-              <View className=" my-3 w-full" />
+              <View className="my-3 w-full" />
               <Pressable
                 onPress={() => updateFont('reset')}
                 className="border border-[#265828] rounded-[32px] px-4 py-3"
@@ -344,8 +356,7 @@ export const Chapter = ({
                   RESET
                 </Text>
               </Pressable>
-              <View className=" my-3 w-full" />
-
+              <View className="my-3 w-full" />
               <Pressable onPress={() => updateFont('decrease')}>
                 <ICONS.AMinus />
               </Pressable>
@@ -357,6 +368,7 @@ export const Chapter = ({
           )}
         </View>
       )}
+
       {!openHelper && (
         <Pressable
           className="right-[-16px] shadow top-[143px] absolute border items-center justify-center border-[#3F9243] bg-[#F1F9F1] rounded-[16px] h-16 w-14"

@@ -484,5 +484,7 @@ export interface Badge {
   category: string;
   subcategory:string;
   imageUrl: string;
+  earned?:boolean
+  index:number | null
 }
 

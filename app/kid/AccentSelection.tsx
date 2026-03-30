@@ -115,10 +115,8 @@ const AccentSelection = () => {
                   key={a.name}
                   isSelected={a.name === selectedAccent}
                   accent={a}
-                  onPress={() => {
-                    setSelectedAccent(a.name);
-                    speakPreview(a.name);
-                  }}
+                  onPress={() => setSelectedAccent(a.name)}
+                  onPlaySound={() => speakPreview(a.name)}
                 />
               ))}
             </View>
@@ -146,11 +144,8 @@ const AccentSelection = () => {
                   key={'kid' + a.name}
                   isSelected={'kid ' + a.name === voiceStyle}
                   accent={a}
-                  onPress={() => {
-                    const style = 'kid ' + a.name;
-                    setVoiceStyle(style);
-                    speakPreview(selectedAccent, style);
-                  }}
+                  onPress={() => setVoiceStyle('kid ' + a.name)}
+                  onPlaySound={() => speakPreview(selectedAccent, 'kid ' + a.name)}
                 />
               ))}
 
@@ -165,11 +160,8 @@ const AccentSelection = () => {
                   key={'adult' + a.name}
                   isSelected={'adult ' + a.name === voiceStyle}
                   accent={a}
-                  onPress={() => {
-                    const style = 'adult ' + a.name;
-                    setVoiceStyle(style);
-                    speakPreview(selectedAccent, style);
-                  }}
+                  onPress={() => setVoiceStyle('adult ' + a.name)}
+                  onPlaySound={() => speakPreview(selectedAccent, 'adult ' + a.name)}
                 />
               ))}
             </View>
@@ -195,10 +187,12 @@ export const AccentCard = ({
   isSelected,
   accent,
   onPress,
+  onPlaySound,
 }: {
   isSelected: boolean;
-  accent: { image: any; name: string };
+  accent: { image: any; name: string; sound?: any; voiceKey?: string };
   onPress: () => void;
+  onPlaySound?: () => void;
 }) => {
   return (
     <Pressable
@@ -224,14 +218,18 @@ export const AccentCard = ({
           {accent.name}
         </Text>
 
-        <View
+        <Pressable
+          onPress={(e) => {
+            e.stopPropagation();
+            onPlaySound?.();
+          }}
           className={twMerge(
             'bg-[#193A1B] w-10 h-10 items-center justify-center rounded-[12px]',
             isSelected && 'bg-[#6ABC6D]',
           )}
         >
           <ICONS.Play />
-        </View>
+        </Pressable>
       </View>
     </Pressable>
   );
@@ -240,20 +238,20 @@ export const AccentCard = ({
 /* ---------------- DATA ---------------- */
 
 export const ACCENTS = [
-  { image: IMAGES.FlagGB, name: 'British' },
-  { image: IMAGES.FlagUSA, name: 'American' },
-  { image: IMAGES.FlagAU, name: 'Australian' },
-  { image: IMAGES.FlagNG, name: 'Nigerian' },
-  { image: IMAGES.FlagSA, name: 'South African' },
-  { image: IMAGES.FlagIND, name: 'Indian' },
+  { image: IMAGES.FlagGB, name: 'British', sound: require('../../assets/sounds/adult-male-uk.mp3') },
+  { image: IMAGES.FlagUSA, name: 'American', sound: require('../../assets/sounds/adult-male-us.mp3') },
+  { image: IMAGES.FlagAU, name: 'Australian', sound: require('../../assets/sounds/adult-male-au.mp3') },
+  // { image: IMAGES.FlagNG, name: 'Nigerian' },
+  // { image: IMAGES.FlagSA, name: 'South African' },
+  { image: IMAGES.FlagIND, name: 'Indian', sound: require('../../assets/sounds/adult-male-in.mp3') },
 ];
 
 export const VOICES = [
-  { image: IMAGES.AccentKidMale, name: 'Male' },
-  { image: IMAGES.AccentKidFemale, name: 'Female' },
-  { image: IMAGES.AccentAdultMale, name: 'Male' },
-  { image: IMAGES.AccentAdultFemale, name: 'Female' },
-  { image: IMAGES.AccentAdultMale, name: 'Cartoon Style' },
+  { image: IMAGES.AccentKidMale, name: 'Male', voiceKey: 'young-male' },
+  { image: IMAGES.AccentKidFemale, name: 'Female', voiceKey: 'young-female' },
+  { image: IMAGES.AccentAdultMale, name: 'Male', voiceKey: 'adult-male' },
+  { image: IMAGES.AccentAdultFemale, name: 'Female', voiceKey: 'adult-female' },
+  // { image: IMAGES.AccentAdultMale, name: 'Cartoon Style' },
 ];
 
 export default AccentSelection;

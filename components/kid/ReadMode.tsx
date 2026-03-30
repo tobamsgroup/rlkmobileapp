@@ -58,7 +58,7 @@ const ReadMode = ({
       (c) => c.chapterId === chapterId,
     );
     return currentChapter;
-  }, [readingProgress, series]);
+  }, [readingProgress, series, chapterId]);
 
   const taskId = chapterId;
   const baseTitle =
@@ -235,7 +235,8 @@ const ReadMode = ({
       const nextChapter = allSeriesPages?.[data.chapterIndex || 0];
       if (activePage?.index === data?.pages.length && nextChapter) {
         await updateReadingProgress(nextChapter._id, 1);
-        setOpenSwitch(true);
+        invalidateQueries('reading-progress');
+        moveToNextChapter();
         return;
       }
       const newIndex = (activePage?.index || 0) + 1;
@@ -309,6 +310,7 @@ const ReadMode = ({
           canGoPrev={canGoPrev}
           data={activePage}
           title={data?.chapterTitle}
+          chapterId={chapterId as string}
         />
       )}
     </View>
