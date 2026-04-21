@@ -1,40 +1,41 @@
-import { getCurriculumStats } from "@/actions/curriculum";
-import { ICONS } from "@/assets/icons";
-import Container from "@/components/Container";
+import { getCurriculumStats } from '@/actions/curriculum';
+import { ICONS } from '@/assets/icons';
+import Container from '@/components/Container';
 import CurriculumCard, {
   CurriculumCardSkeleton,
-} from "@/components/Curriculum/CurriculumCard";
-import { scaleHeight, scaleWidth } from "@/utils/scale";
-import { useQuery } from "@tanstack/react-query";
-import { Text, View } from "react-native";
+} from '@/components/Curriculum/CurriculumCard';
+import TrialLockModal from '@/components/Subscription/TrialLockModal';
+import { scaleHeight, scaleWidth } from '@/utils/scale';
+import { useQuery } from '@tanstack/react-query';
+import { Text, View } from 'react-native';
 
 export default function Curriculum() {
   const { data, isLoading } = useQuery({
-    queryKey: ["curriculum"],
+    queryKey: ['curriculum'],
     queryFn: async () => {
       return await getCurriculumStats();
     },
   });
 
   return (
-    <Container scrollable edges={["top"]}>
+    <Container scrollable edges={['top']}>
       <View className="px-6 py-5 relative z-20">
         <ICONS.Star
           width={27}
           height={27}
-          style={{ position: "absolute", zIndex: 10, bottom: "20%" }}
-          fill={"#FFD700"}
+          style={{ position: 'absolute', zIndex: 10, bottom: '20%' }}
+          fill={'#FFD700'}
         />
         <ICONS.Star
           width={27}
           height={27}
           style={{
-            position: "absolute",
+            position: 'absolute',
             zIndex: 10,
             right: scaleWidth(11),
             top: scaleHeight(80),
           }}
-          fill={"#1671D9"}
+          fill={'#1671D9'}
         />
         <Text className="text-[24px] font-sansSemiBold  text-dark leading-[1.3]">
           Curriculum
@@ -63,6 +64,13 @@ export default function Curriculum() {
           )}
         </View>
       </View>
+      <TrialLockModal
+        title="Unable to Assign Series to Child"
+        desc="Upgrade your account to  assign series to child continue your child’s learning journey."
+        open={false}
+        buttonText1="UPGRADE PLAN"
+        buttonText2="MAYBE LATER"
+      />
     </Container>
   );
 }

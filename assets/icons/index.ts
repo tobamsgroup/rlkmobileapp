@@ -110,8 +110,12 @@ import Users from "./Users";
 import Confetto from "./Confetto";
 import Shape from "./Shape";
 import AlertTriangle from "./AlertTriangle";
+import LockOff from "./LockOff";
+import ExclamationCircle from "./ExclamationCircle";
 
 export const ICONS = {
+  ExclamationCircle,
+  LockOff,
   AlertTriangle,
   Confetto,
   Shape,

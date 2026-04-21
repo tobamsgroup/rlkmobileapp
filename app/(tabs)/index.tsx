@@ -7,6 +7,7 @@ import CreateChildProfile from '@/components/Home/CreateChildProfile';
 import LearnersProgress from '@/components/Home/LearnersProgress';
 import RecommendedLearningTracks from '@/components/Home/RecommendedLearningTracks';
 import Skeleton from '@/components/Skeleton';
+import TrialLockModal from '@/components/Subscription/TrialLockModal';
 import useGuardian from '@/hooks/useGuardianProfile';
 import { ensureHttps } from '@/utils';
 import { scaleWidth } from '@/utils/scale';
@@ -36,6 +37,24 @@ export default function HomeScreen() {
     <>
       <Container edges={['top']} scrollable backgroundColor="#DBEFDC">
         <View className="flex-1 px-6 py-5 relative z-10">
+          {/* <View className="py-4 px-6 bg-white rounded-[16px] border-b-4  border-l border-r border-[#e8e6dc] border-b-[#D5B300] mb-8 flex-row gap-5 w-full">
+            <Text className="flex-1 font-sans text-[16px]  text-[#221D23] leading-[1.5]">
+              Your trial{' '}
+              <Text className="font-sansMedium">ends in 24 days!</Text> Explore
+              books and build your child’s reading habit
+            </Text>
+            <ICONS.Close />
+          </View> */}
+          {/* <View className="py-4 px-6 bg-white rounded-[16px] border-b-4  border-l border-r border-[#e8e6dc] border-b-[#D5B300] mb-8 flex-row gap-5 w-full">
+            <View className='w-10 h-10 rounded-full items-center justify-center bg-[#1671D91A]'>
+              <ICONS.ExclamationCircle/>
+            </View>
+            <Text className="flex-1 font-sans text-[16px]  text-[#221D23] leading-[1.5]">
+              Your trial{' '}
+              <Text className="font-sansMedium">ends in 2 days!</Text> Don’t
+              lose your child’s progress
+            </Text>
+          </View> */}
           <View className="flex-row gap-2 items-center">
             {isLoading ? (
               <Skeleton
@@ -266,6 +285,13 @@ export default function HomeScreen() {
           ADD CHILD
         </Text>
       </Pressable>
+      <TrialLockModal
+        title="Free Trial Ended!"
+        desc="To continue, upgrade your plan to allow your child  access their full reading journey, including all chapters, and more books."
+        open={false}
+        buttonText1="UPGRADE NOW TO CONTINUE"
+        showChevron
+      />
     </>
   );
 }

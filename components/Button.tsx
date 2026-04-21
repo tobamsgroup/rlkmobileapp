@@ -126,5 +126,71 @@ export const SecondaryButton = ({
     </Pressable>
   );
 };
+export const LinearButton = ({
+  children,
+  linearStyle,
+  ...props
+}: Props & PressableProps) => {
+  return (
+    <Pressable
+      {...props}
+      onPress={(e) => {
+        props?.onPress?.(e);
+        if (props?.haptic) {
+          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Soft);
+        }
+      }}
+      className={twMerge('w-full', props.className)}
+    >
+      <LinearGradient
+        colors={['#337535', '#4CAF50']}
+        className="rounded-xl"
+        start={{ x: 1, y: 1 }}
+        end={{ x: 1, y: 0 }}
+        style={[
+          {
+            shadowColor: '#D5B300',
+            shadowOffset: { width: 0, height: 3 },
+            shadowOpacity: 1,
+            shadowRadius: 0,
+            elevation: 3,
+            paddingVertical: scaleHeight(14.5),
+            paddingHorizontal: scaleHeight(14.5),
+            borderRadius: 100000,
+            borderBottomWidth: 3,
+            borderWidth: 1,
+            borderColor: '#4CAF50',
+            borderBottomColor: '#265828',
+            flexDirection:'row',
+            alignItems:'center',
+            justifyContent:'center',
+            ...(linearStyle || {}),
+
+          },
+        ]}
+      >
+        {props?.loading ? (
+          <ActivityIndicator color={'white'} size={'small'} />
+        ) : (
+          <>
+            {children ? (
+              children
+            ) : (
+              <Text
+                className={twMerge(
+                  'text-[16px] text-white font-sansMedium',
+                  props.textClassname,
+                  props?.disabled && 'text-dark',
+                )}
+              >
+                {props.text}
+              </Text>
+            )}
+          </>
+        )}
+      </LinearGradient>
+    </Pressable>
+  );
+};
 
 export default Button;

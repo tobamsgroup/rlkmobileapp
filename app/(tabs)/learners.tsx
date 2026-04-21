@@ -1,7 +1,4 @@
-import {
-  fetchKidsCourses,
-  KidCourseWithPopulatedKid,
-} from '@/actions/curriculum';
+import { fetchKidsCourses } from '@/actions/curriculum';
 import { fetchKids } from '@/actions/learners';
 import { ICONS } from '@/assets/icons';
 import { IMAGES } from '@/assets/images';
@@ -12,6 +9,7 @@ import LearnerCard, {
   LearnerCardSkeleton,
   NoLearnersFound,
 } from '@/components/Learners/LearnersCard';
+import TrialLockModal from '@/components/Subscription/TrialLockModal';
 import { groupByKid, GroupedByKid } from '@/utils';
 import { scaleHeight, scaleWidth } from '@/utils/scale';
 import { useQuery } from '@tanstack/react-query';
@@ -21,9 +19,7 @@ import { FlatList, Image, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function Learners() {
-  const [filteredData, setFilteredData] = useState<GroupedByKid[]>(
-    [],
-  );
+  const [filteredData, setFilteredData] = useState<GroupedByKid[]>([]);
   const [search, setSearch] = useState('');
   const [openModal, setOpenModal] = useState(false);
 
@@ -158,6 +154,13 @@ export default function Learners() {
       <CreateChildProfile
         open={openModal}
         onClose={() => setOpenModal(false)}
+      />
+      <TrialLockModal
+        title="Unable to Create Child Profile"
+        desc="Your current plan includes access to only 1 child profile. To continue, please upgrade your plan."
+        open={false}
+        buttonText1="UPGRADE PLAN"
+        buttonText2='MAYBE LATER'
       />
     </SafeAreaView>
   );
