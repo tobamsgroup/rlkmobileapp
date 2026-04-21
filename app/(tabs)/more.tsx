@@ -11,6 +11,7 @@ import {
   Image,
   Linking,
   Pressable,
+  ScrollView,
   StyleSheet,
   Text,
   View,
@@ -20,7 +21,7 @@ export default function More() {
   const dispatch = useAppDispatch();
   const { data, isLoading } = useGuardian();
   return (
-    <View className="bg-[#DBEFDC] flex-1 relative">
+    <ScrollView showsVerticalScrollIndicator={false} className="bg-[#DBEFDC] flex-1 relative">
       <Image
         style={{ width: SCREEN_WIDTH, height: scaleHeight(256) }}
         source={IMAGES.MoreOverlay}
@@ -89,6 +90,18 @@ export default function More() {
             <ICONS.ChevronRight />
           </Pressable>
           <Pressable
+            onPress={() => router.push("/guardian/Settings")}
+            className="flex-row items-center gap-2 py-6 border-b border-b-[#D3D2D366]"
+          >
+            <View className="items-center justify-center w-10 h-10 rounded-full bg-[#1671D91A]">
+              <ICONS.Settings />
+            </View>
+            <Text className="text-dark text-[16px] font-sansMedium flex-1">
+              Settings
+            </Text>
+            <ICONS.ChevronRight />
+          </Pressable>
+          <Pressable
             onPress={() => handleLogout(dispatch)}
             className="flex-row items-center gap-2 pt-6"
           >
@@ -122,7 +135,7 @@ export default function More() {
           </View>
         </View>
       </View>
-    </View>
+    </ScrollView>
   );
 }
 

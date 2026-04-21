@@ -97,6 +97,7 @@ const VoiceStyleSettings = () => {
       // Use saved accent if available, otherwise default to us
       const accentCode = ACCENT_CODE[selectedAccent] ?? 'us';
 
+
       await updateReadingSettings(`${voiceKey}-${accentCode}`);
       HAPTIC.success();
       showToast('success', 'Voice style saved successfully!');

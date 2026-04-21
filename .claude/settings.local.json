@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(tree:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(npx expo:*)",
+      "Bash(npx tsc:*)",
+      "Bash(grep -r \"generateKidReportHtml\\\\|reportGenerator\" /Users/maroh/Documents/GitHub/rlkmobileapp --include=*.ts --include=*.tsx)",
+      "Bash(find /Users/maroh/Documents/GitHub/rlkmobileapp/docs -name *.md)",
+      "Bash(node:*)",
+      "Bash(find /Users/maroh/Documents/GitHub/rlkmobileapp -name jest.config.* -o -name vitest.config.* -o -name *.test.ts -o -name *.spec.ts)",
+      "Bash(head:*)"
+    ]
+  }
+}

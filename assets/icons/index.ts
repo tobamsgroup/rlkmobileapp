@@ -103,8 +103,22 @@ import Checkbox from "@/components/Checkbox";
 import CheckOutline from "./CheckOutline";
 import BooksMultiple from "./BooksMultiple";
 import Checklist from "./Checklist";
+import Download from "./Download";
+import Books from "./Books";
+import CalenderDue from "./CalenderDue";
+import Users from "./Users";
+import Confetto from "./Confetto";
+import Shape from "./Shape";
+import AlertTriangle from "./AlertTriangle";
 
 export const ICONS = {
+  AlertTriangle,
+  Confetto,
+  Shape,
+  Books,
+  CalenderDue,
+  Users,
+  Download,
   Checklist,
   BooksMultiple,
   CheckOutline,
