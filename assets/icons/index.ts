@@ -112,8 +112,14 @@ import Shape from "./Shape";
 import AlertTriangle from "./AlertTriangle";
 import LockOff from "./LockOff";
 import ExclamationCircle from "./ExclamationCircle";
+import CreditCardOff from "./CreditCardOff";
+import ArrowUpRight from "./ArrowUpRight";
+import Trash from "./Trash";
 
 export const ICONS = {
+  Trash,
+  ArrowUpRight,
+  CreditCardOff,
   ExclamationCircle,
   LockOff,
   AlertTriangle,

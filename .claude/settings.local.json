@@ -10,7 +10,13 @@
       "Bash(find /Users/maroh/Documents/GitHub/rlkmobileapp/docs -name *.md)",
       "Bash(node:*)",
       "Bash(find /Users/maroh/Documents/GitHub/rlkmobileapp -name jest.config.* -o -name vitest.config.* -o -name *.test.ts -o -name *.spec.ts)",
-      "Bash(head:*)"
+      "Bash(head:*)",
+      "Bash(xargs ls *)",
+      "Bash(kill 42632 31190)",
+      "Bash(npx --prefix /Users/mobolaji/Documents/GitHub/RL4KIDS-BE tsc --noEmit --project /Users/mobolaji/Documents/GitHub/RL4KIDS-BE/tsconfig.json)",
+      "Bash(redis-cli shutdown *)",
+      "Bash(xargs -I {} basename {})",
+      "Bash(npm install *)"
     ]
   }
 }

@@ -9,17 +9,22 @@ import Container from '@/components/Container';
 import { SimpleInput } from '@/components/Input';
 import ProgressBar from '@/components/ProgressBar';
 import Skeleton from '@/components/Skeleton';
+import TrialLockModal from '@/components/Subscription/TrialLockModal';
 import TopBackButton from '@/components/TopBackButton';
+import { PLAN_DETAILS } from '@/constants/subscription';
+import useGuardian from '@/hooks/useGuardianProfile';
 import { formatDate } from '@/utils';
 import { scaleHeight, scaleWidth } from '@/utils/scale';
 import { useQuery } from '@tanstack/react-query';
 import { router, useLocalSearchParams } from 'expo-router';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Image, Pressable, Text, View } from 'react-native';
 
 const LearnersAssingnedToSeries = () => {
   const params = useLocalSearchParams();
   const [search, setSearch] = useState('');
+  const { data: guardian } = useGuardian();
+  const [openLock, setOpenLock] = useState(false);
   const [kidsData, setKidsData] = useState<KidCourseWithPopulatedKid[]>([]);
 
   const { data, isLoading } = useQuery({
@@ -42,6 +47,15 @@ const LearnersAssingnedToSeries = () => {
     }
     setKidsData(data);
   }, [data, search]);
+
+  const canAssignSeries = useMemo(() => {
+    const numOfBooksAssigned = guardian?.numOfBooks || 0;
+    const currentPlan = PLAN_DETAILS[guardian?.subscription?.plan || 'free'];
+    if (numOfBooksAssigned < currentPlan?.noOfBooks) {
+      return true;
+    }
+    return false;
+  }, [guardian, PLAN_DETAILS]);
 
   return (
     <>
@@ -148,11 +162,15 @@ const LearnersAssingnedToSeries = () => {
       </Container>
       {!!kidsData?.length && (
         <Pressable
-          onPress={() =>
-            router.push(
-              `/guardian/AssignChild?title=${params?.title}&id=${params?.id}&seriesTitle=${params?.seriesTitle}`,
-            )
-          }
+          onPress={() => {
+            if (canAssignSeries) {
+              router.push(
+                `/guardian/AssignChild?title=${params?.title}&id=${params?.id}&seriesTitle=${params?.seriesTitle}`,
+              );
+            } else {
+              setOpenLock(true);
+            }
+          }}
           style={{
             position: 'absolute',
             bottom: scaleHeight(40),
@@ -163,6 +181,18 @@ const LearnersAssingnedToSeries = () => {
           <Text className="text-white font-sansMedium text-[16px]">ASSIGN</Text>
         </Pressable>
       )}
+      <TrialLockModal
+        title="Unable to Assign Series to Child"
+        desc="Upgrade your account to  assign series to child continue your child’s learning journey."
+        open={openLock}
+        onClose={() => setOpenLock(false)}
+        buttonText1="UPGRADE PLAN"
+        buttonText2="MAYBE LATER"
+        onProceed={() => {
+          setOpenLock(false);
+          router?.push('/guardian/ChoosePlan');
+        }}
+      />
     </>
   );
 };

@@ -17,8 +17,13 @@ const authSlice = createSlice({
       state.isLoggedIn = false;
       state.user = null;
     },
+    clearDeletionWarning(state) {
+      if (state.user) {
+        delete (state.user as any).deletionWarning;
+      }
+    },
   },
 });
 
-export const { login, logout } = authSlice.actions;
+export const { login, logout, clearDeletionWarning } = authSlice.actions;
 export default authSlice.reducer;

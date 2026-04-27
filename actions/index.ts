@@ -67,3 +67,29 @@ export const savePushToken = async (payload: {
 }) => {
   await axios.post("/push-tokens", payload);
 };
+
+export const changePassword = async (
+  currentPassword: string,
+  newPassword: string,
+) => {
+  const res = await axios.post("/auth/update-password", {
+    currentPassword,
+    newPassword,
+  });
+  return res.data;
+};
+
+export const scheduleAccountDeletion = async (password: string) => {
+  const res = await axios.delete('/guardian/me', { data: { password } });
+  return res.data;
+};
+
+export const updateDeletionReason = async (reason: string) => {
+  const res = await axios.patch('/guardian/me/deletion-reason', { reason });
+  return res.data;
+};
+
+export const restoreAccount = async () => {
+  const res = await axios.post('/guardian/restore-account');
+  return res.data;
+};

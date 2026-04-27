@@ -8,12 +8,15 @@ import SeriesOverviewCard, {
 import { SimpleInput } from '@/components/Input';
 import ProgressBar from '@/components/ProgressBar';
 import Skeleton from '@/components/Skeleton';
+import TrialLockModal from '@/components/Subscription/TrialLockModal';
 import TopBackButton from '@/components/TopBackButton';
+import { PLAN_DETAILS } from '@/constants/subscription';
+import useGuardian from '@/hooks/useGuardianProfile';
 import { VolumeStat } from '@/types';
 import { scaleHeight } from '@/utils/scale';
 import { useQuery } from '@tanstack/react-query';
-import { useLocalSearchParams } from 'expo-router';
-import React, { useEffect, useState } from 'react';
+import { router, useLocalSearchParams } from 'expo-router';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Pressable, Text, TouchableWithoutFeedback, View } from 'react-native';
 
 const CurriculumSeriesOverview = () => {
@@ -23,7 +26,10 @@ const CurriculumSeriesOverview = () => {
   const [sort, setSort] = useState('');
   const [openStatus, setOpenStatus] = useState(false);
   const [openSort, setOpenSort] = useState(false);
+  const { data: guardian } = useGuardian();
   const [volumeData, setVolumeData] = useState<VolumeStat[]>([]);
+  const [openLock, setOpenLock] = useState(false);
+
   const { data, isLoading } = useQuery({
     queryKey: ['series-volume', params?.id],
     queryFn: async () => {
@@ -55,6 +61,15 @@ const CurriculumSeriesOverview = () => {
 
     setVolumeData(result);
   }, [data, search, status, sort]);
+
+  const canAssignSeries = useMemo(() => {
+    const numOfBooksAssigned = guardian?.numOfBooks || 0;
+    const currentPlan = PLAN_DETAILS[guardian?.subscription?.plan || 'free'];
+    if (numOfBooksAssigned < currentPlan?.noOfBooks) {
+      return true;
+    }
+    return false;
+  }, [guardian, PLAN_DETAILS]);
 
   return (
     <Container scrollable>
@@ -185,7 +200,7 @@ const CurriculumSeriesOverview = () => {
             {!isLoading && (
               <>
                 {volumeData?.map((s) => (
-                  <SeriesOverviewCard key={s.index} {...s} />
+                  <SeriesOverviewCard key={s.index} {...s} canAssign={canAssignSeries} onOpenLock={() => setOpenLock(true)} />
                 ))}
               </>
             )}
@@ -207,6 +222,18 @@ const CurriculumSeriesOverview = () => {
           </View>
         </View>
       </TouchableWithoutFeedback>
+      <TrialLockModal
+        title="Unable to Assign Series to Child"
+        desc="Upgrade your account to  assign series to child continue your child’s learning journey."
+        open={openLock}
+        onClose={() => setOpenLock(false)}
+        buttonText1="UPGRADE PLAN"
+        buttonText2="MAYBE LATER"
+        onProceed={() => {
+          setOpenLock(false);
+          router?.push('/guardian/ChoosePlan');
+        }}
+      />
     </Container>
   );
 };

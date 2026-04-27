@@ -9,18 +9,24 @@ import RecommendedLearningTracks from '@/components/Home/RecommendedLearningTrac
 import Skeleton from '@/components/Skeleton';
 import TrialLockModal from '@/components/Subscription/TrialLockModal';
 import useGuardian from '@/hooks/useGuardianProfile';
-import { ensureHttps } from '@/utils';
+import { useSubscription } from '@/hooks/useSubscription';
+import { ensureHttps, getSubscriptionDaysRemaining } from '@/utils';
 import { scaleWidth } from '@/utils/scale';
+import { showToast } from '@/utils/toast';
 import { useQuery } from '@tanstack/react-query';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
 
 export default function HomeScreen() {
   const [openModal, setOpenModal] = useState(false);
   const { data, isLoading } = useGuardian();
   const [hasUnread, setHasUnread] = useState(false);
+  const [openTrialBanner, setOpenTrialBanner] = useState(true);
+  const [openLock, setOpenLock] = useState(false);
+  const [openTrialEnded, setOpenTrialEnded] = useState(false);
+
   const { data: notifications } = useQuery({
     queryKey: ['notifications'],
     queryFn: async () => {
@@ -28,33 +34,93 @@ export default function HomeScreen() {
     },
   });
 
+  const { data: subscription } = useSubscription();
+
+  const remainingDays = useMemo(() => {
+    return getSubscriptionDaysRemaining(subscription?.currentPeriodEnd);
+  }, [subscription]);
+
+  useEffect(() => {
+    if (subscription?.plan === 'free' && remainingDays < 1) {
+      setOpenTrialEnded(true);
+    }
+  }, [subscription]);
+
   useEffect(() => {
     if (!notifications) return;
     const unreadCount = notifications.filter((n) => !n.isRead);
     setHasUnread(unreadCount?.length > 0);
   }, [notifications]);
+
+  const onAddKids = () => {
+    if (isLoading) {
+      showToast('info', 'Please wait...');
+      return;
+    }
+
+    if ((data?.totalKids || 0) > 1) {
+      setOpenLock(true);
+      return;
+    }
+
+    router.push('/guardian/AddLearner');
+  };
+
+  console.log({data})
   return (
     <>
       <Container edges={['top']} scrollable backgroundColor="#DBEFDC">
         <View className="flex-1 px-6 py-5 relative z-10">
-          {/* <View className="py-4 px-6 bg-white rounded-[16px] border-b-4  border-l border-r border-[#e8e6dc] border-b-[#D5B300] mb-8 flex-row gap-5 w-full">
-            <Text className="flex-1 font-sans text-[16px]  text-[#221D23] leading-[1.5]">
-              Your trial{' '}
-              <Text className="font-sansMedium">ends in 24 days!</Text> Explore
-              books and build your child’s reading habit
-            </Text>
-            <ICONS.Close />
-          </View> */}
-          {/* <View className="py-4 px-6 bg-white rounded-[16px] border-b-4  border-l border-r border-[#e8e6dc] border-b-[#D5B300] mb-8 flex-row gap-5 w-full">
-            <View className='w-10 h-10 rounded-full items-center justify-center bg-[#1671D91A]'>
-              <ICONS.ExclamationCircle/>
-            </View>
-            <Text className="flex-1 font-sans text-[16px]  text-[#221D23] leading-[1.5]">
-              Your trial{' '}
-              <Text className="font-sansMedium">ends in 2 days!</Text> Don’t
-              lose your child’s progress
-            </Text>
-          </View> */}
+          {remainingDays > 6 &&
+            subscription?.plan === 'free' &&
+            openTrialBanner && (
+              <View className="py-4 px-6 bg-white rounded-[16px] border-b-4  border-l border-r border-[#e8e6dc] border-b-[#D5B300] mb-8 flex-row gap-5 w-full">
+                <Text className="flex-1 font-sans text-[16px]  text-[#221D23] leading-[1.5]">
+                  Your trial{' '}
+                  <Text className="font-sansMedium">
+                    ends in {remainingDays} days!
+                  </Text>{' '}
+                  Explore books and build your child’s reading habit
+                </Text>
+                <Pressable onPress={() => setOpenTrialBanner(false)}>
+                  <ICONS.Close />
+                </Pressable>
+              </View>
+            )}
+          {remainingDays < 7 &&
+            remainingDays > 2 &&
+            subscription?.plan === 'free' &&
+            openTrialBanner && (
+              <View className="py-4 px-6 bg-white rounded-[16px] border-b-4  border-l border-r border-[#e8e6dc] border-b-[#D5B300] mb-8 flex-row gap-5 w-full">
+                <Text className="flex-1 font-sans text-[16px]  text-[#221D23] leading-[1.5]">
+                  Your trial{' '}
+                  <Text className="font-sansMedium">
+                    ends in {remainingDays} days!
+                  </Text>{' '}
+                  Upgrade to keep your child’s learning going
+                </Text>
+                <Pressable onPress={() => setOpenTrialBanner(false)}>
+                  <ICONS.Close />
+                </Pressable>
+              </View>
+            )}
+          {remainingDays > 0 &&
+            remainingDays <= 2 &&
+            subscription?.plan === 'free' &&
+            openTrialBanner && (
+              <View className="py-4 px-6 bg-white rounded-[16px] border-b-4  border-l border-r border-[#e8e6dc] border-b-[#D5B300] mb-8 flex-row gap-5 w-full">
+                <View className="w-10 h-10 rounded-full items-center justify-center bg-[#1671D91A]">
+                  <ICONS.ExclamationCircle />
+                </View>
+                <Text className="flex-1 font-sans text-[16px]  text-[#221D23] leading-[1.5]">
+                  Your trial{' '}
+                  <Text className="font-sansMedium">
+                    ends in {remainingDays} days!
+                  </Text>{' '}
+                  Don’t lose your child’s progress
+                </Text>
+              </View>
+            )}
           <View className="flex-row gap-2 items-center">
             {isLoading ? (
               <Skeleton
@@ -227,7 +293,7 @@ export default function HomeScreen() {
                   fill={'#1671D9'}
                 />
               </View>
-              <Pressable onPress={() => setOpenModal(true)} className="flex-1">
+              <Pressable onPress={onAddKids} className="flex-1">
                 <Text className="font-sansMedium text-[16px] text-dark leading-[1.5]">
                   Set Up New Child{'\n'}Profile
                 </Text>
@@ -272,7 +338,7 @@ export default function HomeScreen() {
         onClose={() => setOpenModal(false)}
       />
       <Pressable
-        onPress={() => router.push('/guardian/AddLearner')}
+        onPress={onAddKids}
         style={{
           position: 'absolute',
           bottom: 30,
@@ -288,9 +354,26 @@ export default function HomeScreen() {
       <TrialLockModal
         title="Free Trial Ended!"
         desc="To continue, upgrade your plan to allow your child  access their full reading journey, including all chapters, and more books."
-        open={false}
+        open={openTrialEnded}
         buttonText1="UPGRADE NOW TO CONTINUE"
+        onProceed={() => {
+          router.push('/guardian/ChoosePlan');
+          setOpenTrialEnded(false);
+
+        }}
         showChevron
+      />
+      <TrialLockModal
+        title="Unable to Create Child Profile"
+        desc="Your current plan includes access to only 1 child profile. To continue, please upgrade your plan."
+        open={openLock}
+        buttonText1="UPGRADE PLAN"
+        buttonText2="MAYBE LATER"
+        onClose={() => setOpenLock(false)}
+        onProceed={() => {
+          router.push('/guardian/ChoosePlan');
+          setOpenLock(false);
+        }}
       />
     </>
   );

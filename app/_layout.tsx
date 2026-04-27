@@ -13,10 +13,10 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useFonts } from 'expo-font';
 import * as Notifications from 'expo-notifications';
-import { Stack } from 'expo-router';
+import { Stack, router } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Platform } from 'react-native';
 import 'react-native-reanimated';
 import Toast, { ToastConfig } from 'react-native-toast-message';
@@ -54,7 +54,9 @@ function AppContent() {
   });
 
   const isLoggedIn = useAppSelector((state) => state.auth.isLoggedIn);
+  const user = useAppSelector((state) => state.auth.user) as any;
   const dispatch = useAppDispatch();
+  const wasLoggedIn = useRef(false);
 
   useEffect(() => {
     const restoreSession = async () => {
@@ -67,6 +69,18 @@ function AppContent() {
     };
     restoreSession();
   }, [dispatch]);
+
+  useEffect(() => {
+    if (isLoggedIn) {
+      wasLoggedIn.current = true;
+      if (user?.deletionWarning) {
+        router.replace('/guardian/RestoreAccount');
+      }
+    } else if (wasLoggedIn.current) {
+      wasLoggedIn.current = false;
+      router.replace('/onboarding');
+    }
+  }, [isLoggedIn, user?.deletionWarning]);
 
   useEffect(() => {
     if (loaded || error) {

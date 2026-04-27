@@ -10,6 +10,7 @@ import LearnerCard, {
   NoLearnersFound,
 } from '@/components/Learners/LearnersCard';
 import TrialLockModal from '@/components/Subscription/TrialLockModal';
+import useGuardian from '@/hooks/useGuardianProfile';
 import { groupByKid, GroupedByKid } from '@/utils';
 import { scaleHeight, scaleWidth } from '@/utils/scale';
 import { useQuery } from '@tanstack/react-query';
@@ -22,6 +23,8 @@ export default function Learners() {
   const [filteredData, setFilteredData] = useState<GroupedByKid[]>([]);
   const [search, setSearch] = useState('');
   const [openModal, setOpenModal] = useState(false);
+  const { data: guardian } = useGuardian();
+  const [openLock, setOpenLock] = useState(false);
 
   const { data: allKids, isLoading: isLoadingALlKids } = useQuery({
     queryKey: ['guardian-kids'],
@@ -67,6 +70,15 @@ export default function Learners() {
     setFilteredData(groupedData);
   }, [groupedData, search]);
 
+  const onAddKids = () => {
+    if ((guardian?.totalKids || 0) > 1) {
+      setOpenLock(true);
+      return;
+    }
+
+    router.push('/guardian/AddLearner');
+  };
+
   return (
     <SafeAreaView
       edges={['top']}
@@ -103,11 +115,7 @@ export default function Learners() {
               zIndex: 20,
             }}
           />
-          <Button
-            onPress={() => router.push('/guardian/AddLearner')}
-            className="w-full"
-            text="ADD CHILD"
-          />
+          <Button onPress={onAddKids} className="w-full" text="ADD CHILD" />
         </View>
       )}
       {(isLoading || !!data?.length) && (
@@ -122,7 +130,7 @@ export default function Learners() {
                 the platform as a learner.
               </Text>
               <Button
-                onPress={() => router.push('/guardian/AddLearner')}
+                onPress={onAddKids}
                 className="mt-8"
                 text="ADD CHILD PROFILE"
               />
@@ -158,9 +166,14 @@ export default function Learners() {
       <TrialLockModal
         title="Unable to Create Child Profile"
         desc="Your current plan includes access to only 1 child profile. To continue, please upgrade your plan."
-        open={false}
+        open={openLock}
         buttonText1="UPGRADE PLAN"
-        buttonText2='MAYBE LATER'
+        buttonText2="MAYBE LATER"
+        onClose={() => setOpenLock(false)}
+        onProceed={() => {
+          router.push('/guardian/Subscription');
+          setOpenLock(false);
+        }}
       />
     </SafeAreaView>
   );

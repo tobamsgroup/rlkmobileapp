@@ -8,6 +8,7 @@ import { useAppDispatch } from "@/hooks/redux";
 import axios from "@/lib/axios";
 import { storeData } from "@/lib/storage";
 import { login } from "@/redux/authSlice";
+import { GuardianLoginSession } from "@/types";
 import { scaleHeight, scaleWidth } from "@/utils/scale";
 import { showToast } from "@/utils/toast";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -38,7 +39,6 @@ type LoginFormData = {
 
 const Login = () => {
   const { profile } = useLocalSearchParams();
-  // console.log(pt)
   const [isLoading, setIsLoading] = useState(false);
   const [incorrectError, setIncorrectError] = useState(false);
 
@@ -77,15 +77,14 @@ const Login = () => {
           rememberMe: true,
         });
       }
-      // showToast("success", "Login Successful!");
-      await storeData("user", res?.data?.data);
-      dispatch(login(res?.data?.data));
+
+      const userData: GuardianLoginSession = res?.data?.data;
+      await storeData("user", userData);
+      dispatch(login(userData));
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-      // if (profile === "kid") {
-      //   router.navigate("/kid/AvatarSelection");
-      // }
-       attachTokenOnLogin().catch(console.log);
+      attachTokenOnLogin().catch(console.log);
     } catch (error: any) {
+      console.log(error);
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
       if (error?.response?.data?.statusCode === 401) {
         setIncorrectError(true);
@@ -96,6 +95,7 @@ const Login = () => {
       setIsLoading(false);
     }
   };
+
   return (
     <Container scrollable backgroundColor="#FAFDFF">
       <View className="px-6 py-5">
@@ -118,7 +118,7 @@ const Login = () => {
         <Text className="text-center text-[16px] text-[#474348] font-sans leading-[1.5] mt-2 mb-8">
           {profile === "kid"
             ? "Enter your details below to begin your adventure."
-            : "  Log in to manage a child’s learning journey."}
+            : "  Log in to manage a child's learning journey."}
         </Text>
         {incorrectError && (
           <View className="flex-row gap-3 p-3 bg-[#DE21211A] rounded-[8px] mb-8">

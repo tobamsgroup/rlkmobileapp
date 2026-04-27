@@ -112,6 +112,17 @@ export const getDeviceId = async () => {
 };
 
 
+export function getSubscriptionDaysRemaining(
+  currentPeriodEnd: string | Date | null | undefined,
+): number {
+  if (!currentPeriodEnd) return 0;
+  const end = new Date(currentPeriodEnd);
+  const now = new Date();
+  const msRemaining = end.getTime() - now.getTime();
+  if (msRemaining <= 0) return 0;
+  return Math.ceil(msRemaining / (1000 * 60 * 60 * 24));
+}
+
 export function maskEmail(email?: string): string {
   if(!email) return ""
   if (!email || !email.includes("@")) return email;

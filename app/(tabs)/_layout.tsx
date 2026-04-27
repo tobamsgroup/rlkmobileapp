@@ -1,10 +1,11 @@
-import { Tabs } from "expo-router";
+import { Tabs, Redirect } from "expo-router";
 import React from "react";
 
 import { ICONS } from "@/assets/icons";
 import { Colors } from "@/constants/theme";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import { useAppSelector } from "@/hooks/redux";
+import { GuardianLoginSession } from "@/types";
 import { SCREEN_WIDTH } from "@/utils/scale";
 import { Text, View } from "react-native";
 import { twMerge } from "tailwind-merge";
@@ -14,6 +15,10 @@ export default function TabLayout() {
   const { user, isLoggedIn } = useAppSelector((state) => state.auth);
 
   if (!isLoggedIn) return null;
+
+  if ((user as GuardianLoginSession)?.deletionWarning) {
+    return <Redirect href="/guardian/RestoreAccount" />;
+  }
 
   return (
     <Tabs

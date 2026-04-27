@@ -1,5 +1,5 @@
-import axios from "@/lib/axios";
-import { getData } from "@/lib/storage";
+import axios from '@/lib/axios';
+import { getData } from '@/lib/storage';
 import {
   ActivityProps,
   Chapter,
@@ -7,8 +7,8 @@ import {
   IGuardianKids,
   VolumeAssignmentStatsResponse,
   VolumeStat,
-} from "@/types";
-import { cache } from "react";
+} from '@/types';
+import { cache } from 'react';
 
 export type CurriculumStats = {
   id: string;
@@ -26,15 +26,14 @@ type CourseAssignProps = {
 };
 
 type SeriesAssignedKids = {
-  seriesId: string;      
-  seriesTitle: string;   
-  assignedKids: string[]; 
-}
-
+  seriesId: string;
+  seriesTitle: string;
+  assignedKids: string[];
+};
 
 export const getCurriculumStats = cache(
   async (): Promise<CurriculumStats[]> => {
-    const resp = await axios.get("/guardian/curriculum");
+    const resp = await axios.get('/guardian/curriculum');
     return resp?.data?.data;
   },
 );
@@ -87,9 +86,9 @@ export const getAllKids = cache(async (): Promise<IGuardianKids[]> => {
 });
 
 export const assignKidsToCourse = async (data: CourseAssignProps) => {
-   const user = await getData<GuardianLoginSession>("user");
+  const user = await getData<GuardianLoginSession>('user');
   const payload = { ...data, guardianId: user?._id };
-  axios.post("/kid/course/assign", payload);
+  await axios.post('/kid/course/assign', payload);
 };
 
 export interface KidCourseWithPopulatedKid {
@@ -101,7 +100,7 @@ export interface KidCourseWithPopulatedKid {
     name: string;
     age: number;
     preferredLearningTopics: string[];
-    role: "kid";
+    role: 'kid';
     guardianId: string;
     picture: string;
     createdAt: string;

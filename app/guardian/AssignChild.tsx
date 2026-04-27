@@ -3,29 +3,30 @@ import {
   getAllKids,
   getKidAssignedToSeries,
   getVolume,
-} from "@/actions/curriculum";
-import { ICONS } from "@/assets/icons";
-import { IMAGES } from "@/assets/images";
-import Button from "@/components/Button";
-import Checkbox from "@/components/Checkbox";
-import Container from "@/components/Container";
+} from '@/actions/curriculum';
+import { ICONS } from '@/assets/icons';
+import { IMAGES } from '@/assets/images';
+import Button from '@/components/Button';
+import Checkbox from '@/components/Checkbox';
+import Container from '@/components/Container';
 import KidSelectionCard, {
   KidSelectionCardSkeleton,
-} from "@/components/Curriculum/KidSelectionCard";
-import Skeleton from "@/components/Skeleton";
-import Stepper from "@/components/Stepper";
-import TopBackButton from "@/components/TopBackButton";
-import { BookMeta } from "@/types";
-import { ensureHttps } from "@/utils";
-import { HAPTIC } from "@/utils/haptic";
-import { invalidateQueries } from "@/utils/query";
-import { scaleHeight, scaleWidth } from "@/utils/scale";
-import { showToast } from "@/utils/toast";
-import { useQuery } from "@tanstack/react-query";
-import { router, useLocalSearchParams } from "expo-router";
-import React, { useState } from "react";
-import { FlatList, Image, Pressable, Text, View } from "react-native";
-import { twMerge } from "tailwind-merge";
+} from '@/components/Curriculum/KidSelectionCard';
+import Skeleton from '@/components/Skeleton';
+import Stepper from '@/components/Stepper';
+import TopBackButton from '@/components/TopBackButton';
+import { useSubscription } from '@/hooks/useSubscription';
+import { BookMeta } from '@/types';
+import { ensureHttps } from '@/utils';
+import { HAPTIC } from '@/utils/haptic';
+import { invalidateQueries } from '@/utils/query';
+import { scaleHeight, scaleWidth } from '@/utils/scale';
+import { showToast } from '@/utils/toast';
+import { useQuery } from '@tanstack/react-query';
+import { router, useLocalSearchParams } from 'expo-router';
+import React, { useState } from 'react';
+import { FlatList, Image, Pressable, Text, View } from 'react-native';
+import { twMerge } from 'tailwind-merge';
 
 const AssignChild = () => {
   const params = useLocalSearchParams();
@@ -33,26 +34,28 @@ const AssignChild = () => {
   const [selectedKids, setSelectedKids] = useState<
     { id: string; name: string }[]
   >([]);
-  const [selectedScope, setSelectedScope] = useState("entire");
+  const [selectedScope, setSelectedScope] = useState('');
   const [selectedModule, setSelectedModule] = useState<
     { id: string; title: string; index: number }[]
   >([]);
   const [loading, setLoading] = useState(false);
+  const { data: subscription, isLoading: isLoadingSubscription } =
+    useSubscription();
   const { data, isLoading } = useQuery({
-    queryKey: ["assign-volume", params?.id],
+    queryKey: ['assign-volume', params?.id],
     queryFn: async () => {
       return await getVolume(params?.id as string);
     },
   });
   const { data: kids, isLoading: isLoadingKids } = useQuery({
-    queryKey: ["kids"],
+    queryKey: ['kids'],
     queryFn: async () => {
       return await getAllKids();
     },
   });
 
   const { data: assignedKids } = useQuery({
-    queryKey: ["assigned-kids", params?.id],
+    queryKey: ['assigned-kids', params?.id],
     queryFn: async () => {
       return await getKidAssignedToSeries(params?.id as string);
     },
@@ -67,7 +70,7 @@ const AssignChild = () => {
 
       if (assigned?.length > 0) {
         alert(
-          `${assigned.join(", ")} is already assigned to this series, Please remove them to continue!`,
+          `${assigned.join(', ')} is already assigned to this series, Please remove them to continue!`,
         );
         return;
       }
@@ -83,6 +86,10 @@ const AssignChild = () => {
       if (isExist) {
         return prev?.filter((c) => c.id !== id);
       } else {
+        if (subscription?.plan === 'free' && selectedModule?.length > 0) {
+          showToast('error', 'Can Only assign a chapter on the free plan');
+          return prev
+        }
         return [...prev, { id, title, index }];
       }
     });
@@ -94,24 +101,26 @@ const AssignChild = () => {
       bookId: (data?.bookId as BookMeta)?._id!,
       seriesIds: [params?.id! as string],
       chapterIds:
-        selectedScope === "entire"
+        selectedScope === 'entire'
           ? data?.chapters?.map((s) => s._id)!
           : selectedModule?.map((s) => s.id),
     };
+
+    console.log({payload})
 
     setLoading(true);
     try {
       await assignKidsToCourse(payload);
       HAPTIC.success();
       router.push(
-        `/guardian/AssignChildSuccess?selectedKids=${JSON.stringify(selectedKids)}&selectedModule=${JSON.stringify(selectedScope === "entire" ? [] : selectedModule)}&title=${params?.title}&seriesTitle=${params?.seriesTitle}`,
+        `/guardian/AssignChildSuccess?selectedKids=${JSON.stringify(selectedKids)}&selectedModule=${JSON.stringify(selectedScope === 'entire' ? [] : selectedModule)}&title=${params?.title}&seriesTitle=${params?.seriesTitle}`,
       );
-      invalidateQueries("curriculum");
+      invalidateQueries('curriculum');
       invalidateQueries(`series-volume`);
-      invalidateQueries("kids-volume");
-      invalidateQueries("activities");
+      invalidateQueries('kids-volume');
+      invalidateQueries('activities');
     } catch (error) {
-      showToast("error", "An error occured, Try again!");
+      showToast('error', 'An error occured, Try again!');
       HAPTIC.error();
       console.log({ error });
     }
@@ -125,22 +134,36 @@ const AssignChild = () => {
         : [...prev, { id: kidId, name }],
     );
   };
+
+  const onAssignModule = () => {
+    if (isLoadingSubscription) {
+      showToast('info', 'Please wait...');
+      return;
+    }
+
+    if (subscription?.plan === 'free') {
+      showToast('error', 'Cannot assign entire series on a free plan!');
+      return;
+    } else {
+      setSelectedScope('entire');
+    }
+  };
   return (
     <Container scrollable={true}>
       <View className="px-6  relative flex-1">
         <TopBackButton />
         <ICONS.StarFlower
           style={{
-            position: "absolute",
+            position: 'absolute',
             bottom: scaleHeight(62),
             right: scaleWidth(55),
             zIndex: 20,
           }}
         />
         <ICONS.StarFlower
-          fill={"#D5B300"}
+          fill={'#D5B300'}
           style={{
-            position: "absolute",
+            position: 'absolute',
             bottom: scaleHeight(46),
             left: scaleWidth(40),
             zIndex: 20,
@@ -148,7 +171,7 @@ const AssignChild = () => {
         />
         <ICONS.HalfCloud
           style={{
-            position: "absolute",
+            position: 'absolute',
             top: scaleHeight(84),
             left: scaleWidth(40),
           }}
@@ -157,7 +180,7 @@ const AssignChild = () => {
         />
         <ICONS.HalfCloud
           style={{
-            position: "absolute",
+            position: 'absolute',
             top: scaleHeight(57),
             right: scaleWidth(29),
           }}
@@ -170,21 +193,21 @@ const AssignChild = () => {
           {step === 1 && (
             <View className="bg-[#3F9243] border-b-4 border-b-[#FFD700] border-r rounded-[20px] border-r-[#3F9243] border-l-[#3F9243] border-l  p-5 w-full z-10">
               <Text className="text-[18px] font-sansSemiBold text-white leading-[1.3] mb-6">
-                Assign {params?.title}:{" "}
+                Assign {params?.title}:{' '}
                 <Text className="text-[#FFD700]">{params?.seriesTitle}</Text> to
                 Learner
               </Text>
               <View className="rounded-[20px] bg-white w-full p-4">
                 {isLoading ? (
                   <Skeleton
-                    style={{ height: scaleHeight(168), width: "100%" }}
+                    style={{ height: scaleHeight(168), width: '100%' }}
                     className="rounded-[20px]"
                   />
                 ) : (
                   <Image
-                    style={{ height: scaleHeight(168), width: "100%" }}
+                    style={{ height: scaleHeight(168), width: '100%' }}
                     className="rounded-[20px]"
-                    source={{ uri: ensureHttps(data?.image || "") }}
+                    source={{ uri: ensureHttps(data?.image || '') }}
                   />
                 )}
               </View>
@@ -226,7 +249,7 @@ const AssignChild = () => {
               />
 
               <Text className="text-[18px] font-sansSemiBold text-white mt-9 mb-8">
-                {step === 2 ? "Select Learner" : "Choose Assignment Scope"}
+                {step === 2 ? 'Select Learner' : 'Choose Assignment Scope'}
               </Text>
               {step === 2 && (
                 <>
@@ -261,11 +284,11 @@ const AssignChild = () => {
                 <>
                   <Pressable
                     className={twMerge(
-                      "bg-[#FAFDFF] border-[#D3D2D3] border-2 rounded-[20px] p-5 py-6 mb-5",
-                      selectedScope === "entire" &&
-                        "bg-[#CCDBEB] border-[#004D99]",
+                      'bg-[#FAFDFF] border-[#D3D2D3] border-2 rounded-[20px] p-5 py-6 mb-5',
+                      selectedScope === 'entire' &&
+                        'bg-[#CCDBEB] border-[#004D99]',
                     )}
-                    onPress={() => setSelectedScope("entire")}
+                    onPress={onAssignModule}
                   >
                     <View className="flex-row justify-between mb-5">
                       <Image
@@ -277,11 +300,11 @@ const AssignChild = () => {
                         source={IMAGES.BookClosed}
                       />
                       <Checkbox
-                        check={selectedScope === "entire"}
+                        check={selectedScope === 'entire'}
                         rounded
                         backgroundColor="#3F9243"
                         borderColor={
-                          selectedScope === "entire" ? "#3F9243" : "#918E91"
+                          selectedScope === 'entire' ? '#3F9243' : '#918E91'
                         }
                       />
                     </View>
@@ -295,11 +318,11 @@ const AssignChild = () => {
                     </Text>
                   </Pressable>
                   <Pressable
-                    onPress={() => setSelectedScope("some")}
+                    onPress={() => setSelectedScope('some')}
                     className={twMerge(
-                      "bg-[#FAFDFF] border-[#D3D2D3] border-2 rounded-[20px] p-5 py-6",
-                      selectedScope === "some" &&
-                        "bg-[#CCDBEB] border-[#004D99]",
+                      'bg-[#FAFDFF] border-[#D3D2D3] border-2 rounded-[20px] p-5 py-6',
+                      selectedScope === 'some' &&
+                        'bg-[#CCDBEB] border-[#004D99]',
                     )}
                   >
                     <View className="flex-row justify-between mb-5">
@@ -312,11 +335,11 @@ const AssignChild = () => {
                         source={IMAGES.BookOpened}
                       />
                       <Checkbox
-                        check={selectedScope === "some"}
+                        check={selectedScope === 'some'}
                         rounded
                         backgroundColor="#3F9243"
                         borderColor={
-                          selectedScope === "some" ? "#3F9243" : "#918E91"
+                          selectedScope === 'some' ? '#3F9243' : '#918E91'
                         }
                       />
                     </View>
@@ -327,7 +350,7 @@ const AssignChild = () => {
                       Choose specific chapters from this series to assign. Great
                       if you want to focus on certain topics first.
                     </Text>
-                    {selectedScope === "some" && (
+                    {selectedScope === 'some' && (
                       <View className="bg-white p-6 rounded-[8px] mt-4">
                         {data?.chapters?.map((c) => (
                           <Pressable
@@ -372,7 +395,7 @@ const AssignChild = () => {
                 loading={loading}
                 onPress={handlePress}
                 className="flex-1"
-                text={step === 3 ? "ASSIGN" : "NEXT"}
+                text={step === 3 ? 'ASSIGN' : 'NEXT'}
               />
             </View>
           )}

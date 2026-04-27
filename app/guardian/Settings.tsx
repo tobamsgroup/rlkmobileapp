@@ -21,27 +21,27 @@ const Settings = () => {
             text="Subscription"
           />
           <Button
-            onPress={() => router.push('/kid/VoiceStyleSettings')}
+            onPress={() => router.push('/guardian/ChangePassword')}
             className="border-[#C3E4C5] bg-white border mb-5"
             textClassname="text-dark text-[16px]"
             text="Password"
           />
           <Button
-            onPress={() => router.push('/kid/AccentSettings')}
+            // onPress={() => router.push('/kid/AccentSettings')}
             className="border-[#C3E4C5] bg-white border mb-5"
             textClassname="text-dark text-[16px]"
             text="Notifications"
           />
           <Button
-            onPress={() => router.push('/kid/VoiceStyleSettings')}
+            // onPress={() => router.push('/kid/VoiceStyleSettings')}
             className="border-[#C3E4C5] bg-white border mb-5"
             textClassname="text-dark text-[16px]"
             text="Help & Support"
           />
           <Button
-            onPress={() => router.push('/kid/ReadingSettings')}
-            className="border-[#C3E4C5] bg-white border"
-            textClassname="text-dark text-[16px]"
+            onPress={() => router.push('/guardian/AccountDeletion')}
+            className="border-[#C3E4C5] bg-white border-none border-b-0"
+            textClassname="text-[#DE2121] text-[16px]"
             text="Delete Account"
           />
 

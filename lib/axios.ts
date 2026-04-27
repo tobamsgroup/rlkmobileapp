@@ -1,8 +1,11 @@
+import { logout } from "@/redux/authSlice";
+import store from "@/redux/store";
 import { GuardianLoginSession, KidLoginSession } from "@/types";
-import axiosInstance from "axios";
-import { getData, removeData, storeData } from "./storage";
+import { showToast } from "@/utils/toast";
+import axiosLib, { AxiosError } from "axios";
+import { getData, removeData } from "./storage";
 
-const axios = axiosInstance.create({
+const axios = axiosLib.create({
   baseURL: "https://rl4kids-be.onrender.com/api/v1",
   // baseURL: "http://10.252.250.22:5500/api/v1",
   // baseURL: "http://localhost:5500/api/v1",
@@ -11,92 +14,58 @@ const axios = axiosInstance.create({
   },
 });
 
+const getJWTExpiry = (token: string): number | null => {
+  try {
+    const payload = token.split(".")[1];
+    const base64 = payload.replace(/-/g, "+").replace(/_/g, "/");
+    const padded = base64 + "=".repeat((4 - (base64.length % 4)) % 4);
+    const decoded = JSON.parse(atob(padded));
+    return typeof decoded.exp === "number" ? decoded.exp : null;
+  } catch {
+    return null;
+  }
+};
+
+let isHandlingExpiry = false;
+
+const handleSessionExpired = async () => {
+  if (isHandlingExpiry) return;
+  isHandlingExpiry = true;
+  try {
+    await removeData("user");
+    store.dispatch(logout());
+    showToast("error", "Your session has expired. Please log in again.");
+  } finally {
+    setTimeout(() => {
+      isHandlingExpiry = false;
+    }, 3000);
+  }
+};
+
 axios.interceptors.request.use(async (config) => {
   const user = await getData<GuardianLoginSession | KidLoginSession>("user");
 
   if (user?.accessToken) {
+    const exp = getJWTExpiry(user.accessToken);
+    if (exp !== null && Date.now() / 1000 >= exp) {
+      await handleSessionExpired();
+      return Promise.reject(new AxiosError("Session expired"));
+    }
     config.headers.Authorization = `Bearer ${user.accessToken}`;
   }
 
   return config;
 });
 
-// let isRefreshing = false;
-// let failedQueue: {
-//   resolve: (token: string) => void;
-//   reject: (error: any) => void;
-// }[] = [];
+axios.interceptors.response.use(
+  (response) => response,
+  async (error) => {
+    const wasAuthenticated = !!error.config?.headers?.Authorization;
+    if (error.response?.status === 401 && wasAuthenticated) {
+      await handleSessionExpired();
+    }
+    return Promise.reject(error);
+  }
+);
 
-// const processQueue = (error: any, token: string | null = null) => {
-//   failedQueue.forEach(({ resolve, reject }) => {
-//     if (error) {
-//       reject(error);
-//     } else if (token) {
-//       resolve(token);
-//     }
-//   });
-
-//   failedQueue = [];
-// };
-
-// axios.interceptors.response.use(
-//   (response) => response,
-//   async (error) => {
-//     const originalRequest = error.config;
-
-//     if (error.response?.status === 401 && !originalRequest._retry) {
-//       const user = await getData<GuardianLoginSession | KidLoginSession>("user");
-//       originalRequest._retry = true;
-
-//       if (isRefreshing) {
-//         return new Promise((resolve, reject) => {
-//           failedQueue.push({
-//             resolve: (token: string) => {
-//               originalRequest.headers["Authorization"] = `Bearer ${token}`;
-//               resolve(axios(originalRequest));
-//             },
-//             reject: (err: any) => reject(err),
-//           });
-//         });
-//       }
-
-//       isRefreshing = true;
-
-//       try {
-//         const response = await axiosInstance.post(
-//           "https://rl4kids-be.onrender.com/api/v1/auth/refresh-token",
-//           { refreshToken: user?.refreshToken }
-//         );
-
-//         const newAccessToken = response.data?.data.accessToken;
-//         const userData = await getData<GuardianLoginSession | KidLoginSession>(
-//           "user"
-//         );
-//          await storeData("user", {
-//           ...userData,
-//           accessToken: newAccessToken,
-//         });
-
-//         if (originalRequest.headers) {
-//           originalRequest.headers["Authorization"] = `Bearer ${newAccessToken}`;
-//         }
-//         axios.defaults.headers.common["Authorization"] =
-//           `Bearer ${newAccessToken}`;
-
-//         processQueue(null, newAccessToken);
-//         return axios(originalRequest);
-//       } catch (refreshError: any) {
-//         if (refreshError?.status === 401) {
-//           await removeData('user')
-//         }
-//         processQueue(refreshError, null);
-//         return Promise.reject(refreshError);
-//       } finally {
-//         isRefreshing = false;
-//       }
-//     }
-
-//     return Promise.reject(error);
-//   }
-// );
 export default axios;

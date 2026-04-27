@@ -1,9 +1,15 @@
+import { SubscriptionData, SubscriptionPlan } from "@/actions/subscription";
 
 export enum Role {
   TEACHER = "Teacher",
   PARENT = "Parent",
   KID = "Kid",
 }
+
+export type DeletionWarning = {
+  scheduledAt: string;
+  reason: string | null;
+};
 
 export type GuardianLoginSession = {
   _id: string;
@@ -19,6 +25,7 @@ export type GuardianLoginSession = {
   expiresIn: string;
   firstName?: string;
   lastName?: string;
+  deletionWarning?: DeletionWarning;
 };
 
 export type GuardianProfileProps = {
@@ -31,6 +38,10 @@ export type GuardianProfileProps = {
   totalKids: number;
   activeTrackCount: number;
   createdAt: string;
+  numOfBooks:number
+  subscription:SubscriptionData
+  isScheduledForDeletion:boolean
+  deletionScheduledAt:string
 };
 
 export type KidLoginSession = {
