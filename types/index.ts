@@ -38,10 +38,11 @@ export type GuardianProfileProps = {
   totalKids: number;
   activeTrackCount: number;
   createdAt: string;
-  numOfBooks:number
-  subscription:SubscriptionData
-  isScheduledForDeletion:boolean
-  deletionScheduledAt:string
+  numOfBooks: number;
+  subscription: SubscriptionData;
+  isScheduledForDeletion: boolean;
+  deletionScheduledAt: string;
+  deletionReason: string | null;
 };
 
 export type KidLoginSession = {
@@ -387,13 +388,17 @@ export type KidPRofile = {
   preferredLearningTopics?: string[];
   mood?: string;
   lastLogin: Date;
-  gender?:string;
+  gender?: string;
   guardianId: string;
   picture?: string;
   earnedBadges: KidBadges[];
   totalXp?: number;
   createdAt?: Date;
   updatedAt?: Date;
+  guardianSubscription?: {
+    plan: string | null;
+    currentPeriodEnd: string | null;
+  };
 };
 
 export type UpdateKidProfile = {

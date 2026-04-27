@@ -13,10 +13,11 @@ import {
   formatDate,
   getBillingCycle,
 } from '@/constants/subscription';
+import { getSubscriptionDaysRemaining } from '@/utils';
 import { useQuery } from '@tanstack/react-query';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   Linking,
@@ -45,6 +46,7 @@ const Subscription = () => {
   const [upsellDismissed, setUpsellDismissed] = useState(false);
   const [receiptUrl, setReceiptUrl] = useState<string | null>(null);
   const [webViewLoading, setWebViewLoading] = useState(true);
+  const [subStatus, setStatus] = useState('active');
 
   const { data: subscription, isLoading } = useQuery({
     queryKey: ['subscription'],
@@ -70,9 +72,21 @@ const Subscription = () => {
   const plan = subscription?.plan ?? 'free';
   const planDetail = PLAN_DETAILS[plan];
   const status = subscription?.status ?? 'active';
-  const statusStyle = STATUS_LABEL[status] ?? STATUS_LABEL.active;
+  const statusStyle = STATUS_LABEL[subStatus] ?? STATUS_LABEL.active;
   const isFreePlan = plan === 'free';
   const isPaidPlan = !isFreePlan;
+
+  useEffect(() => {
+    if (subscription?.cancelAtPeriodEnd) {
+      setStatus('cancelled');
+    } else if (
+      getSubscriptionDaysRemaining(subscription?.currentPeriodEnd) < 1
+    ) {
+      setStatus('expired');
+    } else {
+      setStatus(subscription?.status || 'active');
+    }
+  }, [subscription]);
 
   if (isLoading) {
     return (
@@ -142,7 +156,7 @@ const Subscription = () => {
           <View className="border-t border-[#D3D2D366] my-6" />
           <Button
             onPress={() => router.push('/guardian/ChoosePlan')}
-            text={'CHANGE PLAN'}
+            text={`${subStatus === 'cancelled' ? 'REACTIVATE' : subStatus === 'expired' ? 'ACTIVATE' : 'CHANGE'} PLAN`}
           />
         </View>
 
@@ -191,12 +205,18 @@ const Subscription = () => {
                 </Text>
               )}
             </Pressable> */}
-              <Text
-                onPress={() => setOpenCancellation(true)}
-                className="text-[16px] font-sansMedium text-[#DE2121] leading-[1.5] mt-4"
-              >
-                CANCEL SUBSCRIPTION
-              </Text>
+              {subStatus === 'cancelled' ? (
+                <Text className="text-[16px] font-sansMedium text-[#DE2121] leading-[1.5] mt-4">
+                  CANCELS {formatDate(subscription?.currentPeriodEnd)}
+                </Text>
+              ) : (
+                <Text
+                  onPress={() => setOpenCancellation(true)}
+                  className="text-[16px] font-sansMedium text-[#DE2121] leading-[1.5] mt-4"
+                >
+                  CANCEL SUBSCRIPTION
+                </Text>
+              )}
             </>
           )}
         </View>

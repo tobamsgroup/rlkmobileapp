@@ -102,7 +102,7 @@ const HomeKid = () => {
             }}
           />
           <Text className="text-[#FAFDFF] text-[16px] font-sansMedium leading-[1.5]">
-            Let’s Keep Learning{'\n'}and Having Fun!
+            Let's Keep Learning{'\n'}and Having Fun!
           </Text>
           <Button
           onPress={() => router.push('/kid/AIPopup')}

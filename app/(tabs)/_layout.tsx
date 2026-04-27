@@ -1,26 +1,46 @@
 import { Tabs, Redirect } from "expo-router";
 import React from "react";
 
+import { handleLogout } from "@/actions/logout";
 import { ICONS } from "@/assets/icons";
+import Button from "@/components/Button";
 import { Colors } from "@/constants/theme";
 import { useColorScheme } from "@/hooks/use-color-scheme";
-import { useAppSelector } from "@/hooks/redux";
-import { GuardianLoginSession } from "@/types";
+import { useAppDispatch, useAppSelector } from "@/hooks/redux";
+import useKidProfile from "@/hooks/useKidProfile";
+import { GuardianLoginSession, KidLoginSession } from "@/types";
 import { SCREEN_WIDTH } from "@/utils/scale";
 import { Text, View } from "react-native";
+import Modal from "react-native-modal";
 import { twMerge } from "tailwind-merge";
+
+const isSubscriptionExpired = (currentPeriodEnd: string | null | undefined) => {
+  if (!currentPeriodEnd) return true;
+  return new Date(currentPeriodEnd) < new Date();
+};
 
 export default function TabLayout() {
   const colorScheme = useColorScheme();
+  const dispatch = useAppDispatch();
   const { user, isLoggedIn } = useAppSelector((state) => state.auth);
+
+  const isKid = (user  as unknown as  KidLoginSession)?.role?.toLowerCase() === "kid";
+  const { data: kidProfile, isLoading: isLoadingKidProfile } = useKidProfile();
 
   if (!isLoggedIn) return null;
 
-  if ((user as GuardianLoginSession)?.deletionWarning) {
+  if ((user as unknown as GuardianLoginSession)?.deletionWarning) {
     return <Redirect href="/guardian/RestoreAccount" />;
   }
 
+  const subscriptionExpired =
+    isKid &&
+    !isLoadingKidProfile &&
+    isSubscriptionExpired(kidProfile?.guardianSubscription?.currentPeriodEnd);
+
   return (
+    <>
+    
     <Tabs
       screenOptions={{
         tabBarActiveTintColor: Colors[colorScheme ?? "light"].tint,
@@ -259,5 +279,27 @@ export default function TabLayout() {
         />
       </Tabs.Protected>
     </Tabs>
+
+      <Modal isVisible={subscriptionExpired} backdropOpacity={0.85}>
+        <View className="bg-[#FAFDFF] p-6 rounded-[20px] items-center">
+          <View className="w-20 h-20 rounded-full bg-[#FFF3E0] items-center justify-center">
+            <ICONS.ExclamationCircle strokeWidth={1} stroke="#E65100" width={36} height={36} />
+          </View>
+          <Text className="text-[20px] font-sansSemiBold text-dark text-center mt-6">
+            Learning Paused
+          </Text>
+          <Text className="text-center font-sans text-[#474348] leading-[1.5] mt-4">
+            Your parent's subscription has ended. Ask your parent to renew it so
+            you can continue your learning journey!
+          </Text>
+          <Button
+            onPress={() => handleLogout(dispatch)}
+            className="w-full mt-8 bg-primary border-none border-b-0"
+            textClassname="text-white"
+            text="LOG OUT"
+          />
+        </View>
+      </Modal>
+    </>
   );
 }

@@ -58,3 +58,12 @@ export const getBillingHistory = async (): Promise<BillingInvoice[]> => {
   const res = await axios.get('/subscription/billing-history');
   return res.data?.data ?? [];
 };
+
+export const cancelSubscription = async (reason?: string): Promise<{ currentPeriodEnd: string }> => {
+  const res = await axios.delete('/subscription/me', { data: { reason } });
+  return res.data?.data;
+};
+
+export const reactivateSubscription = async (): Promise<void> => {
+  await axios.post('/subscription/me/reactivate');
+};
