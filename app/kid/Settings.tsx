@@ -18,19 +18,25 @@ const Settings = () => {
             onPress={() => router.push('/kid/AccentSettings')}
             className="border-[#C3E4C5] bg-white border mb-5"
             textClassname="text-dark text-[16px]"
-            text="Accent Settings"
+            text="Accent"
           />
           <Button
             onPress={() => router.push('/kid/VoiceStyleSettings')}
             className="border-[#C3E4C5] bg-white border mb-5"
             textClassname="text-dark text-[16px]"
-            text="Voice Style Settings"
+            text="Voice Style"
+          />
+          <Button
+            onPress={() => router.push('/kid/NotificationSettings')}
+            className="border-[#C3E4C5] bg-white border mb-5"
+            textClassname="text-dark text-[16px]"
+            text="Notification"
           />
           <Button
             onPress={() => router.push('/kid/ReadingSettings')}
             className="border-[#C3E4C5] bg-white border"
             textClassname="text-dark text-[16px]"
-            text="Reading Settings"
+            text="Reading"
           />
         </View>
       </View>

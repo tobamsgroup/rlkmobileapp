@@ -66,7 +66,6 @@ export default function HomeScreen() {
     router.push('/guardian/AddLearner');
   };
 
-  console.log({data})
   return (
     <>
       <Container edges={['top']} scrollable backgroundColor="#DBEFDC">

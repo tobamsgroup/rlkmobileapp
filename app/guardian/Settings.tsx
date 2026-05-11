@@ -3,7 +3,7 @@ import Container from '@/components/Container';
 import TopBackButton from '@/components/TopBackButton';
 import { router } from 'expo-router';
 import React from 'react';
-import { Text, View } from 'react-native';
+import { Linking, Text, View } from 'react-native';
 
 const Settings = () => {
   return (
@@ -27,13 +27,13 @@ const Settings = () => {
             text="Password"
           />
           <Button
-            // onPress={() => router.push('/kid/AccentSettings')}
+            onPress={() => router.push('/guardian/NotificationSettings')}
             className="border-[#C3E4C5] bg-white border mb-5"
             textClassname="text-dark text-[16px]"
             text="Notifications"
           />
           <Button
-            // onPress={() => router.push('/kid/VoiceStyleSettings')}
+            onPress={() => Linking.openURL('https://rlkids.ai/faqs')}
             className="border-[#C3E4C5] bg-white border mb-5"
             textClassname="text-dark text-[16px]"
             text="Help & Support"

@@ -106,7 +106,6 @@ const AssignChild = () => {
           : selectedModule?.map((s) => s.id),
     };
 
-    console.log({payload})
 
     setLoading(true);
     try {
