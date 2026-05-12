@@ -71,10 +71,10 @@ export default function Learners() {
   }, [groupedData, search]);
 
   const onAddKids = () => {
-    if ((guardian?.totalKids || 0) > 1) {
-      setOpenLock(true);
-      return;
-    }
+    // if ((guardian?.totalKids || 0) > 1) {
+    //   setOpenLock(true);
+    //   return;
+    // }
 
     router.push('/guardian/AddLearner');
   };

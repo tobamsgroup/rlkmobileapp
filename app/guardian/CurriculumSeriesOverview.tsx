@@ -200,7 +200,7 @@ const CurriculumSeriesOverview = () => {
             {!isLoading && (
               <>
                 {volumeData?.map((s) => (
-                  <SeriesOverviewCard key={s.index} {...s} canAssign={canAssignSeries} onOpenLock={() => setOpenLock(true)} />
+                  <SeriesOverviewCard key={s.index} {...s} canAssign={true} onOpenLock={() => setOpenLock(true)} />
                 ))}
               </>
             )}

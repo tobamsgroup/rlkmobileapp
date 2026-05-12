@@ -1,9 +1,9 @@
-import { SubscriptionData, SubscriptionPlan } from "@/actions/subscription";
+import { SubscriptionData } from '@/actions/subscription';
 
 export enum Role {
-  TEACHER = "Teacher",
-  PARENT = "Parent",
-  KID = "Kid",
+  TEACHER = 'Teacher',
+  PARENT = 'Parent',
+  KID = 'Kid',
 }
 
 export type DeletionWarning = {
@@ -40,6 +40,14 @@ export type GuardianProfileProps = {
   createdAt: string;
   numOfBooks: number;
   subscription: SubscriptionData;
+  subscribedKids: {
+    _id: string;
+    username: string;
+    name: string;
+    gender: string;
+    age: number;
+    picture: string;
+  }[];
   isScheduledForDeletion: boolean;
   deletionScheduledAt: string;
   deletionReason: string | null;
@@ -63,11 +71,10 @@ export type KidLoginSession = {
   expiresIn: string;
 };
 
-
-export type  IAvatar = {
+export type IAvatar = {
   id: string;
   url: string;
-}
+};
 
 export type Iconprops = {
   color?: string;
@@ -168,7 +175,7 @@ export type LearningOverviewResponse = {
     age: number;
     picture: string;
     id: string;
-    gender:string
+    gender: string;
   };
   thisWeek: {
     lastLogin: string | null;
@@ -181,10 +188,10 @@ export type LearningOverviewResponse = {
 };
 
 export type NotificationType =
-  | "feedback_received"
-  | "new_message"
-  | "assignment_due"
-  | "course_completed";
+  | 'feedback_received'
+  | 'new_message'
+  | 'assignment_due'
+  | 'course_completed';
 
 export type NotificationMetadata = {
   achievementId?: string;
@@ -255,7 +262,7 @@ export interface KidLearningOverview {
   assignmentsCompleted: number;
   totalLearningHours: number;
   progressPercentage: number;
-  status: "not started" | "in progress" | "completed"; // add more if needed
+  status: 'not started' | 'in progress' | 'completed'; // add more if needed
   completedAt: string | null;
   completedAssignments: any[]; // update type if you have assignment details
   badgesUnlocked: any[]; // update type if you have badge details
@@ -274,7 +281,7 @@ export interface Book {
 
 export interface AssignedSeries {
   progress: number;
-  status: "not started" | "in progress" | "completed"; // adjust if needed
+  status: 'not started' | 'in progress' | 'completed'; // adjust if needed
   completedAt: string | null;
   seriesId: Series;
   assignedAt: string;
@@ -298,14 +305,13 @@ export interface Series {
 
 export interface AssignedChapter {
   progress: number;
-  status: "not started" | "in progress" | "completed";
+  status: 'not started' | 'in progress' | 'completed';
   completedAt: string | null;
   chapterId: Chapter;
   completedLessons: string[];
   assignedAt: string;
   currentPageIndex: number;
   currentPLIndex: number;
- 
 }
 
 export interface Chapter {
@@ -316,7 +322,7 @@ export interface Chapter {
   lessons: Lesson[];
   createdAt: string;
   updatedAt: string;
-   pages: ChapterPage[]
+  pages: ChapterPage[];
 }
 export interface Lesson {
   chapterId: string;
@@ -346,7 +352,7 @@ export interface PageParagraph {
   content: string;
   image: string;
   template: string;
-  headerFont: "Big" | "Small";
+  headerFont: 'Big' | 'Small';
   listPointStyle?: string;
   list: {
     title: string;
@@ -419,7 +425,7 @@ export type UpdateKidProfile = {
 };
 
 export type QuizResult = {
-  quizType: "mid" | "end";
+  quizType: 'mid' | 'end';
   score: number;
   totalScore: number;
   attempts: number;
@@ -427,8 +433,8 @@ export type QuizResult = {
   xpEarned?: number;
 };
 
-export type Difficulty = "easy" | "medium" | "hard";
-export type QuestionType = "mcq" | "fill-in-the-blank";
+export type Difficulty = 'easy' | 'medium' | 'hard';
+export type QuestionType = 'mcq' | 'fill-in-the-blank';
 
 export interface QuizVariation {
   difficulty: Difficulty;
@@ -459,7 +465,7 @@ export interface ScenarioQuizQuestion {
       B: string;
       C: string;
     };
-    answer: keyof ScenarioQuizQuestion["multipleChoice"][number]["options"];
+    answer: keyof ScenarioQuizQuestion['multipleChoice'][number]['options'];
     feedback: {
       correct: string;
       incorrect: string;
@@ -498,9 +504,8 @@ export interface Badge {
   description: string;
   type: string;
   category: string;
-  subcategory:string;
+  subcategory: string;
   imageUrl: string;
-  earned?:boolean
-  index:number | null
+  earned?: boolean;
+  index: number | null;
 }
-

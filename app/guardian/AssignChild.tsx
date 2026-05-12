@@ -14,7 +14,9 @@ import KidSelectionCard, {
 } from '@/components/Curriculum/KidSelectionCard';
 import Skeleton from '@/components/Skeleton';
 import Stepper from '@/components/Stepper';
+import TrialLockModal from '@/components/Subscription/TrialLockModal';
 import TopBackButton from '@/components/TopBackButton';
+import useGuardian from '@/hooks/useGuardianProfile';
 import { useSubscription } from '@/hooks/useSubscription';
 import { BookMeta } from '@/types';
 import { ensureHttps } from '@/utils';
@@ -39,6 +41,7 @@ const AssignChild = () => {
     { id: string; title: string; index: number }[]
   >([]);
   const [loading, setLoading] = useState(false);
+  const [openLock, setOpenLock] = useState(false);
   const { data: subscription, isLoading: isLoadingSubscription } =
     useSubscription();
   const { data, isLoading } = useQuery({
@@ -61,8 +64,32 @@ const AssignChild = () => {
     },
   });
 
+  const { data: guardian } = useGuardian();
+
   const handlePress = async () => {
+    if (selectedKids?.length > 1 && selectedScope === 'entire' && step === 3) {
+      setOpenLock(true);
+      return;
+    }
+
+    //look for kids that are not subscribed
+    const unsubscribedKids = selectedKids?.filter(
+      (kid) => !guardian?.subscribedKids?.find((s) => s._id === kid.id),
+    );
+
     if (step === 3) {
+      if (selectedScope === 'entire' && unsubscribedKids?.length > 0) {
+        showToast('error', 'Unable to assign Selected kid is on a free plan');
+        return;
+      }
+      if (
+        selectedScope !== 'entire' &&
+        unsubscribedKids?.length > 0 &&
+        selectedModule?.length > 1
+      ) {
+        showToast('error', 'You can only assign a chapter');
+        return;
+      }
       const assigned = getAlreadyAssignedKidNames(
         selectedKids,
         assignedKids?.[0]?.assignedKids!,
@@ -88,7 +115,7 @@ const AssignChild = () => {
       } else {
         if (subscription?.plan === 'free' && selectedModule?.length > 0) {
           showToast('error', 'Can Only assign a chapter on the free plan');
-          return prev
+          return prev;
         }
         return [...prev, { id, title, index }];
       }
@@ -105,7 +132,6 @@ const AssignChild = () => {
           ? data?.chapters?.map((s) => s._id)!
           : selectedModule?.map((s) => s.id),
     };
-
 
     setLoading(true);
     try {
@@ -400,6 +426,18 @@ const AssignChild = () => {
           )}
         </View>
       </View>
+      <TrialLockModal
+        title={`Unable to Assign Entire Series to ${selectedKids?.length} Children`}
+        desc="Upgrade your account to assign series to child continue your child’s learning journey."
+        open={openLock}
+        onClose={() => setOpenLock(false)}
+        buttonText1="UPGRADE PLAN"
+        buttonText2="MAYBE LATER"
+        onProceed={() => {
+          setOpenLock(false);
+          router?.push('/guardian/ChoosePlan');
+        }}
+      />
     </Container>
   );
 };

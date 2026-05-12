@@ -27,6 +27,7 @@ export default function HomeScreen() {
   const [openLock, setOpenLock] = useState(false);
   const [openTrialEnded, setOpenTrialEnded] = useState(false);
 
+
   const { data: notifications } = useQuery({
     queryKey: ['notifications'],
     queryFn: async () => {
@@ -58,10 +59,10 @@ export default function HomeScreen() {
       return;
     }
 
-    if ((data?.totalKids || 0) > 1) {
-      setOpenLock(true);
-      return;
-    }
+    // if ((data?.totalKids || 0) > 1) {
+    //   setOpenLock(true);
+    //   return;
+    // }
 
     router.push('/guardian/AddLearner');
   };
