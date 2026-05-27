@@ -44,7 +44,7 @@ const KidLearningCard = (props: ChapterProps) => {
       </View>
       <View className=" rounded-full py-1.5 flex-row items-center gap-2.5 mb-4 bg-[#D3D2D333] px-3">
         <Text className="font-sans text-dark capitalize">
-          {extractNameWithoutJpg(props?.bookImage)}
+          {props?.bookImage?.toLowerCase()?.includes("think") ? extractNameWithoutJpg(props?.bookImage) : "Think AI"}
         </Text>
       </View>
       <Text className="text-[18px] font-sansMedium mb-2">
@@ -54,7 +54,7 @@ const KidLearningCard = (props: ChapterProps) => {
         <View className="w-[85%]">
           <ProgressBar percent={Number(progress) || 0} height={10} />
         </View>
-        <Text>{progress || 0}%</Text>
+        <Text>{Number(progress) || 0}%</Text>
       </View>
 
       <Button

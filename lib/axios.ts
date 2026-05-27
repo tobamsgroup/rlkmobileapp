@@ -6,9 +6,9 @@ import axiosLib, { AxiosError } from "axios";
 import { getData, removeData } from "./storage";
 
 const axios = axiosLib.create({
-  baseURL: "https://rl4kids-be.onrender.com/api/v1",
+  // baseURL: "https://rl4kids-be.onrender.com/api/v1",
   // baseURL: "http://10.252.250.22:5500/api/v1",
-  // baseURL: "http://localhost:5500/api/v1",
+  baseURL: "http://localhost:5500/api/v1",
   headers: {
     "Content-Type": "application/json",
   },
@@ -44,6 +44,8 @@ const handleSessionExpired = async () => {
 
 axios.interceptors.request.use(async (config) => {
   const user = await getData<GuardianLoginSession | KidLoginSession>("user");
+
+  console.log(user?.accessToken)
 
   if (user?.accessToken) {
     const exp = getJWTExpiry(user.accessToken);

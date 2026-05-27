@@ -17,6 +17,7 @@ import Stepper from '@/components/Stepper';
 import TrialLockModal from '@/components/Subscription/TrialLockModal';
 import TopBackButton from '@/components/TopBackButton';
 import useGuardian from '@/hooks/useGuardianProfile';
+import useSeriesChapterPages from '@/hooks/useSeriesChapterPages';
 import { useSubscription } from '@/hooks/useSubscription';
 import { BookMeta } from '@/types';
 import { ensureHttps } from '@/utils';
@@ -26,7 +27,7 @@ import { scaleHeight, scaleWidth } from '@/utils/scale';
 import { showToast } from '@/utils/toast';
 import { useQuery } from '@tanstack/react-query';
 import { router, useLocalSearchParams } from 'expo-router';
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { FlatList, Image, Pressable, Text, View } from 'react-native';
 import { twMerge } from 'tailwind-merge';
 
@@ -63,6 +64,15 @@ const AssignChild = () => {
       return await getKidAssignedToSeries(params?.id as string);
     },
   });
+
+    const { data: allSeriesPages, isLoading: isLoadingSeriesPage } =
+    useSeriesChapterPages(params?.id! as string);
+
+    const allPagesEmpty = useMemo(() => {
+      if (!allSeriesPages) return true;
+      return allSeriesPages.every((s) => s.pages?.length === 0);
+    }, [allSeriesPages]);
+
 
   const { data: guardian } = useGuardian();
 
@@ -123,6 +133,10 @@ const AssignChild = () => {
   };
 
   const onSubmit = async () => {
+    if(allPagesEmpty){
+      showToast('error', 'This series is still being uploaded. Please try again later.');
+      return;
+    }
     const payload = {
       kidIds: selectedKids?.map((s) => s.id),
       bookId: (data?.bookId as BookMeta)?._id!,
@@ -144,8 +158,8 @@ const AssignChild = () => {
       invalidateQueries(`series-volume`);
       invalidateQueries('kids-volume');
       invalidateQueries('activities');
-    } catch (error) {
-      showToast('error', 'An error occured, Try again!');
+    } catch (error:any) {
+      showToast('error', error?.response?.data?.message || 'An error occurred. Please try again.');
       HAPTIC.error();
       console.log({ error });
     }

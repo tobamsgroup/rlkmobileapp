@@ -17,6 +17,7 @@ export default function Curriculum() {
     },
   });
 
+
   return (
     <Container scrollable edges={['top']}>
       <View className="px-6 py-5 relative z-20">

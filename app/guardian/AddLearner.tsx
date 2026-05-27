@@ -164,6 +164,7 @@ const AddLearner = ({
               wrapperClassname="mb-6"
               label="Preferred Topic"
               options={[
+                'Think AI',
                 'Think Sustainability',
                 'Think Entrepreneurship',
                 'Think Leadership',

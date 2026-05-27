@@ -88,6 +88,7 @@ export const getAllKids = cache(async (): Promise<IGuardianKids[]> => {
 export const assignKidsToCourse = async (data: CourseAssignProps) => {
   const user = await getData<GuardianLoginSession>('user');
   const payload = { ...data, guardianId: user?._id };
+  console.log({payload})
   await axios.post('/kid/course/assign', payload);
 };
 

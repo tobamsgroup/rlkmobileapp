@@ -37,6 +37,8 @@ const CurriculumSeriesOverview = () => {
     },
   });
 
+  console.log({data})
+
   useEffect(() => {
     if (!data?.volumeStats) return;
 

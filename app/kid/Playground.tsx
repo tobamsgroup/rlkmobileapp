@@ -37,6 +37,7 @@ import { PieChart } from 'react-native-gifted-charts';
 import { twMerge } from 'tailwind-merge';
 import Activity from './Activity';
 import CurriculumBar from './CurriculumBar';
+import { showToast } from '@/utils/toast';
 
 const Playground = () => {
   const { book, series, chapterId, lessonId, mode, page } =
@@ -460,7 +461,8 @@ const Playground = () => {
           <View className=" bg-[#DBEFDC] p-6">
             <Pressable
               onPress={() => {
-                handleParams([['mode', mode === 'read' ? 'play' : 'read']]);
+                // handleParams([['mode', mode === 'read' ? 'play' : 'read']]);
+                showToast('error', 'Play and Learn not available yet');
               }}
               className="relative flex-row items-center gap-2 py-2 px-3"
             >
