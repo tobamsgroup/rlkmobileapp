@@ -1,15 +1,14 @@
+import { SvgXml, XmlProps } from 'react-native-svg';
 
-
-import { SvgXml, XmlProps } from "react-native-svg";
-
-export default (props: Omit<XmlProps, "xml">) => {
+export default (props: Omit<XmlProps, 'xml'>) => {
+  const fillColor = props?.fill || 'white';
   const xml = `<svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
 <g clip-path="url(#clip0_5642_4148)">
-<path d="M14.25 9.75H9.75V14.25H8.25V9.75H3.75V8.25H8.25V3.75H9.75V8.25H14.25V9.75Z" fill="white"/>
+<path d="M14.25 9.75H9.75V14.25H8.25V9.75H3.75V8.25H8.25V3.75H9.75V8.25H14.25V9.75Z" fill=${String(fillColor)}/>
 </g>
 <defs>
 <clipPath id="clip0_5642_4148">
-<rect width="18" height="18" fill="white"/>
+<rect width="18" height="18" fill=${String(fillColor)}/>
 </clipPath>
 </defs>
 </svg>

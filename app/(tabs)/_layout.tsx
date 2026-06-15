@@ -279,7 +279,7 @@ export default function TabLayout() {
         />
       </Tabs.Protected>
     </Tabs>
-
+{/* 
       <Modal isVisible={subscriptionExpired} backdropOpacity={0.85}>
         <View className="bg-[#FAFDFF] p-6 rounded-[20px] items-center">
           <View className="w-20 h-20 rounded-full bg-[#FFF3E0] items-center justify-center">
@@ -299,7 +299,7 @@ export default function TabLayout() {
             text="LOG OUT"
           />
         </View>
-      </Modal>
+      </Modal> */}
     </>
   );
 }

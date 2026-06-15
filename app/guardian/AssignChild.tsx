@@ -84,7 +84,7 @@ const AssignChild = () => {
 
     //look for kids that are not subscribed
     const unsubscribedKids = selectedKids?.filter(
-      (kid) => !guardian?.subscribedKids?.find((s) => s._id === kid.id),
+      (kid) => kids?.find((s) => s._id === kid.id && s.subscription?.plan?.toLowerCase() === 'free'),
     );
 
     if (step === 3) {
@@ -131,6 +131,8 @@ const AssignChild = () => {
       }
     });
   };
+
+  console.log({kids})
 
   const onSubmit = async () => {
     if(allPagesEmpty){

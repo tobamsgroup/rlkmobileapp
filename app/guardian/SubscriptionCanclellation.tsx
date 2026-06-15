@@ -1,11 +1,11 @@
-import { cancelSubscription } from '@/actions/subscription';
+import { cancelKidSubscription } from '@/actions/subscription';
 import Button from '@/components/Button';
 import Container from '@/components/Container';
 import CustomizedAlert from '@/components/CustomizedAlert';
 import TopBackButton from '@/components/TopBackButton';
 import { showToast } from '@/utils/toast';
 import { useMutation } from '@tanstack/react-query';
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import React, { useState } from 'react';
 import { Pressable, Text, TextInput, View } from 'react-native';
 import { twMerge } from 'tailwind-merge';
@@ -23,9 +23,11 @@ const SubscriptionCanclellation = () => {
   const [customReason, setCustomReason] = useState('');
   const [openModal, setOpenModal] = useState(false);
   const [periodEnd, setPeriodEnd] = useState('');
+  const params = useLocalSearchParams();
 
   const { mutate, isPending } = useMutation({
-    mutationFn: (reason?: string) => cancelSubscription(reason),
+    mutationFn: (reason?: string) =>
+      cancelKidSubscription(params.kidId as string, reason),
     onSuccess: (data) => {
       setPeriodEnd(data?.currentPeriodEnd ?? '');
       setOpenModal(true);
@@ -33,14 +35,18 @@ const SubscriptionCanclellation = () => {
     onError: (err: any) => {
       showToast(
         'error',
-        err?.response?.data?.message ?? 'Failed to cancel subscription. Please try again.',
+        err?.response?.data?.message ??
+          'Failed to cancel subscription. Please try again.',
       );
     },
   });
 
   const handleSubmit = () => {
     if (!selectedReason && !customReason.trim()) {
-      showToast('info', 'Please select or describe a reason before submitting.');
+      showToast(
+        'info',
+        'Please select or describe a reason before submitting.',
+      );
       return;
     }
     const reason = selectedReason
@@ -76,7 +82,9 @@ const SubscriptionCanclellation = () => {
               <View
                 className={twMerge(
                   'w-6 h-6 rounded-full border items-center justify-center',
-                  selectedReason === r ? 'border-[#3F9243]' : 'border-[#3C3C3C]',
+                  selectedReason === r
+                    ? 'border-[#3F9243]'
+                    : 'border-[#3C3C3C]',
                 )}
               >
                 {selectedReason === r && (
@@ -87,15 +95,21 @@ const SubscriptionCanclellation = () => {
             </Pressable>
           ))}
         </View>
-       {selectedReason === 'Other' && <TextInput
-          style={{ shadowColor: '#1671D9', shadowOpacity: 0.4, shadowRadius: 3 }}
-          multiline
-          placeholder="Tell us more (optional)"
-          placeholderTextColor="#918E91"
-          value={customReason}
-          onChangeText={setCustomReason}
-          className="border-[#1671D9] border w-full mt-4 p-6 rounded-[8px] h-[124px] bg-[#FAFDFF]"
-        />}
+        {selectedReason === 'Other' && (
+          <TextInput
+            style={{
+              shadowColor: '#1671D9',
+              shadowOpacity: 0.4,
+              shadowRadius: 3,
+            }}
+            multiline
+            placeholder="Tell us more (optional)"
+            placeholderTextColor="#918E91"
+            value={customReason}
+            onChangeText={setCustomReason}
+            className="border-[#1671D9] border w-full mt-4 p-6 rounded-[8px] h-[124px] bg-[#FAFDFF]"
+          />
+        )}
         <Button
           onPress={handleSubmit}
           loading={isPending}

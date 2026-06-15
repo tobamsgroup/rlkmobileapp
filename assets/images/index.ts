@@ -67,8 +67,10 @@ const BadgeOverlay1 = require('./BadgeOverlay1.png')
 const BadgeOverlay2 = require('./BadgeOverlay2.png')
 const BadgeOverlay3 = require('./BadgeOverlay3.png')
 const DollarCoin = require('./dollar-coin.png')
+const ConstructionRobot = require('./constructionRobot.png')
 
 export const IMAGES = {
+  ConstructionRobot,
   DollarCoin,
   BadgeOverlay1,
   BadgeOverlay2,

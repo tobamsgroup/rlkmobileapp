@@ -100,6 +100,7 @@ export interface IGuardianKids {
   role: string;
   updatedAt: string;
   username: string;
+  subscription: SubscriptionData;
   _id: string;
 }
 
@@ -508,4 +509,39 @@ export interface Badge {
   imageUrl: string;
   earned?: boolean;
   index: number | null;
+}
+
+
+export type Workbook = {
+  _id: string;
+  bookId: string;
+  seriesId: string;
+  seriesName: string;
+  name: string;
+  pdfUrl: string;
+  chapters: WorkbookChapter[];
+  createdAt: string;
+  updatedAt: string;
+};
+
+export interface WorkbookChapter {
+  chapterId: string;
+  chapterName: string;
+  chapterIndex: number;
+  start: number;
+  end: number;
+  pdfUrl: string;
+  workbookName: string;
+  workbookId: string;
+  isAccessible: boolean;
+  isStarted: boolean;
+  isCompleted: boolean;
+}
+
+export interface WorkbookSeries {
+  seriesId: string;
+  seriesName: string;
+  seriesIndex: number;
+  seriesImage: string;
+  chapters: WorkbookChapter[];
 }

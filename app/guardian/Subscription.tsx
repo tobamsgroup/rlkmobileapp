@@ -1,9 +1,11 @@
+import { fetchKids } from '@/actions/learners';
 import {
   createPortalSession,
   getBillingHistory,
   getMySubscription,
 } from '@/actions/subscription';
 import { ICONS } from '@/assets/icons';
+import { IMAGES } from '@/assets/images';
 import Button, { SecondaryButton } from '@/components/Button';
 import Container from '@/components/Container';
 import BillingCard from '@/components/Subscription/BillingCard';
@@ -14,12 +16,14 @@ import {
   getBillingCycle,
 } from '@/constants/subscription';
 import { getSubscriptionDaysRemaining } from '@/utils';
+import { scaleWidth } from '@/utils/scale';
 import { useQuery } from '@tanstack/react-query';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
+  Image,
   Linking,
   Pressable,
   StyleSheet,
@@ -47,16 +51,51 @@ const Subscription = () => {
   const [receiptUrl, setReceiptUrl] = useState<string | null>(null);
   const [webViewLoading, setWebViewLoading] = useState(true);
   const [subStatus, setStatus] = useState('active');
+  const [openRemaining, setOpenRemaining] = useState(false);
+  const [kid, setKid] = useState('');
 
-  const { data: subscription, isLoading } = useQuery({
-    queryKey: ['subscription'],
+  const { data: kidsWithSubs = [], isLoading } = useQuery({
+    queryKey: ['guardian-kids'],
+    queryFn: async () => {
+      return await fetchKids();
+    },
+  });
+
+  // Guardian-level billing info (stripeCustomerId + noOfAllowedChildren)
+  const { data: guardianInfo } = useQuery({
+    queryKey: ['guardian-billing'],
     queryFn: getMySubscription,
   });
 
-  const { data: invoices = [], isLoading: isLoadingBilling } = useQuery({
+  const { data: invoices = [] } = useQuery({
     queryKey: ['billing-history'],
     queryFn: getBillingHistory,
   });
+
+  // Auto-select first kid once data loads
+  useEffect(() => {
+    if (kidsWithSubs.length && !kid) {
+      setKid(kidsWithSubs[0]?._id);
+    }
+  }, [kidsWithSubs]);
+
+  // Selected kid profile + their subscription
+  const selectedKid =
+    kidsWithSubs.find((k) => k._id === kid) ?? kidsWithSubs[0];
+  const subscription = selectedKid?.subscription;
+
+  // Kids available in the dropdown (everyone except the currently selected one)
+  const remainingKids = useMemo(
+    () => kidsWithSubs.filter((k) => k._id !== selectedKid?._id),
+    [kidsWithSubs, selectedKid],
+  );
+
+  // Invoices scoped to the selected kid (null kid = legacy unattributed invoice, show for all)
+  const kidInvoices = useMemo(
+    () =>
+      invoices.filter((inv) => !inv.kid || inv.kid.kidId === selectedKid?._id),
+    [invoices, selectedKid],
+  );
 
   const handleManageBilling = async () => {
     setPortalLoading(true);
@@ -71,7 +110,6 @@ const Subscription = () => {
 
   const plan = subscription?.plan ?? 'free';
   const planDetail = PLAN_DETAILS[plan];
-  const status = subscription?.status ?? 'active';
   const statusStyle = STATUS_LABEL[subStatus] ?? STATUS_LABEL.active;
   const isFreePlan = plan === 'free';
   const isPaidPlan = !isFreePlan;
@@ -100,17 +138,117 @@ const Subscription = () => {
 
   return (
     <Container scrollable edges={['top']}>
-      <View className="px-6 py-5 pb-10">
+      <View className="px-6 py-5 pb-6">
         <TopBackButton />
         <Text className="font-sansSemiBold text-dark text-[20px] mt-4">
           Subscription
         </Text>
         <Text className="mt-2 text-[16px] text-[#6C686C] font-sans leading-[1.5]">
-          Manage your plan and billing details.
+          Manage each learner's plan.
         </Text>
       </View>
 
       <View className="bg-white p-6">
+        <View className="relative">
+          <Pressable
+            onPress={() => setOpenRemaining(!openRemaining)}
+            className="bg-[#FAFDFF] border border-[#C3E4C5] rounded-[20px] mb-5 p-4 flex-row items-center justify-between relative z-10"
+          >
+            <View className="flex-row items-center gap-3">
+              {selectedKid?.picture ? (
+                <Image
+                  style={{ width: scaleWidth(40), height: scaleWidth(40) }}
+                  source={
+                    selectedKid?.picture
+                      ? { uri: selectedKid?.picture }
+                      : IMAGES.KidProfilePlaceholder
+                  }
+                  className="rounded-full border border-[#D5B300]"
+                />
+              ) : (
+                <View
+                  style={{
+                    width: scaleWidth(40),
+                    height: scaleWidth(40),
+                  }}
+                  className="bg-[#D3D2D366] rounded-full items-center justify-center"
+                >
+                  <Text className="uppercase font-sansSemiBold text-dark text-[20px]">
+                    {selectedKid?.name?.split(' ')?.[0]?.[0]}
+                    {selectedKid?.name?.split(' ')?.[1]?.[0]}
+                  </Text>
+                </View>
+              )}
+              <Text className="text-[16px] font-sansMedium text-dark">
+                {selectedKid?.name}
+              </Text>
+            </View>
+            <ICONS.ChevronDown />
+          </Pressable>
+          {openRemaining && (
+            <View className="p-4 rounded-[20px] bg-white absolute top-[70px] w-full z-20 shadow-md">
+              {remainingKids?.map((r) => (
+                <Pressable
+                  key={r._id}
+                  onPress={() => {
+                    setKid(r._id);
+                    setOpenRemaining(false);
+                  }}
+                  className="bg-white rounded-[12px] py-3 flex-row items-center justify-between relative"
+                >
+                  <View className="flex-row items-center gap-3">
+                    {r?.picture ? (
+                      <Image
+                        style={{
+                          width: scaleWidth(40),
+                          height: scaleWidth(40),
+                        }}
+                        source={
+                          r?.picture
+                            ? { uri: r?.picture }
+                            : IMAGES.KidProfilePlaceholder
+                        }
+                        className="rounded-full border border-[#D5B300]"
+                      />
+                    ) : (
+                      <View
+                        style={{
+                          width: scaleWidth(40),
+                          height: scaleWidth(40),
+                        }}
+                        className="bg-[#D3D2D366] rounded-full items-center justify-center"
+                      >
+                        <Text className="uppercase font-sansSemiBold text-dark text-[20px]">
+                          {r?.name?.split(' ')?.[0]?.[0]}
+                          {r?.name?.split(' ')?.[1]?.[0]}
+                        </Text>
+                      </View>
+                    )}
+                    <View className="gap-1">
+                      <Text className="text-[16px] font-sansMedium text-dark">
+                        {r?.name}
+                      </Text>
+                      <Text className=" font-sans text-[#474348]">
+                        {PLAN_DETAILS[r.subscription?.plan ?? 'free']?.name ??
+                          'Free Trial'}
+                      </Text>
+                    </View>
+                  </View>
+                </Pressable>
+              ))}
+            </View>
+          )}
+        </View>
+
+        <View className="border border-[#FFF2AA] bg-[#FEFAEEB2] rounded-[16px] px-4 py-3 flex-row items-center gap-2 mb-8">
+          <View className="w-10 h-10 border border-[#FFF2AA] rounded-full items-center justify-center">
+            <ICONS.User2 />
+          </View>
+          <Text className=" font-sansMedium text-dark">
+            {kidsWithSubs.length} of {guardianInfo?.noOfAllowedChildren ?? 5}{' '}
+            learners added
+          </Text>
+        </View>
         {/* Current plan card */}
         <View className="border border-[#C3E4C5] border-b-4 p-4 rounded-[16px] bg-[#F1F9F199]">
           <View className="flex-row justify-between items-center">
@@ -150,13 +288,15 @@ const Subscription = () => {
           )}
           <Text className="text-[16px] font-sansMedium text-[#221D23] leading-[1.3] mt-4">
             {planDetail.noOfBooks > 0
-              ? `${planDetail.noOfBooks} Books`
+              ? `${planDetail.noOfBooks} ${planDetail.beName === 'free' ? 'Chapter' : 'Books'}`
               : '1 child'}
           </Text>
           <View className="border-t border-[#D3D2D366] my-6" />
           <Button
-            onPress={() => router.push('/guardian/ChoosePlan')}
-            text={`${subStatus === 'cancelled' ? 'REACTIVATE' : subStatus === 'expired' ? 'ACTIVATE' : 'CHANGE'} PLAN`}
+            onPress={() =>
+              router.push(`/guardian/ChoosePlan?kid=${selectedKid?._id}`)
+            }
+            text={`${plan === 'free' ? 'UPGRADE' : subStatus === 'cancelled' ? 'REACTIVATE' : subStatus === 'expired' ? 'ACTIVATE' : 'CHANGE'} PLAN`}
           />
         </View>
 
@@ -278,7 +418,9 @@ const Subscription = () => {
               <View className="flex-row gap-6 items-center">
                 <Text className="text-[32px]">👉</Text>
                 <Button
-                  onPress={() => router.push('/guardian/ChoosePlan')}
+                  onPress={() =>
+                    router.push(`/guardian/ChoosePlan?kid=${selectedKid?._id}`)
+                  }
                   text="CHANGE PLAN"
                   textClassname="text-[#3F9243]"
                   className="bg-white border-0 px-6"
@@ -301,12 +443,12 @@ const Subscription = () => {
             onPress={() => router.push('/guardian/BillingHistory')}
             text="VIEW ALL"
             className="px-10"
-            disabled={subscription?.plan === 'free'}
+            disabled={isFreePlan}
           />
         </View>
-        {subscription?.plan !== 'free' && (
+        {!isFreePlan && (
           <View className="gap-6 mt-10">
-            {invoices?.map((invoice, i) => (
+            {kidInvoices?.map((invoice, i) => (
               <BillingCard
                 planName={invoice.planName}
                 amount={invoice.amount}
@@ -323,7 +465,7 @@ const Subscription = () => {
             ))}
           </View>
         )}
-        {subscription?.plan === 'free' && (
+        {isFreePlan && (
           <View className="items-center  gap-3 mt-10 mb-2">
             <View className="w-16 h-16 rounded-full items-center justify-center bg-[#D3D2D333] mb-6">
               <ICONS.CreditCardOff />
@@ -379,6 +521,8 @@ const Subscription = () => {
       <CancellationModal
         open={openCancellation}
         accessEndDate={subscription?.currentPeriodEnd}
+        kidId={selectedKid?._id ?? ''}
+        kidName={selectedKid?.name ?? ''}
         onClose={() => setOpenCancellation(false)}
       />
     </Container>
@@ -388,11 +532,15 @@ const Subscription = () => {
 const CancellationModal = ({
   open,
   accessEndDate,
+  kidId,
   onClose,
+  kidName
 }: {
   open: boolean;
-  accessEndDate?: string;
+  accessEndDate?: string | null;
+  kidId: string;
   onClose: () => void;
+  kidName: string;
 }) => {
   return (
     <Modal isVisible={open} onBackdropPress={onClose}>
@@ -411,11 +559,12 @@ const CancellationModal = ({
             <ICONS.Shape />
           </View>
           <Text className="text-center font-sansSemiBold text-[#265828] text-[20px] mb-2 mt-6">
-            Are you sure you want to cancel your plan?
+            Cancel {kidName?.split(' ')?.[0]}'s Plan?
           </Text>
           <Text className="text-center text-[#221D23] font-sans text-[16px] leading-[1.5]">
-            You'll continue to have access until {formatDate(accessEndDate)}.
-            After that, your child will lose access to all learning content.
+            This learner will continue to have access until{' '}
+            {formatDate(accessEndDate)}. After that, access to learning content
+            will be removed.
           </Text>
           <Text
             onPress={() => {
@@ -434,7 +583,10 @@ const CancellationModal = ({
         />
         <SecondaryButton
           onPress={() => {
-            router.push('/guardian/SubscriptionCanclellation');
+            router.push({
+              pathname: '/guardian/SubscriptionCanclellation',
+              params: { kidId },
+            });
             onClose();
           }}
           className="w-full mt-4"

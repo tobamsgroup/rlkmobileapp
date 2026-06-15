@@ -88,7 +88,7 @@ export const PLAN_ORDER: SubscriptionPlan[] = [
   'library_pass',
 ];
 
-export const formatDate = (dateStr?: string): string => {
+export const formatDate = (dateStr?: string|null): string => {
   if (!dateStr) return '—';
   return new Date(dateStr).toLocaleDateString('en-GB', {
     day: 'numeric',
@@ -106,7 +106,7 @@ export const formatDateShort = (dateStr?: string): string => {
   });
 };
 
-export const getBillingCycle = (currentPeriodEnd?: string): string => {
+export const getBillingCycle = (currentPeriodEnd?: string | null): string => {
   if (!currentPeriodEnd) return '—';
   const end = new Date(currentPeriodEnd);
   const start = new Date(end);

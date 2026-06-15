@@ -115,8 +115,17 @@ import ExclamationCircle from "./ExclamationCircle";
 import CreditCardOff from "./CreditCardOff";
 import ArrowUpRight from "./ArrowUpRight";
 import Trash from "./Trash";
+import User2 from "./User2";
+import Retry from "./Retry";
+import ChevronUp from "./ChevronUp";
+import GrinningEmoji from "./GrinningEmoji";
 
 export const ICONS = {
+  GrinningEmoji,
+  Checkbox,
+  ChevronUp,
+  Retry,
+  User2,
   Trash,
   ArrowUpRight,
   CreditCardOff,

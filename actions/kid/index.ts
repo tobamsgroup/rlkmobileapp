@@ -1,16 +1,18 @@
 import axios from '@/lib/axios';
-import { ActivityProps, Badge } from '@/types';
 import {
+  ActivityProps,
+  Badge,
   ChapterPage,
   ChapterPageData,
   KidLearningOverview,
   KidPRofile,
-  UpdateKidProfile,
   QuizQuestion,
   QuizResult,
   ReadingProgressProps,
   ScenarioQuizQuestion,
-} from "@/types";
+  UpdateKidProfile,
+  WorkbookSeries,
+} from '@/types';
 import { cache } from 'react';
 
 export const fetchKidLearning = async (): Promise<KidLearningOverview[]> => {
@@ -34,14 +36,14 @@ export const fetchKidProfile = async (): Promise<KidPRofile> => {
 
 export const updateKidProfile = async (
   kidId: string,
-  updateData: UpdateKidProfile
+  updateData: UpdateKidProfile,
 ): Promise<UpdateKidProfile> => {
   const response = await axios.patch(`/kid/${kidId}`, updateData);
   return response?.data?.data;
 };
 
 export const fetchChapterPages = async (
-  chapterId: string
+  chapterId: string,
 ): Promise<ChapterPageData | null> => {
   if (!chapterId) return null;
   const res = await axios.get(`/book/${chapterId}/pages`);
@@ -49,7 +51,7 @@ export const fetchChapterPages = async (
 };
 
 export const fetchAllSeriesChapterPages = async (
-  seriesId: string
+  seriesId: string,
 ): Promise<
   | {
       _id: string;
@@ -71,9 +73,9 @@ export const getReadingProgress = async (): Promise<ReadingProgressProps[]> => {
 
 export const updateReadingProgress = async (
   chapterId: string,
-  newPageIndex: number
+  newPageIndex: number,
 ) => {
-  await axios.patch("/kid/reading-progress/update", {
+  await axios.patch('/kid/reading-progress/update', {
     chapterId,
     newPageIndex,
   });
@@ -81,9 +83,9 @@ export const updateReadingProgress = async (
 };
 export const updatePLProgress = async (
   chapterId: string,
-  newPageIndex: number
+  newPageIndex: number,
 ) => {
-  await axios.patch("/kid/play-progress/update", {
+  await axios.patch('/kid/play-progress/update', {
     chapterId,
     newPageIndex,
   });
@@ -94,9 +96,9 @@ export const updateLessonProgress = async (
   lessonId: string,
   activityType: string,
   completedActivities: string[] = [],
-  totalTimeSpent: number
+  totalTimeSpent: number,
 ) => {
-  await axios.patch("/lesson-progress", {
+  await axios.patch('/lesson-progress', {
     lessonId,
     activityType,
     completedActivities,
@@ -106,7 +108,7 @@ export const updateLessonProgress = async (
 };
 
 export const changeMood = async (mood: string) => {
-  await axios.post("/kid/mood/update", {
+  await axios.post('/kid/mood/update', {
     mood,
   });
 };
@@ -116,14 +118,14 @@ export const sendQuizResult = async (result: {
   chapterId: string;
   quiz: QuizResult;
 }) => {
-  await axios.post("/kid/quiz/result", {
+  await axios.post('/kid/quiz/result', {
     ...result,
   });
 };
 
 export const fetchQuiz = async (
   chapterId: string,
-  quizType: "mid" | "end"
+  quizType: 'mid' | 'end',
 ): Promise<{ questions: QuizQuestion[] }> => {
   const resp = await axios.get(`/ai/quiz/${chapterId}/${quizType}`);
   console.log(resp);
@@ -131,14 +133,14 @@ export const fetchQuiz = async (
 };
 
 export const claimXP = async (xp: number) => {
-  await axios.post("/kid/xp/claim", {
+  await axios.post('/kid/xp/claim', {
     xp,
   });
 };
 
 export const loginGuardianAsKid = async (
   kidId: string,
-  guardianPassword: string
+  guardianPassword: string,
 ) => {
   const res = await axios.post(`auth/login-guardian/${kidId}`, {
     password: guardianPassword,
@@ -152,12 +154,12 @@ export const trackKidReadingTime = async (payload: {
   taskType: string;
   timeSpentMinutes: number;
 }) => {
-  const response = await axios.post("/kid/analytics/time-tracking", payload);
+  const response = await axios.post('/kid/analytics/time-tracking', payload);
   return response?.data;
 };
 
 export const fetchScenarioQuiz = async (
-  chapterId: string
+  chapterId: string,
 ): Promise<ScenarioQuizQuestion> => {
   const resp = await axios.get(`/ai/scenario-quiz/${chapterId}`);
   return resp?.data?.questions;
@@ -168,8 +170,6 @@ export const fetchAllKidAvatars = async () => {
   return response?.data?.data?.avatars;
 };
 
-
-
 export const getAllBadges = async (): Promise<Badge[]> => {
   const res = await axios.get(`/badges`);
   return res?.data.data;
@@ -179,12 +179,10 @@ export const getAllBadgesWithStatus = async (): Promise<Badge[]> => {
   return res?.data.data;
 };
 
-export const getRecentActivities = cache(
-  async (): Promise<ActivityProps[]> => {
-    const resp = await axios.get(`/activities/recent`);
-    return resp?.data?.data;
-  }
-);
+export const getRecentActivities = cache(async (): Promise<ActivityProps[]> => {
+  const resp = await axios.get(`/activities/recent`);
+  return resp?.data?.data;
+});
 
 export const updateReadingSettings = async (voice: string): Promise<void> => {
   await axios.patch('/kid/me/reading-settings', { voice });
@@ -196,4 +194,22 @@ export const fetchChapterPageAudio = async (
 ): Promise<string> => {
   const res = await axios.get(`/tts/${chapterId}/audio`, { params: { page } });
   return res?.data?.data?.audioUrl;
+};
+
+export const fetchWorkbooks = async (
+  bookId: string,
+): Promise<WorkbookSeries[]> => {
+  const res = await axios.get(`/workbooks/kid/book/${bookId}`);
+  return res?.data?.data;
+};
+
+export const updateWorkbookProgress = async (
+  workbookId: string,
+  chapterId: string,
+  status: 'started' | 'completed',
+) => {
+  await axios.patch(`/workbooks/${workbookId}/chapter/${chapterId}/progress`, {
+    status,
+  });
+  return;
 };
