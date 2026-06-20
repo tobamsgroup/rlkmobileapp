@@ -386,6 +386,18 @@ export type KidBadges = {
   meta?: Record<string, any>;
 };
 
+
+
+export interface Subscription {
+  plan: string;
+  status: "active" | "inactive" | "cancelled";
+  stripeSubscriptionId: string;
+  stripePriceId: string;
+  currentPeriodEnd: string;
+  cancelAtPeriodEnd: boolean;
+  cancellationReason: string | null;
+}
+
 export type KidPRofile = {
   _id: string;
   username: string;
@@ -399,6 +411,7 @@ export type KidPRofile = {
   guardianId: string;
   picture?: string;
   earnedBadges: KidBadges[];
+  subscription:Subscription
   totalXp?: number;
   createdAt?: Date;
   updatedAt?: Date;

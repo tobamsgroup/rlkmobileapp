@@ -164,3 +164,35 @@ export function formatFriendlyDate(isoDate: string): string {
     return `${dateFormatter.format(date)}, ${timeFormatter.format(date)}`;
   }
 }
+
+
+export const getSubscriptionTimeRemaining = (
+  currentPeriodEnd: string
+) => {
+  const endDate = new Date(currentPeriodEnd);
+  const now = new Date();
+
+  const diffMs = endDate.getTime() - now.getTime();
+
+  if (diffMs <= 0) {
+    return {
+      expired: true,
+      days: 0,
+      hours: 0,
+    };
+  }
+
+  return {
+    expired: false,
+    days: Math.floor(diffMs / (1000 * 60 * 60 * 24)),
+    hours: Math.floor(
+      (diffMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)
+    ),
+  };
+};
+
+export function getTotalAssignedSeriesForKid(courses:KidCourseWithPopulatedKid[], kidId:string) {
+  return courses
+    .filter(course => course.kidId?._id === kidId)
+    .reduce((total, course) => total + (course.assignedSeries?.length || 0), 0);
+}

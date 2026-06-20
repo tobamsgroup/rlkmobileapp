@@ -9,14 +9,13 @@ import RecommendedLearningTracks from '@/components/Home/RecommendedLearningTrac
 import Skeleton from '@/components/Skeleton';
 import TrialLockModal from '@/components/Subscription/TrialLockModal';
 import useGuardian from '@/hooks/useGuardianProfile';
-import { useSubscription } from '@/hooks/useSubscription';
-import { ensureHttps, getSubscriptionDaysRemaining } from '@/utils';
+import { ensureHttps } from '@/utils';
 import { scaleWidth } from '@/utils/scale';
 import { showToast } from '@/utils/toast';
 import { useQuery } from '@tanstack/react-query';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
 
 export default function HomeScreen() {
@@ -27,25 +26,12 @@ export default function HomeScreen() {
   const [openLock, setOpenLock] = useState(false);
   const [openTrialEnded, setOpenTrialEnded] = useState(false);
 
-
   const { data: notifications } = useQuery({
     queryKey: ['notifications'],
     queryFn: async () => {
       return await getAllNotifications();
     },
   });
-
-  const { data: subscription } = useSubscription();
-
-  const remainingDays = useMemo(() => {
-    return getSubscriptionDaysRemaining(subscription?.currentPeriodEnd);
-  }, [subscription]);
-
-  useEffect(() => {
-    if (subscription?.plan === 'free' && remainingDays < 1) {
-      setOpenTrialEnded(true);
-    }
-  }, [subscription]);
 
   useEffect(() => {
     if (!notifications) return;
@@ -59,10 +45,10 @@ export default function HomeScreen() {
       return;
     }
 
-    // if ((data?.totalKids || 0) > 1) {
-    //   setOpenLock(true);
-    //   return;
-    // }
+    if ((data?.totalKids || 0) >= 5) {
+      setOpenLock(true);
+      return;
+    }
 
     router.push('/guardian/AddLearner');
   };
@@ -71,56 +57,6 @@ export default function HomeScreen() {
     <>
       <Container edges={['top']} scrollable backgroundColor="#DBEFDC">
         <View className="flex-1 px-6 py-5 relative z-10">
-          {remainingDays > 6 &&
-            subscription?.plan === 'free' &&
-            openTrialBanner && (
-              <View className="py-4 px-6 bg-white rounded-[16px] border-b-4  border-l border-r border-[#e8e6dc] border-b-[#D5B300] mb-8 flex-row gap-5 w-full">
-                <Text className="flex-1 font-sans text-[16px]  text-[#221D23] leading-[1.5]">
-                  Your trial{' '}
-                  <Text className="font-sansMedium">
-                    ends in {remainingDays} days!
-                  </Text>{' '}
-                  Explore books and build your child’s reading habit
-                </Text>
-                <Pressable onPress={() => setOpenTrialBanner(false)}>
-                  <ICONS.Close />
-                </Pressable>
-              </View>
-            )}
-          {remainingDays < 7 &&
-            remainingDays > 2 &&
-            subscription?.plan === 'free' &&
-            openTrialBanner && (
-              <View className="py-4 px-6 bg-white rounded-[16px] border-b-4  border-l border-r border-[#e8e6dc] border-b-[#D5B300] mb-8 flex-row gap-5 w-full">
-                <Text className="flex-1 font-sans text-[16px]  text-[#221D23] leading-[1.5]">
-                  Your trial{' '}
-                  <Text className="font-sansMedium">
-                    ends in {remainingDays} days!
-                  </Text>{' '}
-                  Upgrade to keep your child’s learning going
-                </Text>
-                <Pressable onPress={() => setOpenTrialBanner(false)}>
-                  <ICONS.Close />
-                </Pressable>
-              </View>
-            )}
-          {remainingDays > 0 &&
-            remainingDays <= 2 &&
-            subscription?.plan === 'free' &&
-            openTrialBanner && (
-              <View className="py-4 px-6 bg-white rounded-[16px] border-b-4  border-l border-r border-[#e8e6dc] border-b-[#D5B300] mb-8 flex-row gap-5 w-full">
-                <View className="w-10 h-10 rounded-full items-center justify-center bg-[#1671D91A]">
-                  <ICONS.ExclamationCircle />
-                </View>
-                <Text className="flex-1 font-sans text-[16px]  text-[#221D23] leading-[1.5]">
-                  Your trial{' '}
-                  <Text className="font-sansMedium">
-                    ends in {remainingDays} days!
-                  </Text>{' '}
-                  Don’t lose your child’s progress
-                </Text>
-              </View>
-            )}
           <View className="flex-row gap-2 items-center">
             {isLoading ? (
               <Skeleton
@@ -359,19 +295,15 @@ export default function HomeScreen() {
         onProceed={() => {
           router.push('/guardian/ChoosePlan');
           setOpenTrialEnded(false);
-
         }}
         showChevron
       />
       <TrialLockModal
-        title="Unable to Create Child Profile"
-        desc="Your current plan includes access to only 1 child profile. To continue, please upgrade your plan."
+        title="Child Profile Limit Reached"
+        desc="Your account currently supports up to 5 child profiles. Contact support to increase this limit."
         open={openLock}
-        buttonText1="UPGRADE PLAN"
-        buttonText2="MAYBE LATER"
         onClose={() => setOpenLock(false)}
         onProceed={() => {
-          router.push('/guardian/ChoosePlan');
           setOpenLock(false);
         }}
       />

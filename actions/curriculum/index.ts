@@ -97,7 +97,6 @@ export interface KidCourseWithPopulatedKid {
   kidId: {
     _id: string;
     username: string;
-    password: string;
     name: string;
     age: number;
     preferredLearningTopics: string[];

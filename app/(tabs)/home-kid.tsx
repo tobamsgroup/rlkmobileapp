@@ -1,4 +1,5 @@
 import { fetchKidLearning } from '@/actions/kid';
+import { handleLogout } from '@/actions/logout';
 import { ICONS } from '@/assets/icons';
 import { IMAGES } from '@/assets/images';
 import Button from '@/components/Button';
@@ -7,17 +8,23 @@ import KidLearningCard, {
   KidLearningCardSkeleton,
 } from '@/components/kid/KidLearningCard';
 import Skeleton from '@/components/Skeleton';
+import ChildLockModal from '@/components/Subscription/ChildLockModal';
+import { useAppDispatch } from '@/hooks/redux';
 import useKidProfile from '@/hooks/useKidProfile';
-import { ensureHttps } from '@/utils';
+import { ensureHttps, getSubscriptionDaysRemaining } from '@/utils';
 import { getTopTwoChapters } from '@/utils/kid';
 import { scaleWidth } from '@/utils/scale';
 import { useQuery } from '@tanstack/react-query';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
-import React, { useMemo } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
 
 const HomeKid = () => {
+  const [openTrialEnded, setOpenTrialEnded] = useState(false);
+  const [openTrialBanner, setOpenTrialBanner] = useState(false);
+  const [openSubEndedBanner, setOpenSubEndedBanner] = useState(false);
+
   const { data: profile, isLoading: isLoadingProfile } = useKidProfile();
   const { data, isLoading } = useQuery({
     queryKey: ['kid-learning'],
@@ -25,6 +32,28 @@ const HomeKid = () => {
       return await fetchKidLearning();
     },
   });
+
+  const dispatch = useAppDispatch();
+
+  const remainingDays = useMemo(() => {
+    return getSubscriptionDaysRemaining(
+      profile?.subscription?.currentPeriodEnd,
+    );
+  }, [profile?.subscription?.currentPeriodEnd]);
+
+  useEffect(() => {
+    if (isLoadingProfile) return;
+    if (profile?.subscription?.plan === 'free' && remainingDays < 1) {
+      setOpenTrialEnded(true);
+      return;
+    }
+
+    if (remainingDays < 1 && profile?.subscription?.plan !== 'free') {
+      setOpenSubEndedBanner(true);
+    }
+  }, [profile?.subscription?.plan, remainingDays, isLoadingProfile]);
+
+  console.log({ remainingDays, openTrialEnded, openSubEndedBanner });
 
   const latestChapters = useMemo(() => {
     if (!data) return [];
@@ -34,6 +63,54 @@ const HomeKid = () => {
   return (
     <Container edges={['top']} scrollable>
       <View className="px-6 py-5">
+        {remainingDays > 6 &&
+          profile?.subscription?.plan === 'free' &&
+          openTrialBanner && (
+            <View className="py-4 px-6 bg-white rounded-[16px] border-b-4  border-l border-r border-[#e8e6dc] border-b-[#D5B300] mb-8 flex-row gap-5 w-full">
+              <Text className="flex-1 font-sans text-[16px]  text-[#221D23] leading-[1.5]">
+                Your trial{' '}
+                <Text className="font-sansMedium">
+                  ends in {remainingDays} days!
+                </Text>{' '}
+                Explore books and build your reading habit
+              </Text>
+              <Pressable onPress={() => setOpenTrialBanner(false)}>
+                <ICONS.Close />
+              </Pressable>
+            </View>
+          )}
+        {remainingDays < 7 &&
+          remainingDays > 2 &&
+          profile?.subscription?.plan === 'free' &&
+          openTrialBanner && (
+            <View className="py-4 px-6 bg-white rounded-[16px] border-b-4  border-l border-r border-[#e8e6dc] border-b-[#D5B300] mb-8 flex-row gap-5 w-full">
+              <Text className="flex-1 font-sans text-[16px]  text-[#221D23] leading-[1.5]">
+                Your trial{' '}
+                <Text className="font-sansMedium">
+                  ends in {remainingDays} days!
+                </Text>{' '}
+              </Text>
+              <Pressable onPress={() => setOpenTrialBanner(false)}>
+                <ICONS.Close />
+              </Pressable>
+            </View>
+          )}
+        {remainingDays > 0 &&
+          remainingDays <= 2 &&
+          profile?.subscription?.plan === 'free' &&
+          openTrialBanner && (
+            <View className="py-4 px-6 bg-white rounded-[16px] border-b-4  border-l border-r border-[#e8e6dc] border-b-[#D5B300] mb-8 flex-row gap-5 w-full">
+              <View className="w-10 h-10 rounded-full items-center justify-center bg-[#1671D91A]">
+                <ICONS.ExclamationCircle />
+              </View>
+              <Text className="flex-1 font-sans text-[16px]  text-[#221D23] leading-[1.5]">
+                Your trial{' '}
+                <Text className="font-sansMedium">
+                  ends in {remainingDays} days!
+                </Text>{' '}
+              </Text>
+            </View>
+          )}
         <View className="flex-row gap-2 items-center mb-5">
           {isLoadingProfile ? (
             <Skeleton
@@ -105,7 +182,7 @@ const HomeKid = () => {
             Let's Keep Learning{'\n'}and Having Fun!
           </Text>
           <Button
-          onPress={() => router.push('/kid/AIPopup')}
+            onPress={() => router.push('/kid/AIPopup')}
             textClassname="text-[#265828]"
             className="bg-white border-b-[#FFD700] border-b-2 border-l border-r border-r-[#FFD700] border-l-[#FFD700]  w-[50%] mt-6"
             text="EXPLORE TRACKS"
@@ -160,6 +237,18 @@ const HomeKid = () => {
           ))}
         </View>
       </View>
+
+      <ChildLockModal
+        title=""
+        desc={`Oops!\nYou currently don’t have access. Your account needs to be upgraded to continue learning.`}
+        open={openSubEndedBanner || openTrialBanner}
+        buttonText1="LOG OUT"
+        onProceed={() => {
+          handleLogout(dispatch);
+          setOpenTrialBanner(false);
+          setOpenSubEndedBanner(false);
+        }}
+      />
     </Container>
   );
 };

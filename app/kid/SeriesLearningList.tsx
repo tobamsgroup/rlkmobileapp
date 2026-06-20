@@ -45,7 +45,13 @@ const SeriesLearningList = () => {
     enabled: !!series?.bookId?._id,
   });
 
-  console.log({ workbooks });
+
+  const filteredWorkbooks = useMemo(() => {
+    return workbooks?.filter((w) => {
+        return series?.assignedSeries?.find((as) => as.seriesId?._id === w.seriesId)
+    }) || []
+
+  }, [workbooks, series])
   return (
     <View className="bg-[#DBEFDC] flex-1" style={{ paddingBottom: 10 }}>
       <View
@@ -125,13 +131,16 @@ const SeriesLearningList = () => {
         )}
         {tab === 'workbook' && (
           <FlatList
-            data={workbooks || []}
+            data={filteredWorkbooks}
             showsVerticalScrollIndicator={false}
             keyExtractor={(_, index) => index.toString()}
             contentContainerClassName="] gap-4"
             renderItem={({ item }) => (
               <WorkbookCard {...item} bookId={series?.bookId?._id!} />
             )}
+            ListEmptyComponent={<View>
+              <Text className='text-center font-sansMedium mt-6'>No Workbook Available for this Series yet</Text>
+            </View>}
           />
         )}
       </View>

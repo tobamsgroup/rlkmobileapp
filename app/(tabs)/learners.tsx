@@ -72,10 +72,10 @@ export default function Learners() {
   }, [groupedData, search]);
 
   const onAddKids = () => {
-    // if ((guardian?.totalKids || 0) > 1) {
-    //   setOpenLock(true);
-    //   return;
-    // }
+    if ((guardian?.totalKids || 0) >= 5) {
+      setOpenLock(true);
+      return;
+    }
 
     router.push('/guardian/AddLearner');
   };
@@ -164,15 +164,12 @@ export default function Learners() {
         open={openModal}
         onClose={() => setOpenModal(false)}
       />
-      <TrialLockModal
-        title="Unable to Create Child Profile"
-        desc="Your current plan includes access to only 1 child profile. To continue, please upgrade your plan."
+       <TrialLockModal
+        title="Child Profile Limit Reached"
+        desc="Your account currently supports up to 5 child profiles. Contact support to increase this limit."
         open={openLock}
-        buttonText1="UPGRADE PLAN"
-        buttonText2="MAYBE LATER"
         onClose={() => setOpenLock(false)}
         onProceed={() => {
-          router.push('/guardian/Subscription');
           setOpenLock(false);
         }}
       />

@@ -1,5 +1,6 @@
 import {
   assignKidsToCourse,
+  fetchKidsCourses,
   getAllKids,
   getKidAssignedToSeries,
   getVolume,
@@ -16,6 +17,10 @@ import Skeleton from '@/components/Skeleton';
 import Stepper from '@/components/Stepper';
 import TrialLockModal from '@/components/Subscription/TrialLockModal';
 import TopBackButton from '@/components/TopBackButton';
+import {
+  checkKidsSeriesAssignmentEligibility,
+  PLAN_DETAILS,
+} from '@/constants/subscription';
 import useGuardian from '@/hooks/useGuardianProfile';
 import useSeriesChapterPages from '@/hooks/useSeriesChapterPages';
 import { useSubscription } from '@/hooks/useSubscription';
@@ -57,6 +62,7 @@ const AssignChild = () => {
       return await getAllKids();
     },
   });
+  const [modalTitle, setModalTitle] = useState('');
 
   const { data: assignedKids } = useQuery({
     queryKey: ['assigned-kids', params?.id],
@@ -65,14 +71,22 @@ const AssignChild = () => {
     },
   });
 
-    const { data: allSeriesPages, isLoading: isLoadingSeriesPage } =
+  const { data: kidsCourses, isLoading: isLoadingKidsCourse } = useQuery({
+    queryKey: ['kids-courses'],
+    queryFn: async () => {
+      return await fetchKidsCourses();
+    },
+  });
+
+  console.log({ kidsCourses });
+
+  const { data: allSeriesPages, isLoading: isLoadingSeriesPage } =
     useSeriesChapterPages(params?.id! as string);
 
-    const allPagesEmpty = useMemo(() => {
-      if (!allSeriesPages) return true;
-      return allSeriesPages.every((s) => s.pages?.length === 0);
-    }, [allSeriesPages]);
-
+  const allPagesEmpty = useMemo(() => {
+    if (!allSeriesPages) return true;
+    return allSeriesPages.every((s) => s.pages?.length === 0);
+  }, [allSeriesPages]);
 
   const { data: guardian } = useGuardian();
 
@@ -83,11 +97,35 @@ const AssignChild = () => {
     }
 
     //look for kids that are not subscribed
-    const unsubscribedKids = selectedKids?.filter(
-      (kid) => kids?.find((s) => s._id === kid.id && s.subscription?.plan?.toLowerCase() === 'free'),
+    const unsubscribedKids = selectedKids?.filter((kid) =>
+      kids?.find(
+        (s) =>
+          s._id === kid.id && s.subscription?.plan?.toLowerCase() === 'free',
+      ),
     );
 
     if (step === 3) {
+      //try and check if any of the kid has room for assignment based on subscription
+
+      //look for kids that are not subscribed
+      const selectedKidss = kids?.filter((kid) =>
+        selectedKids?.find((s) => s.id === kid._id),
+      );
+
+      const eligibility = checkKidsSeriesAssignmentEligibility(
+        selectedKidss!,
+        kidsCourses!,
+        PLAN_DETAILS,
+      );
+      const kidsOverLimit = eligibility?.filter((k) => !k.canAssignMoreSeries);
+      if (kidsOverLimit?.length > 0) {
+        setOpenLock(true);
+        setModalTitle(
+          `Plan Limit Reached for ${kidsOverLimit?.map((k) => k.username)?.join(', ')}`,
+        );
+        return;
+      }
+
       if (selectedScope === 'entire' && unsubscribedKids?.length > 0) {
         showToast('error', 'Unable to assign Selected kid is on a free plan');
         return;
@@ -123,20 +161,31 @@ const AssignChild = () => {
       if (isExist) {
         return prev?.filter((c) => c.id !== id);
       } else {
-        if (subscription?.plan === 'free' && selectedModule?.length > 0) {
-          showToast('error', 'Can Only assign a chapter on the free plan');
+        const unsubscribedKids = selectedKids?.filter((kid) =>
+          kids?.find(
+            (s) =>
+              s._id === kid.id &&
+              s.subscription?.plan?.toLowerCase() === 'free',
+          ),
+        );
+        if (unsubscribedKids?.length > 0 && selectedModule?.length > 0) {
+          showToast('error', 'Can only assign a chapter to a kid on the free plan');
           return prev;
         }
+
         return [...prev, { id, title, index }];
       }
     });
   };
 
-  console.log({kids})
+  console.log({ kids });
 
   const onSubmit = async () => {
-    if(allPagesEmpty){
-      showToast('error', 'This series is still being uploaded. Please try again later.');
+    if (allPagesEmpty) {
+      showToast(
+        'error',
+        'This series is still being uploaded. Please try again later.',
+      );
       return;
     }
     const payload = {
@@ -160,8 +209,12 @@ const AssignChild = () => {
       invalidateQueries(`series-volume`);
       invalidateQueries('kids-volume');
       invalidateQueries('activities');
-    } catch (error:any) {
-      showToast('error', error?.response?.data?.message || 'An error occurred. Please try again.');
+    } catch (error: any) {
+      showToast(
+        'error',
+        error?.response?.data?.message ||
+          'An error occurred. Please try again.',
+      );
       HAPTIC.error();
       console.log({ error });
     }
@@ -177,17 +230,7 @@ const AssignChild = () => {
   };
 
   const onAssignModule = () => {
-    if (isLoadingSubscription) {
-      showToast('info', 'Please wait...');
-      return;
-    }
-
-    if (subscription?.plan === 'free') {
-      showToast('error', 'Cannot assign entire series on a free plan!');
-      return;
-    } else {
-      setSelectedScope('entire');
-    }
+    setSelectedScope('entire');
   };
   return (
     <Container scrollable={true}>
@@ -443,15 +486,18 @@ const AssignChild = () => {
         </View>
       </View>
       <TrialLockModal
-        title={`Unable to Assign Entire Series to ${selectedKids?.length} Children`}
-        desc="Upgrade your account to assign series to child continue your child’s learning journey."
+        title={
+          modalTitle ||
+          `Unable to Assign Entire Series to ${selectedKids?.length} Children`
+        }
+        desc="Upgrade your kid's account to assign series to continue your child’s learning journey."
         open={openLock}
         onClose={() => setOpenLock(false)}
         buttonText1="UPGRADE PLAN"
         buttonText2="MAYBE LATER"
         onProceed={() => {
           setOpenLock(false);
-          router?.push('/guardian/ChoosePlan');
+          router?.push('/guardian/Subscription');
         }}
       />
     </Container>

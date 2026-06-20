@@ -1,7 +1,8 @@
 import { updateReadingProgress } from '@/actions/kid';
 import { ChapterPage as ChapterPageType, ReadingProgressProps } from '@/types';
-import { handleParams } from '@/utils/kid';
+import { filterAssignedChapters, handleParams } from '@/utils/kid';
 import { invalidateQueries } from '@/utils/query';
+import { showToast } from '@/utils/toast';
 import { useLocalSearchParams } from 'expo-router';
 import React, {
   useEffect,
@@ -59,6 +60,11 @@ const ReadMode = ({
     );
     return currentChapter;
   }, [readingProgress, series, chapterId]);
+
+  const currentBook = useMemo(() => {
+    if (!readingProgress && !series) return null;
+    return readingProgress?.find((r) => r.seriesId === series);
+  }, [readingProgress, series]);
 
   const taskId = chapterId;
   const baseTitle =
@@ -233,7 +239,22 @@ const ReadMode = ({
     }
     if (type === 'next') {
       const nextChapter = allSeriesPages?.[data.chapterIndex || 0];
+
       if (activePage?.index === data?.pages.length && nextChapter) {
+        const assignedChapters = filterAssignedChapters(
+          allSeriesPages,
+          currentBook!,
+        );
+        const isExist = assignedChapters?.find(
+          (c) => c._id === nextChapter?._id,
+        );
+        if (!isExist) {
+          showToast(
+            'error',
+            "You've finished all the chapters your guardian assigned. Ask your guardian to unlock more adventures for you!",
+          );
+          return;
+        }
         await updateReadingProgress(nextChapter._id, 1);
         invalidateQueries('reading-progress');
         moveToNextChapter();
@@ -267,9 +288,10 @@ const ReadMode = ({
     let canGoNext = true;
     let canGoPrev = true;
     if (!allSeriesPages) return { canGoNext: false, canGoPrev: false };
-    if (allSeriesPages?.[0]?._id === chapterId && pageIndex === '1')
-      if (allSeriesPages?.[0]?._id === chapterId && pageIndex === '1')
-        canGoPrev = false;
+    if (allSeriesPages?.[0]?._id === chapterId && pageIndex === '1') {
+      canGoPrev = false;
+    }
+
     // if (
     //   allSeriesPages?.[allSeriesPages?.length - 1]?._id === chapterId &&
     //   pageIndex === activePage?.index?.toString()
