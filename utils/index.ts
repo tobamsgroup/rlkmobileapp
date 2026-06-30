@@ -196,3 +196,37 @@ export function getTotalAssignedSeriesForKid(courses:KidCourseWithPopulatedKid[]
     .filter(course => course.kidId?._id === kidId)
     .reduce((total, course) => total + (course.assignedSeries?.length || 0), 0);
 }
+
+export const numberToWord = (value: number | string): string => {
+  const words = [
+    'zero',
+    'one',
+    'two',
+    'three',
+    'four',
+    'five',
+    'six',
+    'seven',
+    'eight',
+    'nine',
+    'ten',
+    'eleven',
+    'twelve',
+    'thirteen',
+    'fourteen',
+    'fifteen',
+    'sixteen',
+    'seventeen',
+    'eighteen',
+    'nineteen',
+    'twenty',
+  ];
+
+  const num = Number(value);
+
+  if (Number.isNaN(num) || num < 0 || num > 20) {
+    throw new Error('Number must be between 0 and 20');
+  }
+
+  return words[num];
+};

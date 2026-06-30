@@ -163,8 +163,8 @@ export const BadgeCard = (props: Badge) => {
           }
         />
         <Text
-          numberOfLines={1}
-          className="font-sansMedium text-dark text-center"
+          numberOfLines={3}
+          className="font-sansMedium text-dark text-center px-3"
         >
           {props?.name}
         </Text>
@@ -248,7 +248,7 @@ export const BadgeCard = (props: Badge) => {
                     : props?.index === 2
                       ? 'Completed half of the lesson in series'
                       : props?.index === 3
-                        ? 'Completes entire series'
+                        ? 'Completed entire series'
                         : props?.description)}
               </Text>
             ) : null}

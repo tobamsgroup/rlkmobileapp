@@ -1,11 +1,11 @@
+import { updateReadingSettings } from '@/actions/kid';
 import Button from '@/components/Button';
 import Container from '@/components/Container';
 import TopBackButton from '@/components/TopBackButton';
 import { getData, storeData } from '@/lib/storage';
-import { updateReadingSettings } from '@/actions/kid';
-import { showToast } from '@/utils/toast';
 import { HAPTIC } from '@/utils/haptic';
-import { createAudioPlayer, AudioPlayer } from 'expo-audio';
+import { showToast } from '@/utils/toast';
+import { AudioPlayer, createAudioPlayer } from 'expo-audio';
 import React, { useEffect, useRef, useState } from 'react';
 import { Text, View } from 'react-native';
 import { AccentCard, VOICES } from './AccentSelection';
@@ -21,28 +21,28 @@ const ACCENT_CODE: Record<string, string> = {
 // Full matrix: voiceKey × accent → local sound file
 const VOICE_SOUND_MAP: Record<string, Record<string, any>> = {
   'young-male': {
-    American:   require('../../assets/sounds/young-male-us.mp3'),
-    British:    require('../../assets/sounds/young-male-uk.mp3'),
+    American: require('../../assets/sounds/young-male-us.mp3'),
+    British: require('../../assets/sounds/young-male-uk.mp3'),
     Australian: require('../../assets/sounds/young-male-au.mp3'),
-    Indian:     require('../../assets/sounds/young-male-in.mp3'),
+    Indian: require('../../assets/sounds/young-male-in.mp3'),
   },
   'young-female': {
-    American:   require('../../assets/sounds/young-female-us.mp3'),
-    British:    require('../../assets/sounds/young-female-uk.mp3'),
+    American: require('../../assets/sounds/young-female-us.mp3'),
+    British: require('../../assets/sounds/young-female-uk.mp3'),
     Australian: require('../../assets/sounds/young-female-au.mp3'),
-    Indian:     require('../../assets/sounds/young-female-in.mp3'),
+    Indian: require('../../assets/sounds/young-female-in.mp3'),
   },
   'adult-male': {
-    American:   require('../../assets/sounds/adult-male-us.mp3'),
-    British:    require('../../assets/sounds/adult-male-uk.mp3'),
+    American: require('../../assets/sounds/adult-male-us.mp3'),
+    British: require('../../assets/sounds/adult-male-uk.mp3'),
     Australian: require('../../assets/sounds/adult-male-au.mp3'),
-    Indian:     require('../../assets/sounds/adult-male-in.mp3'),
+    Indian: require('../../assets/sounds/adult-male-in.mp3'),
   },
   'adult-female': {
-    American:   require('../../assets/sounds/adult-us-female.mp3'),
-    British:    require('../../assets/sounds/adult-female-uk.mp3'),
+    American: require('../../assets/sounds/adult-us-female.mp3'),
+    British: require('../../assets/sounds/adult-female-uk.mp3'),
     Australian: require('../../assets/sounds/adult-female-au.mp3'),
-    Indian:     require('../../assets/sounds/adult-female-in.mp3'),
+    Indian: require('../../assets/sounds/adult-female-in.mp3'),
   },
 };
 
@@ -58,6 +58,7 @@ const VoiceStyleSettings = () => {
   const [voiceStyle, setVoiceStyle] = useState('');
   const [selectedAccent, setSelectedAccent] = useState('American');
   const [isSaving, setIsSaving] = useState(false);
+  const [isPlaying, setIsPlaying] = useState('');
   const playerRef = useRef<AudioPlayer | null>(null);
 
   useEffect(() => {
@@ -74,7 +75,13 @@ const VoiceStyleSettings = () => {
     };
   }, []);
 
-  const handlePlaySound = (voiceKey: string) => {
+  const handlePlaySound = (voiceKey: string, name:string) => {
+    if (isPlaying === name) {
+      playerRef?.current?.pause();
+      playerRef?.current?.remove();
+      setIsPlaying('');
+      return;
+    }
     if (playerRef.current) {
       playerRef.current.pause();
       playerRef.current.remove();
@@ -85,6 +92,7 @@ const VoiceStyleSettings = () => {
     if (!soundFile) return;
     playerRef.current = createAudioPlayer(soundFile);
     playerRef.current.play();
+    setIsPlaying(name);
   };
 
   const handleSave = async () => {
@@ -97,7 +105,6 @@ const VoiceStyleSettings = () => {
       // Use saved accent if available, otherwise default to us
       const accentCode = ACCENT_CODE[selectedAccent] ?? 'us';
 
-
       await updateReadingSettings(`${voiceKey}-${accentCode}`);
       HAPTIC.success();
       showToast('success', 'Voice style saved successfully!');
@@ -108,6 +115,8 @@ const VoiceStyleSettings = () => {
       setIsSaving(false);
     }
   };
+
+
 
   return (
     <Container scrollable>
@@ -131,7 +140,8 @@ const VoiceStyleSettings = () => {
               key={'kid-' + a.name}
               accent={a}
               onPress={() => setVoiceStyle('kid ' + a.name)}
-              onPlaySound={() => handlePlaySound(a.voiceKey!)}
+              onPlaySound={() => handlePlaySound(a.voiceKey!, a.name)}
+              isPlaying={isPlaying}
             />
           ))}
           <View className="border border-[#D3D2D366] mb-4 mt-1" />
@@ -144,11 +154,13 @@ const VoiceStyleSettings = () => {
               key={'adult-' + a.name}
               accent={a}
               onPress={() => setVoiceStyle('adult ' + a.name)}
-              onPlaySound={() => handlePlaySound(a.voiceKey!)}
+              onPlaySound={() => handlePlaySound(a.voiceKey!, a.name)}
+              isPlaying={isPlaying}
             />
           ))}
         </View>
         <Button
+        disabled={!voiceStyle}
           onPress={handleSave}
           text={isSaving ? 'SAVING...' : 'SAVE MY SETTINGS'}
         />

@@ -9,6 +9,7 @@ import { useQuery } from '@tanstack/react-query';
 import { router, useLocalSearchParams } from 'expo-router';
 import React, { useMemo, useState } from 'react';
 import {
+  ActivityIndicator,
   findNodeHandle,
   FlatList,
   Image,
@@ -23,7 +24,7 @@ import { twMerge } from 'tailwind-merge';
 
 const SeriesLearningList = () => {
   const { id } = useLocalSearchParams();
-  const [tab, setTab] = useState('workbook');
+  const [tab, setTab] = useState('book');
   const { data, isLoading } = useQuery({
     queryKey: ['kid-learning'],
     queryFn: async () => {
@@ -37,7 +38,7 @@ const SeriesLearningList = () => {
     return data?.find((d) => d._id === id);
   }, [data, id]);
 
-  const { data: workbooks, isLoading: isLodaingWorkbooks } = useQuery({
+  const { data: workbooks, isLoading: isLoadingWorkbooks } = useQuery({
     queryKey: ['workbooks', series?.bookId?._id],
     queryFn: async () => {
       return await fetchWorkbooks(series?.bookId?._id!);
@@ -45,13 +46,15 @@ const SeriesLearningList = () => {
     enabled: !!series?.bookId?._id,
   });
 
-
   const filteredWorkbooks = useMemo(() => {
-    return workbooks?.filter((w) => {
-        return series?.assignedSeries?.find((as) => as.seriesId?._id === w.seriesId)
-    }) || []
-
-  }, [workbooks, series])
+    return (
+      workbooks?.filter((w) => {
+        return series?.assignedSeries?.find(
+          (as) => as.seriesId?._id === w.seriesId,
+        );
+      }) || []
+    );
+  }, [workbooks, series]);
   return (
     <View className="bg-[#DBEFDC] flex-1" style={{ paddingBottom: 10 }}>
       <View
@@ -101,6 +104,7 @@ const SeriesLearningList = () => {
             </Text>
           </Pressable>
         </View>
+
         {tab === 'book' && (
           <FlatList
             data={series?.assignedSeries || []}
@@ -129,7 +133,12 @@ const SeriesLearningList = () => {
             )}
           />
         )}
-        {tab === 'workbook' && (
+        {tab === 'workbook' && isLoadingWorkbooks && (
+          <View className="items-center mt-7">
+            <ActivityIndicator size={'large'} />
+          </View>
+        )}
+        {tab === 'workbook' && !isLoadingWorkbooks && (
           <FlatList
             data={filteredWorkbooks}
             showsVerticalScrollIndicator={false}
@@ -138,9 +147,13 @@ const SeriesLearningList = () => {
             renderItem={({ item }) => (
               <WorkbookCard {...item} bookId={series?.bookId?._id!} />
             )}
-            ListEmptyComponent={<View>
-              <Text className='text-center font-sansMedium mt-6'>No Workbook Available for this Series yet</Text>
-            </View>}
+            ListEmptyComponent={
+              <View>
+                <Text className="text-center font-sansMedium mt-6">
+                  No Workbook Available for this Series yet
+                </Text>
+              </View>
+            }
           />
         )}
       </View>
@@ -148,7 +161,7 @@ const SeriesLearningList = () => {
   );
 };
 
-const WorkbookCard = (props: WorkbookSeries & { bookId: string }) => {
+export const WorkbookCard = (props: WorkbookSeries & { bookId: string }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [openLock, setOpenLock] = useState(false);
   const [openLockedPosition, setOPenLockedPosition] = useState(0);
@@ -185,7 +198,7 @@ const WorkbookCard = (props: WorkbookSeries & { bookId: string }) => {
             source={{ uri: props?.seriesImage }}
             className="w-10 h-10 rounded-full"
           />
-          <Text className="text-[18px] font-sansMedium flex-1">
+          <Text className="text-[16px] font-sansMedium flex-1">
             Series {props?.seriesIndex}: {props?.seriesName}
           </Text>
         </View>
@@ -219,8 +232,18 @@ const WorkbookCard = (props: WorkbookSeries & { bookId: string }) => {
               className=" bg-white p-6"
             >
               <View className="flex-row items-center gap-2">
-                <View className="w-10 h-10 bg-[#F1F9F1] rounded-full items-center justify-center">
-                  <Text className="text-[16px] text-[#3F9243] font-sansMedium">
+                <View
+                  className={twMerge(
+                    'w-10 h-10 bg-[#F1F9F1] rounded-full items-center justify-center',
+                    !c?.isAccessible && 'bg-[#D3D2D333]',
+                  )}
+                >
+                  <Text
+                    className={twMerge(
+                      'text-[16px] text-[#3F9243] font-sansMedium',
+                      !c?.isAccessible && 'text-[#6C686C]',
+                    )}
+                  >
                     {c?.chapterIndex}
                   </Text>
                 </View>
@@ -263,11 +286,23 @@ const WorkbookCard = (props: WorkbookSeries & { bookId: string }) => {
                           : 'Locked'}
                   </Text>
                 </View>
-                <Pressable>
-                  <Text className="font-sansMedium text-[#3F9243] text-[16px] underline">
-                    View
-                  </Text>
-                </Pressable>
+                {c?.isAccessible && (
+                  <Pressable
+                    onPress={(e) => {
+                      if (c?.isAccessible) {
+                        router?.push(
+                          `/kid/WorkbookView?chapterId=${c?.chapterId}&bookId=${props?.bookId}&chapter=${JSON.stringify(c)}`,
+                        );
+                      } else {
+                        handleLockedClicked(e);
+                      }
+                    }}
+                  >
+                    <Text className="font-sansMedium text-[#3F9243] text-[16px] underline">
+                      View
+                    </Text>
+                  </Pressable>
+                )}
               </View>
             </Pressable>
           ))}

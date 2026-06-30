@@ -42,7 +42,7 @@ const KidLearningCard = (props: ChapterProps) => {
         height={scaleHeight(24)} fill={'white'}/>
       </View>
       </View>
-      <View className=" rounded-full py-1.5 flex-row items-center gap-2.5 mb-4 bg-[#D3D2D333] px-3">
+      <View className=" rounded-full py-1.5 flex-row items-center gap-2.5 mb-4 bg-[#D3D2D333] px-3 mt-4">
         <Text className="font-sans text-dark capitalize">
           {props?.bookImage?.toLowerCase()?.includes("think") ? extractNameWithoutJpg(props?.bookImage) : "Think AI"}
         </Text>

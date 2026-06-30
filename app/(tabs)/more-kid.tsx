@@ -108,7 +108,7 @@ const MoreKid = () => {
                 <ICONS.User fill={'#D5B300'} />
               </View>
               <Text className="text-dark text-[16px] font-sansMedium flex-1">
-                Parent/Teacher View
+                Parent View
               </Text>
               <ICONS.ChevronRight />
             </Pressable>

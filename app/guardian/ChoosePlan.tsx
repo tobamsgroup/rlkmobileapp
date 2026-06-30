@@ -45,7 +45,7 @@ const ChoosePlan = () => {
   const [modalDesc, setModalDesc] = useState('');
   const [modalBtn, setModalBtn] = useState('');
   const [selectedPlanId, setSelectedPlanId] =
-    useState<SubscriptionPlan>('free');
+    useState<SubscriptionPlan | ''>('');
   const [openModal, setOpenModal] = useState(false);
   const [openReactivateModal, setOpenReactivateModal] = useState(false);
   const [openResubscribeModal, setOpenResubscribeModal] = useState(false);
@@ -309,7 +309,7 @@ const ChoosePlan = () => {
       >
         <Button
           onPress={onProceed}
-          // disabled={btn.disabled}
+          disabled={!selectedPlanId}
           text={`${plan === 'free' ? 'UPGRADE' : subStatus === 'cancelled' ? 'REACTIVATE' : subStatus === 'expired' ? 'ACTIVATE' : 'CHANGE'} PLAN`}
           // textClassname={props.isActive && !props.isCancelled ? 'text-[#221D23]' : ''}
           // className={twMerge('mt-6', btn.style)}
@@ -399,7 +399,7 @@ const PlanCard = (
             >
               {props.name}
             </Text>
-            <Text className="text-[16px] font-sansSemiBold text-[#221D23] leading-[1.3] mt-4">
+            <Text className="text-[16px] font-sansSemiBold text-[#221D23] leading-[1.3] ">
               £{props.price.toFixed(2)}
               <Text className="text-[14px] text-[#474348] font-sans">
                 /month

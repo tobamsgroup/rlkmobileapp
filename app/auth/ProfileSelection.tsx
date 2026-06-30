@@ -31,7 +31,7 @@ const ProfileSelection = () => {
               style={{ height: scaleHeight(156), borderRadius: scaleWidth(16) }}
               source={IMAGES.ProfileSelectKid}
             />
-            <Button onPress={() => router.navigate('/auth/Login?profile=kid')} text="I’M A KID" className="mt-3" />
+            <Button onPress={() => router.navigate('/auth/Login?profile=kid')} text="I’M A CHILD" className="mt-3" />
           </Pressable>
           <Pressable onPress={() => router.navigate('/auth/Login?profile=adult')} className="border-[0.2px] border-[#CAC4D0] rounded-[12px] p-4 bg-white mt-5">
             <Image

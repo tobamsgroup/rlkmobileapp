@@ -23,7 +23,6 @@ import {
 } from '@/constants/subscription';
 import useGuardian from '@/hooks/useGuardianProfile';
 import useSeriesChapterPages from '@/hooks/useSeriesChapterPages';
-import { useSubscription } from '@/hooks/useSubscription';
 import { BookMeta } from '@/types';
 import { ensureHttps } from '@/utils';
 import { HAPTIC } from '@/utils/haptic';
@@ -48,8 +47,7 @@ const AssignChild = () => {
   >([]);
   const [loading, setLoading] = useState(false);
   const [openLock, setOpenLock] = useState(false);
-  const { data: subscription, isLoading: isLoadingSubscription } =
-    useSubscription();
+
   const { data, isLoading } = useQuery({
     queryKey: ['assign-volume', params?.id],
     queryFn: async () => {
@@ -77,8 +75,6 @@ const AssignChild = () => {
       return await fetchKidsCourses();
     },
   });
-
-  console.log({ kidsCourses });
 
   const { data: allSeriesPages, isLoading: isLoadingSeriesPage } =
     useSeriesChapterPages(params?.id! as string);
@@ -121,7 +117,7 @@ const AssignChild = () => {
       if (kidsOverLimit?.length > 0) {
         setOpenLock(true);
         setModalTitle(
-          `Plan Limit Reached for ${kidsOverLimit?.map((k) => k.username)?.join(', ')}`,
+          `Unable to Assign Series to ${kidsOverLimit?.map((k) => k.username)?.join(', ')}`,
         );
         return;
       }
@@ -169,7 +165,10 @@ const AssignChild = () => {
           ),
         );
         if (unsubscribedKids?.length > 0 && selectedModule?.length > 0) {
-          showToast('error', 'Can only assign a chapter to a kid on the free plan');
+          showToast(
+            'error',
+            'Can only assign a chapter to a kid on the free plan',
+          );
           return prev;
         }
 
@@ -177,8 +176,6 @@ const AssignChild = () => {
       }
     });
   };
-
-  console.log({ kids });
 
   const onSubmit = async () => {
     if (allPagesEmpty) {
@@ -297,7 +294,7 @@ const AssignChild = () => {
               </View>
               <View className="bg-[#FAFDFF] p-4 rounded-[20px] mt-6">
                 <Text className="text-[18px] font-sansSemiBold text-[#3F9243] mb-4">
-                  Course Overview
+                  Series Overview
                 </Text>
                 {isLoading ? (
                   <Skeleton className="w-full rounded-full" />
@@ -313,6 +310,25 @@ const AssignChild = () => {
                     {data?.overview?.description}
                   </Text>
                 )}
+                {isLoading ? (
+                  <Skeleton className="w-full h-[200px] " />
+                ) : (
+                  <View className='border-t border-[#D3D2D366] pt-4'>
+                    <View className="flex-row items-center gap-3 mb-2">
+                      <ICONS.Note width={20} height={20} stroke={'#221D23'} />
+                      <Text className="font-sansMedium text-[16px]">
+                        {data?.chapters?.length} Chapters
+                      </Text>
+                    </View>
+                    <View className="flex-row items-center gap-3 mb-6">
+                      <ICONS.Bulb stroke={'#221D23'} width={20} height={20} />
+                      <Text className="font-sansMedium text-[16px]">
+                        {data?.chapters?.length} Workbook Exercises
+                      </Text>
+                    </View>
+                  </View>
+                )}
+
                 {isLoading ? (
                   <Skeleton className="h-[50px] rounded-full w-full" />
                 ) : (
@@ -333,7 +349,7 @@ const AssignChild = () => {
               />
 
               <Text className="text-[18px] font-sansSemiBold text-white mt-9 mb-8">
-                {step === 2 ? 'Select Learner' : 'Choose Assignment Scope'}
+                {step === 2 ? 'Select Learners' : 'Choose Assignment Scope'}
               </Text>
               {step === 2 && (
                 <>

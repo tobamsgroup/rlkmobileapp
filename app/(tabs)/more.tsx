@@ -73,7 +73,7 @@ export default function More() {
         )}
         <View className="bg-[#FAFDFF] rounded-full py-1 px-4 mt-2">
           <Text className="text-[16px] text-[#3F9243] font-sansMedium">
-            Parent / Teacher
+            Parent
           </Text>
         </View>
         <View className="w-full bg-[#FFFFFF] rounded-[20px] p-5 mt-5 ">
@@ -98,6 +98,18 @@ export default function More() {
             </View>
             <Text className="text-dark text-[16px] font-sansMedium flex-1">
               Settings
+            </Text>
+            <ICONS.ChevronRight />
+          </Pressable>
+          <Pressable
+            onPress={() => Linking.openURL("https://rlkids.ai/faqs")}
+            className="flex-row items-center gap-2 py-6 border-b border-b-[#D3D2D366]"
+          >
+            <View className="items-center justify-center w-10 h-10 rounded-full bg-[#D3D2D333]">
+              <ICONS.QuestionMark width={24} height={24} stroke={'#474348'} />
+            </View>
+            <Text className="text-dark text-[16px] font-sansMedium flex-1">
+              Help & Support
             </Text>
             <ICONS.ChevronRight />
           </Pressable>

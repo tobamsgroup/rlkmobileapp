@@ -91,7 +91,7 @@ const RecommendedLearningTracks = () => {
           }}
         />
         <ICONS.HalfCloud
-          fill={'#2A6BAA'}
+          fill={'#FFFFFF'}
           style={{
             position: 'absolute',
             right: 15,
@@ -100,7 +100,7 @@ const RecommendedLearningTracks = () => {
           }}
         />
         <ICONS.HalfCloud
-          fill={'#2A6BAA'}
+          fill={'#FFFFFF'}
           style={{
             position: 'absolute',
             left: 38,
@@ -109,7 +109,7 @@ const RecommendedLearningTracks = () => {
           }}
         />
         <ICONS.HalfCloud
-          fill={'#2A6BAA'}
+          fill={'#FFFFFF'}
           style={{
             position: 'absolute',
             left: 0,
@@ -199,7 +199,7 @@ const RecommendedLearningTracks = () => {
                 paddingVertical: scaleHeight(12),
               }}
               textClassname="text-[#3F9243]"
-              className="bg-[#FFFFFF] border-[#265828] border-0 gap-2 items-center shadow-md"
+              className="bg-[#FFFFFF] border-[#265828]  gap-2 items-center shadow-md border-b-[#265828] border-l border-r border-l-[#265828]/60 border-r-[#265828]/60"
             >
               <Text className="text-[#3F9243] text-[16px] font-sansMedium">
                 DISCOVER MORE
@@ -242,7 +242,7 @@ const TrackCard = (
           className="rounded-[20px] w-full h-full mb-5"
           alt={props?.title + 'inactive'}
         />
-        <Text className=" font-sansMedium bg-[#004D99] text-white px-3 py-1 rounded-full mb-4">
+        <Text className=" font-sansMedium bg-[#D3D2D333] text-[#221D23] px-3 py-1 rounded-full mb-4">
           {props?.book?.title}
         </Text>
         <Text numberOfLines={2} className="text-[18px] font-sansMedium mb-4">
@@ -259,8 +259,8 @@ const TrackCard = (
             props?.onOpenLock();
           }
         }}
-        className="w-full bg-white border-primary border-2"
-        textClassname="text-primary"
+        className="w-full bg-white border-[#3F9243] border"
+        textClassname="text-[#3F9243]"
         text="ASSIGN TO CHILD"
       />
     </View>

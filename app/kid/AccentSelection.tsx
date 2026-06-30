@@ -7,8 +7,8 @@ import { scaleWidth } from '@/utils/scale';
 import { router } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import { Image, Pressable, Text, View } from 'react-native';
-import { twMerge } from 'tailwind-merge';
 import Tts from 'react-native-tts';
+import { twMerge } from 'tailwind-merge';
 
 /* ---------------- ACCENT → LANGUAGE MAP ---------------- */
 
@@ -31,6 +31,7 @@ const AccentSelection = () => {
   const [selectedAccent, setSelectedAccent] = useState('');
   const [voiceStyle, setVoiceStyle] = useState('');
   const [availableVoices, setAvailableVoices] = useState<any[]>([]);
+  const [isPlaying, setIsPlaying] = useState('');
 
   /* -------- Load device voices -------- */
   useEffect(() => {
@@ -60,7 +61,7 @@ const AccentSelection = () => {
         KEY_PARAM_VOLUME: 0.5,
         KEY_PARAM_STREAM: 'STREAM_MUSIC',
       },
-  })
+    });
     // Tts.speak(getDummyText(accentName));
   };
 
@@ -112,6 +113,7 @@ const AccentSelection = () => {
             <View className="p-4 bg-[#F1F9F1] rounded-[16px] mt-6 mb-9">
               {ACCENTS.map((a) => (
                 <AccentCard
+                  isPlaying={isPlaying}
                   key={a.name}
                   isSelected={a.name === selectedAccent}
                   accent={a}
@@ -141,11 +143,14 @@ const AccentSelection = () => {
 
               {VOICES.slice(0, 2).map((a) => (
                 <AccentCard
+                  isPlaying={isPlaying}
                   key={'kid' + a.name}
                   isSelected={'kid ' + a.name === voiceStyle}
                   accent={a}
                   onPress={() => setVoiceStyle('kid ' + a.name)}
-                  onPlaySound={() => speakPreview(selectedAccent, 'kid ' + a.name)}
+                  onPlaySound={() =>
+                    speakPreview(selectedAccent, 'kid ' + a.name)
+                  }
                 />
               ))}
 
@@ -157,11 +162,14 @@ const AccentSelection = () => {
 
               {VOICES.slice(2).map((a) => (
                 <AccentCard
+                  isPlaying={isPlaying}
                   key={'adult' + a.name}
                   isSelected={'adult ' + a.name === voiceStyle}
                   accent={a}
                   onPress={() => setVoiceStyle('adult ' + a.name)}
-                  onPlaySound={() => speakPreview(selectedAccent, 'adult ' + a.name)}
+                  onPlaySound={() =>
+                    speakPreview(selectedAccent, 'adult ' + a.name)
+                  }
                 />
               ))}
             </View>
@@ -188,11 +196,13 @@ export const AccentCard = ({
   accent,
   onPress,
   onPlaySound,
+  isPlaying,
 }: {
   isSelected: boolean;
   accent: { image: any; name: string; sound?: any; voiceKey?: string };
   onPress: () => void;
   onPlaySound?: () => void;
+  isPlaying: string;
 }) => {
   return (
     <Pressable
@@ -225,10 +235,10 @@ export const AccentCard = ({
           }}
           className={twMerge(
             'bg-[#193A1B] w-10 h-10 items-center justify-center rounded-[12px]',
-            isSelected && 'bg-[#6ABC6D]',
+            isSelected && 'bg-[#6ABC6D] border-[2.24px] border-[#A6D7A8]',
           )}
         >
-          <ICONS.Play />
+          {isPlaying === accent.name ? <ICONS.Pause /> : <ICONS.Play />}
         </Pressable>
       </View>
     </Pressable>
@@ -238,12 +248,28 @@ export const AccentCard = ({
 /* ---------------- DATA ---------------- */
 
 export const ACCENTS = [
-  { image: IMAGES.FlagGB, name: 'British', sound: require('../../assets/sounds/adult-male-uk.mp3') },
-  { image: IMAGES.FlagUSA, name: 'American', sound: require('../../assets/sounds/adult-male-us.mp3') },
-  { image: IMAGES.FlagAU, name: 'Australian', sound: require('../../assets/sounds/adult-male-au.mp3') },
+  {
+    image: IMAGES.FlagGB,
+    name: 'British',
+    sound: require('../../assets/sounds/adult-male-uk.mp3'),
+  },
+  {
+    image: IMAGES.FlagUSA,
+    name: 'American',
+    sound: require('../../assets/sounds/adult-male-us.mp3'),
+  },
+  {
+    image: IMAGES.FlagAU,
+    name: 'Australian',
+    sound: require('../../assets/sounds/adult-male-au.mp3'),
+  },
   // { image: IMAGES.FlagNG, name: 'Nigerian' },
   // { image: IMAGES.FlagSA, name: 'South African' },
-  { image: IMAGES.FlagIND, name: 'Indian', sound: require('../../assets/sounds/adult-male-in.mp3') },
+  {
+    image: IMAGES.FlagIND,
+    name: 'Indian',
+    sound: require('../../assets/sounds/adult-male-in.mp3'),
+  },
 ];
 
 export const VOICES = [

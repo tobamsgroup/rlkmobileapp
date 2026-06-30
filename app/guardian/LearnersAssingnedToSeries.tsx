@@ -6,19 +6,19 @@ import { ICONS } from '@/assets/icons';
 import { IMAGES } from '@/assets/images';
 import Button from '@/components/Button';
 import Container from '@/components/Container';
-import { SimpleInput } from '@/components/Input';
 import ProgressBar from '@/components/ProgressBar';
 import Skeleton from '@/components/Skeleton';
 import TrialLockModal from '@/components/Subscription/TrialLockModal';
 import TopBackButton from '@/components/TopBackButton';
-import { PLAN_DETAILS } from '@/constants/subscription';
 import useGuardian from '@/hooks/useGuardianProfile';
-import { formatDate } from '@/utils';
+import { ensureHttps, formatDate, numberToWord } from '@/utils';
 import { scaleHeight, scaleWidth } from '@/utils/scale';
+import { showToast } from '@/utils/toast';
 import { useQuery } from '@tanstack/react-query';
 import { router, useLocalSearchParams } from 'expo-router';
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Image, Pressable, Text, View } from 'react-native';
+import { twMerge } from 'tailwind-merge';
 
 const LearnersAssingnedToSeries = () => {
   const params = useLocalSearchParams();
@@ -48,89 +48,54 @@ const LearnersAssingnedToSeries = () => {
     setKidsData(data);
   }, [data, search]);
 
-  const canAssignSeries = useMemo(() => {
-    const numOfBooksAssigned = guardian?.numOfBooks || 0;
-    const currentPlan = PLAN_DETAILS[guardian?.subscription?.plan || 'free'];
-    if (numOfBooksAssigned < currentPlan?.noOfBooks) {
-      return true;
-    }
-    return false;
-  }, [guardian, PLAN_DETAILS]);
-
   return (
     <>
       <Container scrollable>
         <View className="px-6 py-5">
           <TopBackButton />
-          <Text className="font-sansSemiBold text-dark text-[20px] my-4 mb-8">
-            Learners Assigned to {params?.title}
+          <Text className="font-sansSemiBold text-dark text-[20px] my-4 mb-4">
+            Learners Assigned
           </Text>
-          <SimpleInput
-            name="search"
-            containerClass="bg-white border-0"
-            displayIcon={<ICONS.Search />}
-            placeholder="Search by kid’s name..."
-            value={search}
-            handleChange={setSearch}
-          />
-          {!!kidsData?.length && (
-            <Text className="text-[16px] font-sansSemiBold text-dark mt-5 ">
-              Total Kids: {kidsData?.length}
-            </Text>
-          )}
+          <Text className="font-sansSemiBold text-[#474348] text-[16px] capitalize">
+            Series {numberToWord(params?.index as string)} :{' '}
+            {params?.seriesTitle}
+          </Text>
           <View className="bg-[#000F1F] p-6  px-8 rounded-[16px] mt-8 relative">
             <ICONS.Ellipse
               style={{ position: 'absolute', top: scaleHeight(68), zIndex: 0 }}
             />
-            <ICONS.Star
-              style={{
-                position: 'absolute',
-                top: scaleHeight(9),
-                right: 8,
-                zIndex: 0,
-              }}
-            />
-            <ICONS.Flower
-              style={{
-                position: 'absolute',
-                top: scaleHeight(57),
-                right: 37,
-                zIndex: 0,
-              }}
-            />
-            <ICONS.Flower
-              style={{
-                position: 'absolute',
-                bottom: scaleHeight(78),
-                left: 0,
-                zIndex: 0,
-              }}
-            />
-            <ICONS.Star
-              style={{
-                position: 'absolute',
-                top: scaleHeight(89),
-                left: 0,
-                zIndex: 0,
-              }}
-              fill={'#FFDE2A'}
-            />
+            <View className="flex-row items-center gap-[15px]">
+              {!!kidsData?.length && !isLoading && (
+                <Text className="text-white text-[16px] font-sansSemiBold">
+                  Learners: {kidsData?.length}
+                </Text>
+              )}
+              {kidsData?.length >= 5 && (
+                <Pressable
+                  onPress={() =>
+                    showToast(
+                      'info',
+                      'All learners have been assigned to this series.',
+                    )
+                  }
+                >
+                  <ICONS.InformationCircle
+                    stroke={'#1671D9'}
+                    width={20}
+                    height={20}
+                  />
+                </Pressable>
+              )}
+            </View>
 
             {!!!kidsData?.length && !isLoading && (
-              <View className="items-center z-50 relative">
-                <Image
-                  style={{
-                    height: scaleWidth(72),
-                    width: scaleWidth(72),
-                  }}
-                  className="rounded-full border-[1.8px] border-[#FFD700] mb-6"
-                  source={IMAGES.Superkid}
-                />
+              <View className=" items-center justify-center  h-[464px]">
                 <Text className="text-white font-sansSemiBold text-[20px] text-center mb-4">
                   No Learners Assigned Yet.
                 </Text>
                 <Text className="text-white text-center font-sansMedium mb-6">
-                  Once you assign child and they will appear here.
+                  Assign this series to one or more learners to see them listed
+                  here
                 </Text>
                 <Button
                   onPress={() =>
@@ -138,8 +103,8 @@ const LearnersAssingnedToSeries = () => {
                       `/guardian/AssignChild?title=${params?.title}&id=${params?.id}&seriesTitle=${params?.seriesTitle}`,
                     )
                   }
-                  className="w-full bg-[#004D99] border-[#003366]"
-                  text="ASSIGN KIDS"
+                  className="px-6"
+                  text="ASSIGN TO CHILD"
                 />
               </View>
             )}
@@ -163,13 +128,9 @@ const LearnersAssingnedToSeries = () => {
       {!!kidsData?.length && (
         <Pressable
           onPress={() => {
-            if (canAssignSeries) {
-              router.push(
-                `/guardian/AssignChild?title=${params?.title}&id=${params?.id}&seriesTitle=${params?.seriesTitle}`,
-              );
-            } else {
-              setOpenLock(true);
-            }
+            router.push(
+              `/guardian/AssignChild?title=${params?.title}&id=${params?.id}&seriesTitle=${params?.seriesTitle}`,
+            );
           }}
           style={{
             position: 'absolute',
@@ -201,30 +162,30 @@ const KidProgessCard = (props: KidCourseWithPopulatedKid) => {
   return (
     <View className="relative mb-3">
       <View
-        className="border-2 border-[#FFD700] rounded-full bg-white absolute top-0 left-0 z-30"
         style={{
-          height: scaleWidth(104),
-          width: scaleWidth(104),
-          left: '33%',
-        }}
-      >
-        <Image
-          className="w-full h-full rounded-full"
-          source={
-            props?.kidId?.picture
-              ? { uri: props?.kidId?.picture }
-              : IMAGES.KidProfilePlaceholder
-          }
-        />
-      </View>
-      <View
-        style={{
-          //   width: scaleWidth(256),
           marginTop: scaleHeight(52),
-          paddingTop: scaleHeight(58),
         }}
-        className="border-2 border-primary rounded-[20px] bg-white items-center px-11 pb-5"
+        className="border-2 border-[#D3D2D366] rounded-[20px] bg-[#FAFDFF] items-center px-11 py-6"
       >
+        <View
+          className={twMerge(
+            ' rounded-full bg-white mb-2',
+            props?.kidId?.picture && ' border-[#FFD700] border-2',
+          )}
+          style={{
+            height: 90,
+            width: 90,
+          }}
+        >
+          <Image
+            className="w-full h-full rounded-full"
+            source={
+              props?.kidId?.picture
+                ? { uri: ensureHttps(props?.kidId?.picture) }
+                : IMAGES.KidProfilePlaceholder
+            }
+          />
+        </View>
         <Text className="text-[#193A1B] font-sansMedium text-[16px]">
           {props?.kidId?.name}
         </Text>

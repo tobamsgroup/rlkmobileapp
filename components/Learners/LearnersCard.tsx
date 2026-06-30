@@ -53,8 +53,8 @@ const LearnerCard = (props: GroupedByKid) => {
       <View className="bg-white rounded-full px-3 py-2 mb-5 mt-3 border border-[#DBEFDC]">
         <Text className="font-sans text-[#474348]">
           {props?.courses?.length > 0
-            ? `${props.courses.length} Track${props.courses.length !== 1 ? 's' : ''}`
-            : '0 Track'}
+            ? `${props.courses.length} Book${props.courses.length !== 1 ? 's' : ''}`
+            : '0 Book'}
         </Text>
       </View>
       <Button
@@ -68,7 +68,7 @@ const LearnerCard = (props: GroupedByKid) => {
         loading={loading}
         className="bg-[#DBEFDC] border-b-0 mt-2 w-full uppercase"
         textClassname="text-[#337535] uppercase"
-        text={`LOGIN AS ${props?.kid?.name?.split(' ')[0]}`}
+        text={`LOG IN AS ${props?.kid?.name?.split(' ')[0]}`}
         onPress={handleSwitchSession}
       />
     </View>

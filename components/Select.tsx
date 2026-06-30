@@ -138,7 +138,7 @@ const Select: FC<SelectProps> = ({
           {layout && (
             <Pressable
               onPress={(e) => e.stopPropagation()}
-              className='shadow-md'
+              className='shadow-lg'
               style={[
                 {
                   position: 'absolute',
@@ -159,7 +159,7 @@ const Select: FC<SelectProps> = ({
                   <Pressable
                     onPress={() => handleSelect(o)}
                     className={twMerge(
-                      'border-b-2 border-[#D3D2D366] py-5 rounded-[8px]',
+                      'border-b-[0.5px] border-[#D3D2D366] py-5 rounded-[8px]',
                       i + 1 === options.length && 'border-b-0',
                     )}
                     key={i}

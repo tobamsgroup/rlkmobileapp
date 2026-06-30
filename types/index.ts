@@ -148,6 +148,7 @@ export type AssignedCoursesProp = {
   title: string;
   index: number;
   book: string;
+  bookId:string
   progress: number;
   assignmentStatus: {
     completed: number;
@@ -177,6 +178,7 @@ export type LearningOverviewResponse = {
     picture: string;
     id: string;
     gender: string;
+    subscription: SubscriptionData
   };
   thisWeek: {
     lastLogin: string | null;

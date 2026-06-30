@@ -79,18 +79,18 @@ const LearnersProgress = ({ onAddChild }: { onAddChild: () => void }) => {
             ref={flatListRef}
             data={groupedData}
             getItemLayout={(_, index) => ({
-              length: scaleWidth(256),
-              offset: scaleWidth(256) * index,
+              length: scaleWidth(266),
+              offset: scaleWidth(266) * index,
               index,
             })}
-            snapToInterval={scaleWidth(256)}
+            snapToInterval={scaleWidth(266)}
             decelerationRate="fast"
             renderItem={({ item }) => <KidProgessCard {...item} />}
             keyExtractor={(_, index) => index.toString()}
             contentContainerClassName="gap-4"
             onMomentumScrollEnd={(e) => {
               const index = Math.round(
-                e.nativeEvent.contentOffset.x / scaleWidth(256),
+                e.nativeEvent.contentOffset.x / scaleWidth(266),
               );
               setCurrentIndex(index);
             }}
@@ -106,11 +106,11 @@ const LearnersProgress = ({ onAddChild }: { onAddChild: () => void }) => {
               }}
               className={twMerge(
                 'bg-[#DBEFDC] rounded-[32px] items-center justify-center',
-                currentIndex === 0 && 'bg-gray-200',
+                currentIndex === 0 && 'bg-[#D3D2D333]',
               )}
             >
               <ICONS.KeyboardArrowLeft
-                fill={currentIndex === 0 ? '#9c9c9c' : '#3F9243'}
+                fill={currentIndex === 0 ? '#474348' : '#3F9243'}
                 width={32}
                 height={32}
               />
@@ -123,13 +123,13 @@ const LearnersProgress = ({ onAddChild }: { onAddChild: () => void }) => {
               }}
               className={twMerge(
                 'bg-[#DBEFDC] rounded-[32px] items-center justify-center',
-                currentIndex + 1 === groupedData?.length && 'bg-gray-200',
+                currentIndex + 1 === groupedData?.length && 'bg-[#D3D2D333]',
               )}
             >
               <ICONS.KeyboardArrowRight
                 fill={
                   currentIndex + 1 === groupedData?.length
-                    ? '#9c9c9c'
+                    ? '#474348'
                     : '#3F9243'
                 }
                 width={32}
@@ -186,7 +186,7 @@ const KidProgessCardSkeleton = () => {
 
       <View
         style={{
-          width: scaleWidth(256),
+          width: scaleWidth(266),
           height: scaleHeight(189),
           marginTop: scaleHeight(52),
           paddingTop: scaleHeight(58),
@@ -205,52 +205,51 @@ const KidProgessCard = (props: GroupedByKid) => {
   return (
     <View className="relative">
       <View
-        className={twMerge(
-          'border-2 border-[#FFD700] rounded-full bg-white absolute top-0 left-0 z-30',
-          // props?.kid?.picture && ' border-[#FFD700]',
-        )}
         style={{
-          height: scaleWidth(104),
-          width: scaleWidth(104),
-          left: scaleWidth(78),
-        }}
-      >
-        <Image
-          className="w-full h-full rounded-full"
-          source={
-            props?.kid?.picture
-              ? { uri: ensureHttps(props?.kid?.picture) }
-              : IMAGES.KidProfilePlaceholder
-          }
-        />
-      </View>
-      <View
-        style={{
-          width: scaleWidth(256),
+          width: scaleWidth(266),
           // height: scaleHeight(240),
-          marginTop: scaleHeight(52),
-          paddingTop: scaleHeight(58),
+          // marginTop: scaleHeight(52),
           paddingBottom: scaleHeight(20),
         }}
-        className="border-2 border-primary rounded-[20px] bg-[#DBEFDC] items-center px-11 "
+        className="border-2 border-[#D3D2D366] rounded-[20px] bg-[#FAFDFF] items-center px-6 py-6"
       >
+        <View
+          className={twMerge(
+            ' rounded-full bg-white mb-2',
+            props?.kid?.picture && ' border-[#FFD700] border-2',
+          )}
+          style={{
+            height: 90,
+            width: 90,
+          }}
+        >
+          <Image
+            className="w-full h-full rounded-full"
+            source={
+              props?.kid?.picture
+                ? { uri: ensureHttps(props?.kid?.picture) }
+                : IMAGES.KidProfilePlaceholder
+            }
+          />
+        </View>
         <Text className="text-[#193A1B] font-sansMedium text-[16px]">
           {props?.kid?.name}
         </Text>
-        <View className="bg-white rounded-full px-3 py-2 mb-5 mt-3">
+        <View className="bg-white border border-[#DBEFDC] rounded-full px-3 py-2 mb-5 mt-3">
           <Text className="font-sans text-[#474348]">
             {props?.courses?.length > 0
-              ? `${props.courses.length} Track${props.courses.length !== 1 ? 's' : ''}`
-              : '0 Track'}
+              ? `${props.courses.length} Book${props.courses.length !== 1 ? 's' : ''}`
+              : '0 Book'}
           </Text>
         </View>
-        <Button
+        <Pressable
+        className='border-b-2 border-l border-r border-[#C3E4C5] bg-[#DBEFDC] w-full items-center justify-center py-3 rounded-full'
           onPress={() =>
             router.push(`/guardian/LearningProgress?id=${props?.kid?._id}`)
           }
-          text="VIEW PROGRESS"
-          className="w-full"
-        />
+        >
+          <Text className='text-[16px] text-[#337535] font-sansMedium'>VIEW PROGRESS</Text>
+        </Pressable>
       </View>
     </View>
   );

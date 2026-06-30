@@ -21,33 +21,34 @@ const SeriesOverviewCard = (
       <Text className="text-[18px] font-sansMedium mb-2">
         Series {props?.index}: {props.title}
       </Text>
-      <View className=" rounded-full py-1.5 flex-row items-center gap-2.5 mb-4">
-        <ICONS.ChildCare fill={'#3F9243'} />
+      <View className=" rounded-full py-1.5 flex-row items-end gap-2.5 mb-4">
+        <ICONS.User3/>
         <Text className="font-sansMedium text-[#474348]">
-          {props?.assignedCount} Learners Assigned
+          {props?.assignedCount} Learners
         </Text>
       </View>
       <Button
         onPress={() => {
           if (props?.canAssign) {
             router.push(
-              `/guardian/AssignChild?title=${props?.book?.title}&id=${props?.seriesId}&seriesTitle=${props?.title}`,
+              `/guardian/AssignChild?title=${props?.book?.title}&id=${props?.seriesId}&seriesTitle=${props?.title}&index=${props?.index}`,
             );
           } else {
             props?.onOpenLock();
           }
         }}
-        className="w-full mb-5"
+          className="w-full bg-white border-[#3F9243] border mb-5"
+        textClassname="text-[#3F9243]"
         text="ASSIGN TO CHILD"
       />
       <Button
         onPress={() =>
           router.push(
-            `/guardian/LearnersAssingnedToSeries?title=${props?.book?.title} Series ${props?.index}&id=${props?.seriesId}&seriesTitle=${props?.title}`,
+            `/guardian/LearnersAssingnedToSeries?index=${props?.index}&id=${props?.seriesId}&seriesTitle=${props?.title}&title=${props?.book?.title} Series ${props?.index}`,
           )
         }
-        className="w-full bg-white border-primary border-2"
-        textClassname="text-primary"
+        className="w-full bg-white border-[#3F9243] border"
+        textClassname="text-[#3F9243]"
         text="VIEW LEARNERS"
       />
     </View>

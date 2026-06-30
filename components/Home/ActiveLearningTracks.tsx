@@ -204,7 +204,7 @@ export const TrackCard = ({
         source={{ uri: ensureHttps(item?.book?.image!) }}
         className="rounded-[20px] w-full h-full mb-4"
       />
-      <Text className="text-[18px] font-sansMedium bg-[#1671D91A] text-[#1671D9] px-2 py-1 rounded-full mb-4">
+      <Text className="text-[14px] font-sansMedium bg-[#D3D2D333] text-[#221D23] px-2 py-1 rounded-full mb-4">
         {item?.book?.title}
       </Text>
       <Text className="text-[18px] font-sansMedium">
@@ -213,7 +213,7 @@ export const TrackCard = ({
       <View className="bg-[#D3D2D333] rounded-full py-1.5 px-3 flex-row items-center gap-2.5 my-4">
         <ICONS.ChildCare fill={'#3F9243'} />
         <Text className="font-sansMedium text-[#474348]">
-          {item?.assignedCount} Learners
+          {item?.assignedCount} Learner{item?.assignedCount > 1 && 's'}
         </Text>
       </View>
       <Button

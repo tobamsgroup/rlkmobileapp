@@ -1,14 +1,14 @@
+import { updateReadingSettings } from '@/actions/kid';
+import Button from '@/components/Button';
 import Container from '@/components/Container';
 import TopBackButton from '@/components/TopBackButton';
 import { getData, storeData } from '@/lib/storage';
-import { updateReadingSettings } from '@/actions/kid';
-import { showToast } from '@/utils/toast';
 import { HAPTIC } from '@/utils/haptic';
-import { createAudioPlayer, AudioPlayer } from 'expo-audio';
+import { showToast } from '@/utils/toast';
+import { AudioPlayer, createAudioPlayer } from 'expo-audio';
 import React, { useEffect, useRef, useState } from 'react';
 import { Text, View } from 'react-native';
 import { AccentCard, ACCENTS } from './AccentSelection';
-import Button from '@/components/Button';
 
 // Maps accent display name → API country code
 const ACCENT_CODE: Record<string, string> = {
@@ -29,6 +29,7 @@ const VOICE_STYLE_KEY: Record<string, string> = {
 const AccentSettings = () => {
   const [selectedAccent, setSelectedAccent] = useState('');
   const [isSaving, setIsSaving] = useState(false);
+  const [isPlaying, setIsPlaying] = useState('');
   const playerRef = useRef<AudioPlayer | null>(null);
 
   useEffect(() => {
@@ -42,13 +43,20 @@ const AccentSettings = () => {
     };
   }, []);
 
-  const handlePlaySound = (soundFile: any) => {
+  const handlePlaySound = (soundFile: any, name: string) => {
+    if (isPlaying === name) {
+      playerRef?.current?.pause();
+      playerRef?.current?.remove();
+      setIsPlaying('');
+      return;
+    }
     if (playerRef.current) {
       playerRef.current.pause();
       playerRef.current.remove();
     }
     playerRef.current = createAudioPlayer(soundFile);
     playerRef.current.play();
+    setIsPlaying(name);
   };
 
   const handleSave = async () => {
@@ -89,16 +97,18 @@ const AccentSettings = () => {
         <View className="p-4 bg-[#F1F9F1] rounded-[16px] mt-6 mb-9">
           {ACCENTS?.map((a) => (
             <AccentCard
+              isPlaying={isPlaying}
               isSelected={a.name === selectedAccent}
               key={a.name}
               accent={a}
               onPress={() => setSelectedAccent(a.name)}
-              onPlaySound={() => handlePlaySound(a.sound)}
+              onPlaySound={() => handlePlaySound(a.sound, a.name)}
             />
           ))}
         </View>
         <Button
           onPress={handleSave}
+          disabled={!selectedAccent}
           text={isSaving ? 'SAVING...' : 'SAVE MY SETTINGS'}
         />
       </View>

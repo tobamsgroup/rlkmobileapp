@@ -36,9 +36,9 @@ const WorkbookView = () => {
     setIsLoading(true);
     try {
       await handleUpdateProgress('completed');
-      setOpenModal(false)
+      setOpenModal(false);
       showToast('success', 'Workbook marked as completed');
-      router.back()
+      router.back();
     } catch (error: any) {
       showToast('error', error?.response?.data?.message || 'Try again');
       console.log(error);
@@ -61,7 +61,8 @@ const WorkbookView = () => {
       </View>
       <View className="bg-[#FAFDFF] py-4 px-6">
         <Text className="text-[18px] font-sansSemiBold text-[#337535]">
-          Chapter {parsedChapter?.chapterIndex}: {parsedChapter?.chapterName}
+          Chapter {' '}
+          {parsedChapter?.chapterIndex}: {parsedChapter?.chapterName}
         </Text>
       </View>
 
@@ -74,13 +75,19 @@ const WorkbookView = () => {
             source={{
               uri: parsedChapter?.pdfUrl,
             }}
+            trustAllCerts={false}
             enablePaging
+            enableDoubleTapZoom
+            singlePage
             onPageChanged={(page) => {
-              if (page > parsedChapter?.end) {
-                pdfRef.current?.setPage(parsedChapter?.end);
-              }
+              setCurrentIndex(page);
+
               if (page < parsedChapter?.start) {
                 pdfRef.current?.setPage(parsedChapter?.start);
+              }
+              if (page > parsedChapter?.end) {
+                alert('true');
+                pdfRef.current?.setPage(parsedChapter?.end);
               }
               if (
                 currentIndex > parsedChapter?.start &&
@@ -90,7 +97,6 @@ const WorkbookView = () => {
                 handleUpdateProgress('started');
                 startedRef.current = true;
               }
-              setCurrentIndex(page);
             }}
           />
         )}
@@ -171,7 +177,7 @@ const WorkbookView = () => {
               your notebook.
             </Text>
           </View>
-          <Button
+          <LinearButton
             onPress={onComplete}
             disabled={isLoading}
             className="w-full mt-6"

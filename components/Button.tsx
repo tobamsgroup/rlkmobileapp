@@ -34,7 +34,7 @@ const Button = ({ children, ...props }: Props & PressableProps) => {
       className={twMerge(
         ' flex-row items-center justify-center bg-[#3F9243] rounded-full border-b-2 border-b-[#337535]',
         props.className,
-        props?.disabled && 'bg-[#D3D2D3] border-b-[#918E91]',
+        props?.disabled && 'bg-[#D3D2D3] border-b-[#918E91] border-0',
       )}
     >
       {props?.loading ? (

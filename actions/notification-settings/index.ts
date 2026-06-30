@@ -12,6 +12,7 @@ export type NotificationSettingsData = {
   newDeviceLogin: ChannelPref;
   suspiciousLoginActivity: ChannelPref;
   weeklyLearningReport: ChannelPref;
+  workbookUpdates: ChannelPref;
   ideaWall: ChannelPref;
   submissionApproved: ChannelPref;
   policyTermsUpdate: ChannelPref;

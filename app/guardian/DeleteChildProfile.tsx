@@ -1,54 +1,37 @@
-import { scheduleAccountDeletion } from '@/actions';
-import { handleLogout } from '@/actions/logout';
 import { ICONS } from '@/assets/icons';
 import Button from '@/components/Button';
 import Container from '@/components/Container';
 import { SimpleInput } from '@/components/Input';
 import TopBackButton from '@/components/TopBackButton';
-import { useAppDispatch } from '@/hooks/redux';
 import { showToast } from '@/utils/toast';
-import { useMutation } from '@tanstack/react-query';
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import React, { useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
 import Modal from 'react-native-modal';
 
 const AccountDeletion = () => {
-  const dispatch = useAppDispatch();
   const [openDeletion, setOpenDeletion] = useState(false);
   const [password, setPassword] = useState('');
 
-  const { mutate, isPending } = useMutation({
-    mutationFn: () => scheduleAccountDeletion(password),
-    onSuccess: () => {
-      setOpenDeletion(false);
-      router.push('/guardian/AccountDeletionReason');
-    },
-    onError: (err: any) => {
-      setOpenDeletion(false);
-      showToast(
-        'error',
-        err?.response?.data?.message ?? 'Something went wrong',
-      );
-    },
-  });
+  const { id, name } = useLocalSearchParams();
 
   return (
     <Container backgroundColor="white" scrollable>
       <View className="px-6 py-5">
         <TopBackButton className="border-[#EFEFF3] border " />
         <Text className="font-sansSemiBold text-dark text-[20px] mt-4">
-          Delete Account
+          Delete Child's Account
         </Text>
         <Text className="mt-2 text-[16px] text-[#6C686C] font-sans leading-[1.5]">
-          Permanently remove your account and all associated data.
+          Permanently remove your child’s profile and all associated data.
         </Text>
-        <View className="mt-8 border-b-4 bg-[#DE21211A] px-4 py-2 rounded-[16px] border-b-[#DE2121] border-r border-l border-[#DE21211A] leading-[1.5]">
-          <Text className="text-[#221D23] font-sans leading-[1.5] ">
-            Before you delete your account, please note that your login,
-            profile, preferences, all children's data, and subscriptions will be{' '}
+        <View className="mt-8 border-b-4 bg-[#DE21211A] px-4 py-2 rounded-[16px] border-b-[#DE2121] border-r border-l border-[#DE21211A]">
+          <Text className="text-[#221D23] font-sans leading-[1.5]">
+            Before you delete your child’s account, please note that their
+            login, profile, books, and active subscriptions will be permanently
+            removed.{' '}
             <Text className="font-sansMedium">
-              permanently removed with no refunds.
+              This action cannot be undone and no refunds will be issued.
             </Text>
           </Text>
         </View>
@@ -57,31 +40,33 @@ const AccountDeletion = () => {
           <SimpleInput
             name="password"
             type="password"
-            label="Password"
+            label="Enter your Password"
             value={password}
             handleChange={setPassword}
           />
           <Button
             text="DELETE ACCOUNT"
             onPress={() => {
-              if (!password.trim()) return;
+              if (!password.trim()) {
+                showToast('error', 'Please enter your password!');
+                return;
+              }
               setOpenDeletion(true);
             }}
             className="mt-4 bg-[#DE2121] border-0"
           />
         </View>
-        <Text className="mt-8 font-sansMedium text-[#474348]">
-          Not ready to delete your account?
+        <Text className="mt-8 font-sansMedium text-[#474348] text-[16px] text-center">
+          Not ready to delete your child's account?
         </Text>
         <Pressable
           onPress={() => {
-            handleLogout(dispatch);
-            router.replace('/auth/Login');
+            router.push(`/guardian/LearningProgress?id=${id}`);
           }}
           className="border flex-row items-center gap-2 border-[#D3D2D366] p-4 rounded-[16px] mt-4"
         >
           <Text className="font-sansMedium text-[#221D23]">
-            Log out Instead
+            View Child’s Profile Instead
           </Text>
           <ICONS.ArrowUpRight />
         </Pressable>
@@ -95,24 +80,30 @@ const AccountDeletion = () => {
             <ICONS.Trash />
           </View>
           <Text className="text-center font-sansSemiBold text-[20px] mb-2 mt-6">
-            Are you sure you want to permanently delete your Account?
+            Are You Sure You Want to Permanently Delete {name}’s Profile?
           </Text>
           <Text className="text-center text-[#474348] font-sans text-[16px] leading-[1.5]">
-            This action will start your account deletion process. You will have
-            3 days to restore your account, after which all your data will be
-            permanently removed.
+            This action will begin the process of deleting your child's account.
+            Access to their account will be revoked immediately, and all
+            associated data will be permanently removed.
           </Text>
           <Button
-            onPress={() => mutate()}
-            disabled={isPending}
+            onPress={() => {
+              if (!password) {
+                showToast('error', 'Enter your password');
+                return;
+              }
+              setOpenDeletion(false);
+              router.push(
+                `/guardian/ChildAccountDeletionReason?password=${password}&id=${id}&name=${name}`,
+              );
+            }}
             className="w-full mt-6 bg-[#DE2121] border-none border-b-0"
             textClassname="text-white"
-            text={isPending ? 'DELETING...' : 'DELETE'}
-            loading={isPending}
+            text={'DELETE'}
           />
           <Button
             onPress={() => setOpenDeletion(false)}
-            disabled={isPending}
             className="w-full mt-6 bg-white border-2 border-[#D3D2D3]"
             textClassname="text-[#221D23]"
             text={'CLOSE'}

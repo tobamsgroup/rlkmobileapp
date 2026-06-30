@@ -9,9 +9,11 @@ import Stepper from '@/components/Stepper';
 import { maskEmail } from '@/utils';
 import { scaleWidth } from '@/utils/scale';
 import { showToast } from '@/utils/toast';
+import Octicons from '@expo/vector-icons/Octicons';
 import { router } from 'expo-router';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Image, Linking, Pressable, Text, View } from 'react-native';
+import { twMerge } from 'tailwind-merge';
 import { z } from 'zod';
 
 const RegisterSchema = z.object({
@@ -55,7 +57,7 @@ const SignUp = () => {
       };
       try {
         await teacherSignup(payload);
-        showToast('success', 'OTP Sent successfully!');
+        // showToast('success', 'OTP Sent successfully!');
         setMode('otp');
       } catch (error: any) {
         console.log({ error: error?.response });
@@ -126,6 +128,18 @@ const SignUp = () => {
     }
     setLoading(false);
   };
+
+  const passwordChecks = useMemo(() => {
+    return {
+      minLength: password.length >= 8,
+      uppercase: /[A-Z]/.test(password),
+      lowercase: /[a-z]/.test(password),
+      specialChar: /[!@#$%^&*(),.?":{}|<>_\-+=[\]\\;'/`~]/.test(password),
+      number: /[0-9]/.test(password),
+    };
+  }, [password]);
+
+  const isPasswordValid = Object.values(passwordChecks).every(Boolean);
   return (
     <Container backgroundColor="#FAFDFF">
       <View className="px-6 py-5">
@@ -139,7 +153,7 @@ const SignUp = () => {
         {mode === 'email' && (
           <>
             <Text className="text-center font-sansSemiBold text-[24px] text-dark ">
-              Let's Set Up Your Parent/{'\n'} Teacher Account.
+            Let's Set Up Your Parent Account.
             </Text>
             <Text className="text-center mt-3 text-[#474348] leading-[1.5] font-sans text-[16px] mb-10">
               Please use your email to create your account and link a child’s
@@ -159,15 +173,39 @@ const SignUp = () => {
               type="password"
               name="email"
               label="Password"
-              wrapperClassName="mt-8 mb-8"
+              wrapperClassName="mt-8 mb-4"
               error={errors.password}
             />
+            <View>
+              <Text className="font-sansMedium text-[#221D23] mb-4">
+                Password must include:
+              </Text>
+              <PasswordRule
+                label="At least 8 characters"
+                passed={passwordChecks.minLength}
+              />
+              <PasswordRule
+                label="Uppercase"
+                passed={passwordChecks.uppercase}
+              />
+              <PasswordRule
+                label="Lowercase"
+                passed={passwordChecks.lowercase}
+              />
+              <PasswordRule
+                label="Special character"
+                passed={passwordChecks.specialChar}
+              />
+              <PasswordRule label="Number" passed={passwordChecks.number} />
+            </View>
             <Button
               loading={loading}
               onPress={handleSubmit}
-              className="mb-8"
+              disabled={!isPasswordValid}
+              className="my-8"
               text="SIGN UP"
             />
+
             <Text className="text-center text-[16px] font-sansMedium text-[#6C686C]">
               Already have an account?{' '}
               <Text
@@ -278,5 +316,25 @@ const SignUp = () => {
     </Container>
   );
 };
+
+export function PasswordRule({ label, passed }: { label: string; passed: boolean }) {
+  return (
+    <View className="flex-row items-center gap-2 mb-3">
+      <Octicons
+        name="check-circle"
+        size={16}
+        color={passed ? '#337535' : '#6C686C'}
+      />
+      <Text
+        className={twMerge(
+          'font-sans',
+          passed ? 'text-[#337535]' : 'text-[#6C686C]',
+        )}
+      >
+        {label}
+      </Text>
+    </View>
+  );
+}
 
 export default SignUp;

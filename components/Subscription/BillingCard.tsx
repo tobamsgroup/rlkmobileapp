@@ -41,7 +41,7 @@ const BillingCard = ({
 
   return (
     <View className="border border-[#D3D2D366] rounded-[4px]">
-      <View className="bg-[#D3D2D366] py-2 px-4">
+      <View className=" py-4 px-4">
         <Text className="text-[16px] font-sansMedium text-[#221D23]">
        Alexander Bob
         </Text>

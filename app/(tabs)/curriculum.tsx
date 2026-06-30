@@ -7,6 +7,7 @@ import CurriculumCard, {
 import TrialLockModal from '@/components/Subscription/TrialLockModal';
 import { scaleHeight, scaleWidth } from '@/utils/scale';
 import { useQuery } from '@tanstack/react-query';
+import { useMemo } from 'react';
 import { Text, View } from 'react-native';
 
 export default function Curriculum() {
@@ -17,6 +18,15 @@ export default function Curriculum() {
     },
   });
 
+const sortedData = useMemo(() => {
+  if (!data) return [];
+
+  return [...data].sort((a, b) => {
+    if (a.title === 'Think AI') return -1;
+    if (b.title === 'Think AI') return 1;
+    return 0;
+  });
+}, [data]);
 
   return (
     <Container scrollable edges={['top']}>
@@ -58,7 +68,7 @@ export default function Curriculum() {
           )}
           {!isLoading && !!data?.length && (
             <>
-              {data?.map((d, i) => (
+              {sortedData?.map((d, i) => (
                 <CurriculumCard key={i} {...d} />
               ))}
             </>

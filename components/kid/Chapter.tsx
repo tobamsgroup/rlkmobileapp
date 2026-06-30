@@ -5,12 +5,12 @@ import { fetchChapterPageAudio } from '@/actions/kid';
 import { ICONS } from '@/assets/icons';
 import { useReadSettings } from '@/context/ReadContext';
 import { ChapterPage as ChapterPageType, PageParagraph } from '@/types';
+import { AudioPlayer, createAudioPlayer } from 'expo-audio';
+import { ActivityIndicator } from 'react-native';
+import { twMerge } from 'tailwind-merge';
 import { buildSegments, Segment } from '../../utils/kid';
 import Button, { SecondaryButton } from '../Button';
 import { KaraokeText } from './KaraokeText';
-import { twMerge } from 'tailwind-merge';
-import { createAudioPlayer, AudioPlayer } from 'expo-audio';
-import { ActivityIndicator } from 'react-native';
 
 export const Chapter = ({
   data,
@@ -235,7 +235,12 @@ export const Chapter = ({
       : null;
 
   return (
-    <View className="flex-1 bg-[#FAFDFF] p-8 rounded-[12px]">
+    <View
+      style={{
+        backgroundColor: readingSettings.highContrast ? '#FEFAEE' : '#FAFDFF]',
+      }}
+      className="flex-1  p-8 rounded-[12px]"
+    >
       <View className="gap-6">
         {data ? (
           <>
@@ -405,12 +410,14 @@ const Paragraph = ({
       {data?.header && (
         <Text
           style={{
+            fontFamily: readingSettings?.dyslexiaFriendly
+              ? 'Lexend-Medium'
+              : 'Sans-SemiBold',
             fontSize:
               data?.headerFont?.toLowerCase() === 'big'
                 ? readingSettings.fontSize?.header + 4
                 : readingSettings.fontSize?.header,
           }}
-          className="font-sansSemiBold"
         >
           <KaraokeText
             text={data.header}
@@ -442,6 +449,10 @@ const Paragraph = ({
               <Text
                 style={{
                   lineHeight: readingSettings.lineSpace,
+                  fontFamily: readingSettings?.dyslexiaFriendly
+                    ? 'Lexend-Medium'
+                    : 'Sans-SemiBold',
+
                   fontSize:
                     data?.headerFont?.toLowerCase() === 'big'
                       ? readingSettings.fontSize?.header + 4
@@ -465,6 +476,9 @@ const Paragraph = ({
                 style={{
                   fontSize: readingSettings.fontSize.body,
                   lineHeight: readingSettings.lineSpace,
+                  fontFamily: readingSettings?.dyslexiaFriendly
+                    ? 'Lexend-Regular'
+                    : 'Sans-Regular',
                 }}
                 className="mt-2 font-sans text-dark"
               >
@@ -484,6 +498,9 @@ const Paragraph = ({
           style={{
             fontSize: readingSettings.fontSize.body,
             lineHeight: readingSettings.lineSpace,
+            fontFamily: readingSettings?.dyslexiaFriendly
+              ? 'Lexend-Regular'
+              : 'Sans-Regular',
           }}
           className="whitespace-pre-line mt-2 font-sans text-dark"
         >
@@ -509,6 +526,9 @@ const Paragraph = ({
                   style={{
                     fontSize: readingSettings.fontSize.body,
                     lineHeight: readingSettings.lineSpace,
+                    fontFamily: readingSettings?.dyslexiaFriendly
+                      ? 'Lexend-Medium'
+                      : 'Sans-Medium',
                   }}
                   className="font-sansMedium mr-1"
                 >
@@ -524,6 +544,9 @@ const Paragraph = ({
                   style={{
                     fontSize: readingSettings.fontSize.body,
                     lineHeight: readingSettings.lineSpace,
+                    fontFamily: readingSettings?.dyslexiaFriendly
+                      ? 'Lexend-Regular'
+                      : 'Sans-Regular',
                   }}
                   className="font-sans"
                 >

@@ -14,7 +14,7 @@ import { showToast } from '@/utils/toast';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import React, { useState } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { Linking, StyleSheet, Text, View } from 'react-native';
 
 const ParentAccess = () => {
   const [password, setPassword] = useState('');
@@ -87,12 +87,9 @@ const ParentAccess = () => {
               value={password}
               handleChange={setPassword}
             />
-            <View className="flex-row items-center justify-between mt-3">
-              <View className="flex-row gap-2 items-center">
-                <Checkbox />
-                <Text className=" text-dark font-sans">Remember Me</Text>
-              </View>
-              <Text className="text-[12px] text-[#004D99] font-sansMedium">
+            <View className="flex-row items-center justify-end mt-3">
+             
+              <Text className="text-[12px] text-[#004D99] font-sansMedium " >
                 FORGOT PASSWORD?
               </Text>
             </View>
@@ -106,7 +103,7 @@ const ParentAccess = () => {
             <View className="bg-[#1671D91A] px-4 py-2 rounded-[8px] mt-6">
               <Text className="font-sans text-[#1671D9] text-center">
                 Need help?{' '}
-                <Text className="text-[#004D99]">Contact support</Text>
+                <Text onPress={() => Linking.openURL('https://rlkids.ai/contact')} className="text-[#004D99]">Contact support</Text>
               </Text>
             </View>
           </View>

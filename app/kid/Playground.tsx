@@ -5,7 +5,7 @@ import {
   updatePLProgress,
 } from '@/actions/kid';
 import { ICONS } from '@/assets/icons';
-import Button, { SecondaryButton } from '@/components/Button';
+import Button, { LinearButton, SecondaryButton } from '@/components/Button';
 import Journal from '@/components/kid/Journal';
 import LearnCore from '@/components/kid/LearnCore';
 import Quiz from '@/components/kid/Quiz';
@@ -28,16 +28,18 @@ import {
 } from '@/utils/kid';
 import { invalidateQueries } from '@/utils/query';
 import { STAUS_BAR_HEIGHT } from '@/utils/scale';
+import { showToast } from '@/utils/toast';
 import { useQuery } from '@tanstack/react-query';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router, useLocalSearchParams } from 'expo-router';
 import React, { useMemo, useRef, useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Image, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { PieChart } from 'react-native-gifted-charts';
+import Modal from 'react-native-modal';
 import { twMerge } from 'tailwind-merge';
 import Activity from './Activity';
 import CurriculumBar from './CurriculumBar';
-import { showToast } from '@/utils/toast';
+import { IMAGES } from '@/assets/images';
 
 const Playground = () => {
   const { book, series, chapterId, lessonId, mode, page } =
@@ -48,6 +50,7 @@ const Playground = () => {
   const startTimeRef = useRef<number>(Date.now());
   const [accumulatedTime, setAccumulatedTime] = useState<number>(0);
   const [openSwitch, setOpenSwitch] = useState(false);
+  const [showPlayModal, setShowPlayModal] = useState(false);
 
   const { data } = useKidLearningOverview();
   const { data: chapters, isLoading: isLoadingChapters } = useQuery({
@@ -381,17 +384,13 @@ const Playground = () => {
     switch (page) {
       case 'mid':
       case 'end':
-        return (
-            <Quiz handleNext={onNext} readingProgress={readingProgress} />
-        );
+        return <Quiz handleNext={onNext} readingProgress={readingProgress} />;
 
       case 'journal':
         return <Journal onNext={onNext} />;
 
       case 'learn':
-        return (
-            <LearnCore onNext={onNext} />
-        );
+        return <LearnCore onNext={onNext} />;
 
       case 'scenario':
         return <ScenarioQuiz onNext={onNext} onPrev={onPrev} />;
@@ -462,7 +461,7 @@ const Playground = () => {
             <Pressable
               onPress={() => {
                 // handleParams([['mode', mode === 'read' ? 'play' : 'read']]);
-                showToast('error', 'Play and Learn not available yet');
+                setShowPlayModal(true);
               }}
               className="relative flex-row items-center gap-2 py-2 px-3"
             >
@@ -489,10 +488,7 @@ const Playground = () => {
         {mode === 'read' ? (
           <>
             {page === 'mid' || page === 'end' ? (
-                <Quiz
-                  handleNext={handleNext}
-                  readingProgress={readingProgress}
-                />
+              <Quiz handleNext={handleNext} readingProgress={readingProgress} />
             ) : (
               <ReadMode
                 isLoading={isLoadingSeriesPage}
@@ -550,9 +546,40 @@ const Playground = () => {
       <XpDropdown
         open={openXp}
         onClose={() => setOpenXp(false)}
-        seriesCategory={data?.find((d) => d.bookId?._id === book)?.bookId?.title?.split(' ').slice(1).join(' ')}
+        seriesCategory={data
+          ?.find((d) => d.bookId?._id === book)
+          ?.bookId?.title?.split(' ')
+          .slice(1)
+          .join(' ')}
         seriesIndex={targetSeries?.seriesId?.index}
       />
+
+      <Modal
+        isVisible={showPlayModal}
+        onBackdropPress={() => setShowPlayModal(false)}
+      >
+        <View className="bg-[#DBEFDC] p-6  border-2 border-[#6ABC6D] rounded-[24px] items-center">
+          <View className="bg-white rounded-[24px] p-5 items-center mb-6 w-full">
+            <View className="w-16 h-16 rounded-full bg-[#1671D91A] items-center justify-center mt-5">
+              <Image source={IMAGES.PlayComing} className='w-[80px] h-[80px]'/>
+            </View>
+            
+            <Text className="text-center font-sansSemiBold text-[#265828] text-[20px] mb-2 mt-6">
+              Play & Learn is Coming Soon!
+            </Text>
+            <Text className="text-center text-[#221D23] font-sans text-[16px] leading-[1.5]">
+              Missions, challenges, XP, badges and epic adventures, all coming
+              your way! Keep building your knowledge with Read Mode.
+            </Text>
+          </View>
+          <LinearButton
+            onPress={() => setShowPlayModal(false)}
+            className="w-full mt-6"
+            text={'BACK TO READ MODE'}
+          />
+
+        </View>
+      </Modal>
     </ScrollView>
   );
 };

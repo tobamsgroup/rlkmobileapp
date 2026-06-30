@@ -16,7 +16,7 @@ import { scaleHeight, scaleWidth } from '@/utils/scale';
 import { useQuery } from '@tanstack/react-query';
 import { router } from 'expo-router';
 import { useEffect, useMemo, useState } from 'react';
-import { FlatList, Image, Text, View } from 'react-native';
+import { FlatList, Image, Linking, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function Learners() {
@@ -32,7 +32,6 @@ export default function Learners() {
       return await fetchKids();
     },
   });
-
 
   const { data, isLoading } = useQuery({
     queryKey: ['kids-courses'],
@@ -85,6 +84,37 @@ export default function Learners() {
       edges={['top']}
       style={{ backgroundColor: '#DBEFDC', flex: 1 }}
     >
+      {(guardian?.totalKids || 0) >= 5 && (
+      <View className="px-6 py-4 bg-[#FDEC8D]/80 border-t-[#FFD700] border-b-[#FFD700] border-t border-b">
+        <Text className="text-[16px] text-[#221D23] font-sans leading-[1.5]">
+          <Text className="font-sansSemiBold">
+            You’ve reached the learner limit
+          </Text>{' '}
+          — Need to add more learners?{' '}
+          <Text
+            className="text-[#337535] font-sansSemiBold underline"
+            onPress={() => Linking.openURL('https://rlkids.ai/contact')}
+          >
+            Contact support
+          </Text>{' '}
+          and we’ll recommend the best setup for your needs.
+        </Text>
+        <ICONS.FlatCloud
+          style={{
+            position: 'absolute',
+            right: 130,
+            top: 2,
+          }}
+        />
+        <ICONS.FlatCloud
+          style={{
+            position: 'absolute',
+            bottom: 0,
+            left: 12,
+          }}
+        />
+      </View>
+      )} 
       {!isLoading && !!!data?.length && (
         <View className="items-center px-12 justify-center flex-1 relative">
           <Image
@@ -133,7 +163,8 @@ export default function Learners() {
               <Button
                 onPress={onAddKids}
                 className="mt-8"
-                text="ADD CHILD PROFILE"
+                text="ADD CHILD"
+                disabled={(guardian?.totalKids || 0) >= 5}
               />
               <SimpleInput
                 displayIcon={<ICONS.Search />}
@@ -164,7 +195,7 @@ export default function Learners() {
         open={openModal}
         onClose={() => setOpenModal(false)}
       />
-       <TrialLockModal
+      <TrialLockModal
         title="Child Profile Limit Reached"
         desc="Your account currently supports up to 5 child profiles. Contact support to increase this limit."
         open={openLock}

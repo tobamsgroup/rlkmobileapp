@@ -30,6 +30,7 @@ export const queryClient = new QueryClient();
 const toastConfig: ToastConfig = {
   success: (props) => <ToastAlert type="success" text={props?.text1} />,
   error: (props) => <ToastAlert type="error" text={props?.text1} />,
+  info: (props) => <ToastAlert type="info" text={props?.text1} />,
 };
 
 Notifications.setNotificationHandler({

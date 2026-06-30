@@ -202,6 +202,13 @@ export const fetchWorkbooks = async (
   const res = await axios.get(`/workbooks/kid/book/${bookId}`);
   return res?.data?.data;
 };
+export const fetchKidWorkbooks = async (
+  bookId: string,
+  kidId: string,
+): Promise<WorkbookSeries[]> => {
+  const res = await axios.get(`/workbooks/kid/${kidId}/book/${bookId}`);
+  return res?.data?.data;
+};
 
 export const updateWorkbookProgress = async (
   workbookId: string,

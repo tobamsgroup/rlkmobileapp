@@ -439,12 +439,14 @@ const Subscription = () => {
           View your past payments and receipts.
         </Text>
         <View className="flex-row">
-          <Button
-            onPress={() => router.push('/guardian/BillingHistory')}
-            text="VIEW ALL"
-            className="px-10"
-            disabled={isFreePlan}
-          />
+          {kidInvoices?.length > 0 && !isFreePlan && (
+            <Button
+              onPress={() => router.push('/guardian/BillingHistory')}
+              text="VIEW ALL"
+              className="px-10"
+              disabled={isFreePlan}
+            />
+          )}
         </View>
         {!isFreePlan && (
           <View className="gap-6 mt-10">
@@ -470,10 +472,10 @@ const Subscription = () => {
             <View className="w-16 h-16 rounded-full items-center justify-center bg-[#D3D2D333] mb-6">
               <ICONS.CreditCardOff />
             </View>
-            <Text className="font-sansSemiBold text-[#221D23] text-[16px]">
+            <Text className="font-sansSemiBold text-[#221D23] text-[18px]">
               No Payments Yet
             </Text>
-            <Text className="font-sans text-[#221D23] text-center">
+            <Text className="font-sans text-[#221D23] text-center text-[16px]">
               Your transactions will appear here after you subscribe.
             </Text>
           </View>
@@ -534,7 +536,7 @@ const CancellationModal = ({
   accessEndDate,
   kidId,
   onClose,
-  kidName
+  kidName,
 }: {
   open: boolean;
   accessEndDate?: string | null;

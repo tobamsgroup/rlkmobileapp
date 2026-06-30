@@ -142,7 +142,7 @@ const HomeKid = () => {
 
           <View className="flex-1">
             <Text className="text-[16px] font-sansSemiBold text-[#474348] leading-[1.5]">
-              Welcome back
+             Hello
             </Text>
             {isLoadingProfile ? (
               <Skeleton className="rounded-full w-2/3" />

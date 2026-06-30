@@ -14,14 +14,15 @@ const DEFAULTS: NotificationSettingsData = {
   childProfileCreated: { inApp: true, email: false },
   newLearnerProfile: { inApp: true, email: false },
   preferencesSaved: { inApp: false, email: false },
-  passwordChange: { inApp: false, email: false },
-  childPinUpdate: { inApp: false, email: false },
-  newDeviceLogin: { inApp: false, email: false },
-  suspiciousLoginActivity: { inApp: false, email: false },
+  passwordChange: { inApp: false, email: true },
+  childPinUpdate: { inApp: true, email: false },
+  newDeviceLogin: { inApp: false, email: true},
+  suspiciousLoginActivity: { inApp: false, email: true },
   weeklyLearningReport: { inApp: false, email: true },
+  workbookUpdates: { inApp: true, email: false },
   ideaWall: { inApp: true, email: false },
   submissionApproved: { inApp: false, email: false },
-  policyTermsUpdate: { inApp: false, email: false },
+  policyTermsUpdate: { inApp: false, email: true },
 };
 
 const NotificationSettings = () => {
@@ -73,14 +74,14 @@ const NotificationSettings = () => {
             Registrations
           </Text>
           <Text className="leading-[1.5] font-sansItalic text-[#474348]">
-            Get Notifications when your account is up and verified.
+            Get notifications when your account is up and verified.
           </Text>
           <View className="border border-[#D3D2D366] p-4 rounded-[12px] mt-5">
             <Text className="text-[#221D23] font-sansSemiBold mb-2">
               Account Verified
             </Text>
             <Text className="leading-[1.5] font-sans text-[#474348]">
-              Get Notifications when your account is up and verified.
+            Get notified when your account is created and verified.
             </Text>
             <View className="border-[#D3D2D366] py-2 border rounded-[8px] flex-row mt-3">
               <Pressable className="flex-1 items-center justify-center" />
@@ -96,7 +97,7 @@ const NotificationSettings = () => {
             Profile Management
           </Text>
           <Text className="leading-[1.5] font-sansItalic text-[#474348]">
-            Get Updates related to child profiles linked to your account.
+            Get updates related to child profiles linked to your account.
           </Text>
           <View className="border border-[#D3D2D366] p-4 rounded-[12px] mt-5">
             <View className="pb-3 border-b border-b-[#D3D2D366]">
@@ -114,27 +115,13 @@ const NotificationSettings = () => {
                 <Pressable className="flex-1 items-center justify-center" />
               </View>
             </View>
+
             <View className="py-3 border-b border-b-[#D3D2D366]">
               <Text className="text-[#221D23] font-sansSemiBold mb-2">
-                New learner profile
+                Preferences Saved
               </Text>
               <Text className="leading-[1.5] font-sans text-[#474348]">
-                Get notified when a new learner profile is created.
-              </Text>
-              <View className="border-[#D3D2D366] py-2 border rounded-[8px] flex-row mt-3">
-                <Pressable className="flex-1 items-center flex-row justify-center">
-                  <Switch value={local.newLearnerProfile.inApp} onValueChange={toggle('newLearnerProfile', 'inApp')} trackColor={{ false: '#D3D2D3', true: '#3F9243' }} />
-                </Pressable>
-                <View className="h-[20px] border-r border-[#D3D2D366]" />
-                <Pressable className="flex-1 items-center justify-center" />
-              </View>
-            </View>
-            <View className="py-3 border-b border-b-[#D3D2D366]">
-              <Text className="text-[#221D23] font-sansSemiBold mb-2">
-                Preferences saved
-              </Text>
-              <Text className="leading-[1.5] font-sans text-[#474348]">
-                Get Notified on Child’s Learning preferences
+               Get notified on child’s learning preferences
               </Text>
               <View className="border-[#D3D2D366] py-2 border rounded-[8px] flex-row mt-3">
                 <Pressable className="flex-1 items-center flex-row justify-center">
@@ -189,7 +176,7 @@ const NotificationSettings = () => {
                 New Device Login
               </Text>
               <Text className="leading-[1.5] font-sans text-[#474348]">
-                Get notified when a login is detected from.
+                Get notified when a login is detected.
               </Text>
               <View className="border-[#D3D2D366] py-2 border rounded-[8px] flex-row mt-3">
                 <Pressable className="flex-1 items-center flex-row justify-center">
@@ -237,6 +224,23 @@ const NotificationSettings = () => {
               <View className="h-[20px] border-r border-[#D3D2D366]" />
               <Pressable className="flex-1 items-center flex-row justify-center">
                 <Switch value={local.weeklyLearningReport.email} onValueChange={toggle('weeklyLearningReport', 'email')} trackColor={{ false: '#D3D2D3', true: '#3F9243' }} />
+              </Pressable>
+            </View>
+          </View>
+          <View className="border border-[#D3D2D366] p-4 rounded-[12px] mt-5">
+            <Text className="text-[#221D23] font-sansSemiBold mb-2">
+             Workbook Updates
+            </Text>
+            <Text className="leading-[1.5] font-sans text-[#474348]">
+          Receive email updates when your child unlocks workbook exercises.
+            </Text>
+            <View className="border-[#D3D2D366] py-2 border rounded-[8px] flex-row mt-3">
+              <Pressable className="flex-1 items-center flex-row justify-center">
+                <Switch value={local.workbookUpdates?.inApp} onValueChange={toggle('workbookUpdates', 'inApp')} trackColor={{ false: '#D3D2D3', true: '#3F9243' }} />
+              </Pressable>
+              <View className="h-[20px] border-r border-[#D3D2D366]" />
+              <Pressable className="flex-1 items-center flex-row justify-center">
+                <Switch value={local.workbookUpdates?.email} onValueChange={toggle('workbookUpdates', 'email')} trackColor={{ false: '#D3D2D3', true: '#3F9243' }} />
               </Pressable>
             </View>
           </View>

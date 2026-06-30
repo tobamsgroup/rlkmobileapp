@@ -2,6 +2,7 @@ import { getAllNotifications, updateMarkallRead } from "@/actions/notification";
 import { ICONS } from "@/assets/icons";
 import { IMAGES } from "@/assets/images";
 import Skeleton from "@/components/Skeleton";
+import ToastAlert from "@/components/ToastAlert";
 import { NotificationProp } from "@/types";
 import { timeAgo } from "@/utils";
 import { HAPTIC } from "@/utils/haptic";

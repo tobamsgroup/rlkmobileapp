@@ -1,27 +1,33 @@
-import { updateDeletionReason } from '@/actions';
-import { handleLogout } from '@/actions/logout';
+import { deleteChildAccount } from '@/actions';
 import { LinearButton, SecondaryButton } from '@/components/Button';
 import Container from '@/components/Container';
 import CustomizedAlert from '@/components/CustomizedAlert';
 import TopBackButton from '@/components/TopBackButton';
-import { useAppDispatch } from '@/hooks/redux';
+import { invalidateQueries } from '@/utils/query';
 import { showToast } from '@/utils/toast';
 import { useMutation } from '@tanstack/react-query';
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import React, { useState } from 'react';
 import { Pressable, Text, TextInput, View } from 'react-native';
 import { twMerge } from 'tailwind-merge';
 
-const AccountDeletionReason = () => {
-  const dispatch = useAppDispatch();
+const ChildAccountDeletionReason = () => {
   const [selectedReason, setSelectedReason] = useState('');
   const [customReason, setCustomReason] = useState('');
   const [openModal, setOpenModal] = useState(false);
+  const { id, name, password } = useLocalSearchParams();
 
   const { mutate, isPending } = useMutation({
-    mutationFn: (reason: string) => updateDeletionReason(reason),
+    mutationFn: (reason: string) =>
+      deleteChildAccount(id as string, {
+        reason,
+        password: password as string,
+      }),
     onSuccess: () => {
       setOpenModal(true);
+      invalidateQueries('kids');
+      invalidateQueries('guardian-kids');
+      invalidateQueries('kids-courses');
     },
     onError: (err: any) => {
       showToast(
@@ -38,21 +44,12 @@ const AccountDeletionReason = () => {
         : selectedReason
       : customReason.trim();
 
-    if (!reason) {
-      showToast(
-        'info',
-        'Please select a reason or describe why you are leaving',
-      );
-      return;
-    }
-
-    mutate(reason);
+    mutate(reason || '');
   };
 
   const handleClose = () => {
     setOpenModal(false);
-    handleLogout(dispatch);
-    router.replace('/auth/Login');
+    router.replace('/learners');
   };
 
   return (
@@ -60,7 +57,7 @@ const AccountDeletionReason = () => {
       <View className="px-6 py-5">
         <TopBackButton className="border-[#EFEFF3] border " />
         <Text className="font-sansSemiBold text-[#265828] text-[20px] mt-4">
-          Reason For Leaving (Optional)
+          Reason For Deleting Child’s Profile (Optional)
         </Text>
         <View className="gap-5 mt-8">
           {REASONS?.map((r) => (
@@ -105,24 +102,26 @@ const AccountDeletionReason = () => {
           />
         </View>
         <LinearButton
+          disabled={isPending}
           onPress={handleSubmit}
-          text="SUBMIT"
+          text={"SUBMIT"}
           className="mt-10"
           loading={isPending}
         />
         <SecondaryButton
-          onPress={() => {
-              handleLogout(dispatch);
-              router.replace('/auth/Login');
+          onPress={async() => {
+           mutate('');
           }}
+          disabled={isPending}
+          loading={isPending}
           text="SKIP"
           className="mt-4"
         />
       </View>
       <CustomizedAlert
-        title="Your Account Deletion Is In Progress"
+        title={`${name}’s Profile Deleted Successfully`}
         desc={
-          'Your account deletion is in progress.\nYou can restore your account anytime within the next 3 days by logging back in. After this period, all your data will be permanently removed.'
+          'You have successfully deleted your child’s account. All associated data has been permanently removed.'
         }
         open={openModal}
         onClose={handleClose}
@@ -139,4 +138,4 @@ const REASONS = [
   'Other',
 ];
 
-export default AccountDeletionReason;
+export default ChildAccountDeletionReason;

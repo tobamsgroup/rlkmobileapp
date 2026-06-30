@@ -48,13 +48,13 @@ const RestoreAccount = () => {
     <Container backgroundColor="#3F9243">
       <View className="px-6 items-center justify-center flex-1">
         <View className="bg-[#FAFDFF] p-6 rounded-[20px] items-center w-full">
-          <View className="w-20 h-20 rounded-full bg-[#F1F9F199] items-center justify-center">
-            <ICONS.ExclamationCircle strokeWidth={1} stroke="#099137" width={30} height={30} />
+          <View className="w-20 h-20 rounded-full bg-[#1671D91A] items-center justify-center">
+            <ICONS.ExclamationCircle strokeWidth={1} stroke="##1671D9" width={30} height={30} />
           </View>
           <Text className="text-[20px] text-dark font-sansSemiBold text-center mt-6">
-            Account Deletion In Progress!
+            Your Account Is Scheduled for Deletion
           </Text>
-          <Text className="text-center font-sans text-[#474348] mb-2 mt-6 leading-[1.5]">
+          <Text className="text-center font-sans text-[#474348] mb-2 mt-6 leading-[1.5] text-[16px]">
             You requested to delete your account. You have{' '}
             <Text className="font-sansMedium">
               {daysLeft} {daysLeft === 1 ? 'day' : 'days'} left
@@ -62,12 +62,13 @@ const RestoreAccount = () => {
             to restore it before all your data is permanently removed. If you'd
             like to continue your child's learning journey, you can restore your
             account now.
+            
           </Text>
           <Button
             onPress={handleRestore}
             disabled={isRestoring}
             loading={isRestoring}
-            className="w-full mt-6 bg-primary border-none border-b-0"
+            className="w-full mt-6 bg-[#3F9243] border-none border-b-0"
             textClassname="text-white"
             text="RESTORE ACCOUNT"
           />

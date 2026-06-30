@@ -69,8 +69,10 @@ const BadgeOverlay3 = require('./BadgeOverlay3.png')
 const DollarCoin = require('./dollar-coin.png')
 const ConstructionRobot = require('./constructionRobot.png')
 const SweatFaceEmoji = require('./sweat-face-emoji.png')
+const PlayComing = require('./playcoming.png')
 
 export const IMAGES = {
+  PlayComing,
   ConstructionRobot,
   DollarCoin,
   BadgeOverlay1,

@@ -211,12 +211,12 @@ const CurriculumSeriesOverview = () => {
                 <View className=" items-center justify-center pt-[56px] pb-[33px]">
                   <ICONS.BooksMultiple />
                   <Text className="font-sansSemiBold text-white text-[18px] text-center my-4">
-                    {search ? 'Course not found' : ' No Courses Assigned'}
+                    {search ? 'Book not found' : ' No Book Assigned'}
                   </Text>
                   <Text className="font-sans text-white leading-[1.5] text-center px-10">
                     {search
-                      ? 'This course cannot be found, please try changing your search parameters!'
-                      : 'You haven’t assigned any courses to your child yet.'}
+                      ? 'This book cannot be found, please try changing your search parameters!'
+                      : 'You haven’t assigned any book to your child yet.'}
                   </Text>
                 </View>
               </>

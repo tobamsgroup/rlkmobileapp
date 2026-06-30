@@ -140,7 +140,7 @@ const LearningOverview = () => {
             </View>
           </View>
           <View className=" mb-5 border-[0.5px] p-5 rounded-[12px] bg-white border-[#C3E4C5]">
-            <Text className="text-[#474348] font-sans">Quiz Passed</Text>
+            <Text className="text-[#474348] font-sans">Books Completed</Text>
             <View className="mt-3 flex-row items-center justify-between gap-5">
               <Text className="flex-shrink-0 text-[20px] font-sansSemiBold text-dark">
                 {data?.thisWeek.assignmentsPassed !== '0/0'
@@ -168,13 +168,13 @@ const LearningOverview = () => {
 
           <View className=" mb-5 border-[0.5px] p-5 rounded-[12px] bg-white border-[#C3E4C5]">
             <Text className="flex-shrink-0 text-[18px] font-sansSemiBold text-dark">
-              Assigned Courses
+              Assigned Books
             </Text>
             {data?.assignedCourses?.map((d, index) => (
               <Pressable
                 onPress={() =>
                   router.push(
-                    `/guardian/SeriesOverview?seriesId=${d.seriesId}&kidId=${data?.kid?.id}&title=${encodeURIComponent(d.title)}&book=${encodeURIComponent(d.book)}&index=${d.index}&progress=${d.progress}&completed=${d.assignmentStatus.completed}&total=${d.assignmentStatus.total}`,
+                    `/guardian/SeriesOverview?seriesId=${d.seriesId}&kidId=${data?.kid?.id}&title=${encodeURIComponent(d.title)}&book=${encodeURIComponent(d.book)}&index=${d.index}&progress=${d.progress}&completed=${d.assignmentStatus.completed}&total=${d.assignmentStatus.total}&bookId=${d?.bookId}`,
                   )
                 }
                 key={index}
@@ -188,7 +188,7 @@ const LearningOverview = () => {
                   ) : (
                     <ICONS.Star2 />
                   )}
-                  <Text className="font-sansMedium text-[16px] text-dark">
+                  <Text className="font-sansMedium text-[16px] flex-1 text-dark">
                     Series {d.index}: {d.title}
                   </Text>
                 </View>

@@ -16,26 +16,31 @@ import TopBackButton from '@/components/TopBackButton';
 import { useAppDispatch } from '@/hooks/redux';
 import { storeData } from '@/lib/storage';
 import { login } from '@/redux/authSlice';
+import { getSubscriptionDaysRemaining } from '@/utils';
+import { generateKidReportHtml } from '@/utils/reportGenerator';
 import { scaleWidth } from '@/utils/scale';
 import { showToast } from '@/utils/toast';
+import Entypo from '@expo/vector-icons/Entypo';
+import Feather from '@expo/vector-icons/Feather';
 import { useQuery } from '@tanstack/react-query';
+import * as FileSystem from 'expo-file-system/legacy';
+import { LinearGradient } from 'expo-linear-gradient';
+import * as Print from 'expo-print';
 import { router, useLocalSearchParams } from 'expo-router';
+import * as Sharing from 'expo-sharing';
 import React, { useMemo, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Image,
   Pressable,
+  StyleSheet,
   Text,
   TouchableWithoutFeedback,
   View,
 } from 'react-native';
 import { LineChart, PieChart } from 'react-native-gifted-charts';
-import { twMerge } from 'tailwind-merge';
-import * as FileSystem from 'expo-file-system/legacy';
-import * as Print from 'expo-print';
-import * as Sharing from 'expo-sharing';
 import { captureRef } from 'react-native-view-shot';
-import { generateKidReportHtml } from '@/utils/reportGenerator';
+import { twMerge } from 'tailwind-merge';
 
 const LearningProgress = () => {
   const params = useLocalSearchParams();
@@ -46,6 +51,8 @@ const LearningProgress = () => {
   const [exportLoading, setExportLoading] = useState(false);
   const pieChartContainerRef = useRef<View>(null);
   const lineChartContainerRef = useRef<View>(null);
+  const [openMenu, setOpenMenu] = useState(false);
+  const [openBillingAlert, setOpenBillingAlert] = useState(true);
   const dispatch = useAppDispatch();
   const pieData = [
     { value: 100, color: '#9c9c9c' },
@@ -126,9 +133,12 @@ const LearningProgress = () => {
             data.kid.picture,
             tmpPath,
           );
-          avatarBase64 = await FileSystem.readAsStringAsync(downloadResult.uri, {
-            encoding: FileSystem.EncodingType.Base64,
-          });
+          avatarBase64 = await FileSystem.readAsStringAsync(
+            downloadResult.uri,
+            {
+              encoding: FileSystem.EncodingType.Base64,
+            },
+          );
           await FileSystem.deleteAsync(tmpPath, { idempotent: true });
         } catch {
           avatarBase64 = null;
@@ -191,6 +201,24 @@ const LearningProgress = () => {
     }
   };
 
+  //  const plan = subscription?.plan ?? 'free';
+  //   const planDetail = PLAN_DETAILS[plan];
+  //   const statusStyle = STATUS_LABEL[subStatus] ?? STATUS_LABEL.active;
+  //   const isFreePlan = plan === 'free';
+  //   const isPaidPlan = !isFreePlan;
+
+  //   useEffect(() => {
+  //     if (subscription?.cancelAtPeriodEnd) {
+  //       setStatus('cancelled');
+  //     } else if (
+  //       getSubscriptionDaysRemaining(subscription?.currentPeriodEnd) < 1
+  //     ) {
+  //       setStatus('expired');
+  //     } else {
+  //       setStatus(subscription?.status || 'active');
+  //     }
+  //   }, [subscription]);
+
   return (
     <Container scrollable>
       <TouchableWithoutFeedback onPress={() => setOpenRemaining(false)}>
@@ -208,22 +236,37 @@ const LearningProgress = () => {
               <View className="flex-row items-center gap-3">
                 {isLoading ? (
                   <Skeleton
-                    style={{ width: scaleWidth(36), height: scaleWidth(36) }}
+                    style={{ width: 48, height: 48 }}
                     className="rounded-full"
                   />
                 ) : (
-                  <Image
-                    style={{ width: scaleWidth(36), height: scaleWidth(36) }}
-                    source={
-                      data?.kid?.picture
-                        ? { uri: data?.kid?.picture }
-                        : IMAGES.KidProfilePlaceholder
-                    }
-                    className={twMerge(
-                      'rounded-full border-[#D5B300]',
-                      data?.kid?.picture && 'border',
+                  <>
+                    {data?.kid?.picture && (
+                      <Image
+                        style={{
+                          width: 48,
+                          height: 48,
+                        }}
+                        source={
+                          data?.kid?.picture
+                            ? { uri: data?.kid?.picture }
+                            : IMAGES.KidProfilePlaceholder
+                        }
+                        className={twMerge(
+                          'rounded-full border-[#D5B300]',
+                          data?.kid?.picture && 'border',
+                        )}
+                      />
                     )}
-                  />
+                    {!data?.kid?.picture && (
+                      <View className="bg-[#D3D2D366] w-12 h-12 rounded-full items-center justify-center">
+                        <Text className="text-[20px] font-sansSemiBold">
+                          {data?.kid?.name?.split(' ')?.[0]?.[0]}
+                          {data?.kid?.name?.split(' ')?.[1]?.[0]}
+                        </Text>
+                      </View>
+                    )}
+                  </>
                 )}
                 {isLoading ? (
                   <Skeleton className="w-2/3 rounded-full" />
@@ -239,6 +282,7 @@ const LearningProgress = () => {
               <View className="p-4 rounded-[20px] shadow-md bg-white absolute top-[70px] w-full z-20">
                 {remainingKids?.map((r) => (
                   <Pressable
+                    key={r?._id}
                     onPress={() => {
                       setKid(r?._id);
                       setOpenRemaining(false);
@@ -246,21 +290,27 @@ const LearningProgress = () => {
                     className="bg-white rounded-[12px] py-3 flex-row items-center justify-between relative"
                   >
                     <View key={r?._id} className="flex-row items-center gap-3">
-                      <Image
-                        style={{
-                          width: scaleWidth(36),
-                          height: scaleWidth(36),
-                        }}
-                        source={
-                          r?.picture
-                            ? { uri: r?.picture }
-                            : IMAGES.KidProfilePlaceholder
-                        }
-                        className={twMerge(
-                          'rounded-full border-[#D5B300]',
-                          data?.kid?.picture && 'border',
-                        )}
-                      />
+                      {r?.picture && (
+                        <Image
+                          style={{
+                            width: scaleWidth(36),
+                            height: scaleWidth(36),
+                          }}
+                          source={{ uri: r?.picture }}
+                          className={twMerge(
+                            'rounded-full border-[#D5B300]',
+                            data?.kid?.picture && 'border',
+                          )}
+                        />
+                      )}
+                      {!r?.picture && (
+                        <View className="bg-[#D3D2D366] w-12 h-12 rounded-full items-center justify-center">
+                          <Text className="text-[20px] font-sansSemiBold">
+                            {data?.kid?.name?.split(' ')?.[0]?.[0]}
+                            {data?.kid?.name?.split(' ')?.[1]?.[0]}
+                          </Text>
+                        </View>
+                      )}
                       <Text className="text-[16px] font-sansMedium text-dark">
                         {r?.name}
                       </Text>
@@ -270,24 +320,111 @@ const LearningProgress = () => {
               </View>
             )}
           </View>
-
-          <Pressable
-            onPress={handleExportReport}
-            disabled={exportLoading}
-            className="bg-white rounded-[12px] p-4 py-[18px] flex-row items-center justify-between mt-5"
-          >
-            <Text className="text-[16px] font-sansMedium text-dark">
-              {exportLoading ? 'Generating...' : 'Export Report'}
-            </Text>
-            {exportLoading ? (
-              <ActivityIndicator size="small" color="#265828" />
-            ) : (
-              <ICONS.Export />
+          {getSubscriptionDaysRemaining(
+            data?.kid?.subscription?.currentPeriodEnd,
+          ) < 1 && (
+            <View className="px-6 py-4 bg-[#FDEC8D]/80 border-[#FFD700] border rounded-[16px] mt-6 relative">
+              <Text className="text-[16px] text-[#221D23] font-sans leading-[1.5]">
+                <Text className="font-sansSemiBold">Learning is paused —</Text>{' '}
+                This learner needs an active plan to continue.
+              </Text>
+              <Pressable
+                onPress={() =>
+                  router.push(`/guardian/ChoosePlan?kid=${data?.kid?.id}`)
+                }
+                className="flex-row justify-center bg-[#FFFFFF] mt-4 rounded-[32px] items-center gap-2 py-3 shadow-md"
+              >
+                <Text className="text-[16px] font-sansMedium text-[#3F9243] ">
+                  ACTIVATE PLAN
+                </Text>
+                <ICONS.ArrowRight />
+              </Pressable>
+              <ICONS.FlatCloud
+                style={{
+                  position: 'absolute',
+                  right: 130,
+                  top: 4,
+                }}
+              />
+              <ICONS.FlatCloud
+                style={{
+                  position: 'absolute',
+                  left: 16,
+                  bottom: 0,
+                }}
+              />
+            </View>
+          )}
+          {data?.kid?.subscription?.plan === 'free' &&
+            getSubscriptionDaysRemaining(
+              data?.kid?.subscription?.currentPeriodEnd,
+            ) > 1 &&
+            openBillingAlert && (
+              <View className="px-6 py-4 bg-[#FDEC8D]/80 border-[#1671D9] border rounded-[16px] mt-6">
+                <LinearGradient
+                  colors={['#D8EAFF', '#BCDAFD', '#D8EAFF']}
+                  start={{ x: 1, y: 0 }}
+                  end={{ x: 0, y: 1 }}
+                  style={{
+                    ...StyleSheet.absoluteFillObject,
+                    zIndex: 0,
+                    borderRadius: 16,
+                  }}
+                />
+                <Pressable
+                  onPress={() => setOpenBillingAlert(false)}
+                  className="self-end bg-white rounded-full w-10 h-10 items-center justify-center mb-2"
+                >
+                  <ICONS.Close stroke="#221D23" width={24} height={24} />
+                </Pressable>
+                <Text className="text-[16px] text-[#221D23] font-sans leading-[1.5]">
+                  <Text className="font-sansSemiBold">
+                    Your child’s trial ends in{' '}
+                    {getSubscriptionDaysRemaining(
+                      data?.kid?.subscription?.currentPeriodEnd,
+                    )}{' '}
+                    days —
+                  </Text>{' '}
+                  {getSubscriptionDaysRemaining(
+                    data?.kid?.subscription?.currentPeriodEnd,
+                  ) <= 2
+                    ? 'Keep your child learning without interruption.'
+                    : getSubscriptionDaysRemaining(
+                          data?.kid?.subscription?.currentPeriodEnd,
+                        ) <= 6
+                      ? 'Upgrade to keep their learning going.'
+                      : 'Help your child explore books and build a reading habit.'}
+                </Text>
+                <Pressable
+                  onPress={() =>
+                    router.push(`/guardian/ChoosePlan?kid=${data?.kid?.id}`)
+                  }
+                  className="flex-row justify-center bg-[#FFFFFF] mt-4 rounded-[32px] items-center gap-2 py-3 shadow-md"
+                >
+                  <Text className="text-[16px] font-sansMedium text-[#3F9243] ">
+                    UPGRADE PLAN
+                  </Text>
+                  <ICONS.ArrowRight />
+                </Pressable>
+                <ICONS.FlatCloud
+                  style={{
+                    position: 'absolute',
+                    right: 130,
+                    top: 4,
+                  }}
+                />
+                <ICONS.FlatCloud
+                  style={{
+                    position: 'absolute',
+                    left: 16,
+                    bottom: 0,
+                  }}
+                />
+              </View>
             )}
-          </Pressable>
 
           <View className="bg-white rounded-[20px] p-5 mt-5">
-            <View className="flex-row justify-between mb-5">
+            <View className="flex-row justify-between mb-5 items-center">
               {isLoading ? (
                 <Skeleton
                   style={{ width: scaleWidth(79), height: scaleWidth(79) }}
@@ -307,13 +444,58 @@ const LearningProgress = () => {
                   )}
                 />
               )}
-
-              <Text
-                onPress={() => setOpenEdit(true)}
-                className="underline text-[#3F9243] font-sansMedium"
+              <Pressable
+                onPress={() => setOpenMenu(prev => !prev)}
+                className="border border-[#D3D2D366]  p-3 rounded-[8px]"
               >
-                EDIT PROFILE
-              </Text>
+                <Entypo name="dots-three-vertical" size={24} color="black" />
+              </Pressable>
+              {openMenu && (
+                <View className="p-4 rounded-[20px] shadow-md bg-white absolute top-[70px] w-full z-20 gap-6">
+                  <Pressable
+                    className="flex-row items-center gap-2"
+                    onPress={() => setOpenEdit(true)}
+                  >
+                    <View className="bg-[#D3D2D366] w-7 h-7 rounded-full items-center justify-center">
+                      <Feather name="user" size={16} color="#221D23" />
+                    </View>
+                    <Text className="text-[#221D23] font-sans text-[16px]">
+                      Edit Profile
+                    </Text>
+                  </Pressable>
+                  <Pressable
+                    className="flex-row items-center gap-2"
+                    onPress={handleExportReport}
+                    disabled={exportLoading}
+                  >
+                    <View className="bg-[#D3D2D366] w-7 h-7 rounded-full items-center justify-center">
+                      {exportLoading ? (
+                        <ActivityIndicator size="small" color="#265828" />
+                      ) : (
+                        <ICONS.Export width={16} height={16} />
+                      )}
+                    </View>
+                    <Text className="text-[#221D23] font-sans text-[16px]">
+                      Export Report
+                    </Text>
+                  </Pressable>
+                  <Pressable
+                    onPress={() =>
+                      router.push(
+                        `/guardian/DeleteChildProfile?id=${data?.kid?.id}&name=${data?.kid?.name?.split(' ')?.[0]}`,
+                      )
+                    }
+                    className="flex-row items-center gap-2"
+                  >
+                    <View className="bg-[#DE21211A] w-7 h-7 rounded-full items-center justify-center">
+                      <ICONS.Trash width={16} height={16} />
+                    </View>
+                    <Text className="text-[#DE2121] font-sans text-[16px]">
+                      Delete Profile
+                    </Text>
+                  </Pressable>
+                </View>
+              )}
             </View>
             {isLoading ? (
               <Skeleton className="w-2/3 rounded-full mb-2" />
@@ -345,6 +527,12 @@ const LearningProgress = () => {
                       </Text>
                     </>
                   )}
+                  <>
+                    <View className="w-2 h-2 rounded-full bg-[#FFD700] mt-2" />
+                    <Text className="text-[16px]  mt-2 bg-[#3F69921A] capitalize px-2 py-0.5 rounded-[8px] font-sansMedium text-[#3F6992]">
+                      {data?.kid?.subscription?.plan}
+                    </Text>
+                  </>
                 </View>
               </View>
             )}
@@ -356,7 +544,7 @@ const LearningProgress = () => {
                   className="rounded-full"
                 />
                 <Text className="font-sansMedium text-dark">
-                  0 Badged Earned
+                  0 Badge Earned
                 </Text>
               </View>
             </View>
@@ -379,7 +567,7 @@ const LearningProgress = () => {
                 }
                 className="mt-5 border-2 border-[#D3D2D3] bg-white"
                 textClassname="text-dark"
-                text="VIEW COURSES"
+                text="VIEW BOOKS"
               />
             )}
           </View>
@@ -469,7 +657,10 @@ const LearningProgress = () => {
               </View>
             </View>
             {/* audio vs text */}
-            <View ref={pieChartContainerRef} className="bg-white rounded-[20px] p-5 mt-5  border border-[#D3D2D366]">
+            <View
+              ref={pieChartContainerRef}
+              className="bg-white rounded-[20px] p-5 mt-5  border border-[#D3D2D366]"
+            >
               <Text className="text-dark font-sansMedium text-[18px]">
                 Audio vs. Text Usage {'\n'}(Read Aloud)
               </Text>

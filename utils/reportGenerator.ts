@@ -81,10 +81,7 @@ export function generateKidReportHtml(params: ReportParams): string {
               <span class="badge-value">${d.progress}%</span>
               <span class="badge-label">Complete</span>
             </div>
-            <div class="badge">
-              <span class="badge-value">${d.assignmentStatus.completed}/${d.assignmentStatus.total}</span>
-              <span class="badge-label">Assignment</span>
-            </div>
+           
           </div>
         </div>
       `,
@@ -372,7 +369,7 @@ export function generateKidReportHtml(params: ReportParams): string {
   <!-- ASSIGNED COURSES -->
   <div class="section">
     <div class="card" style="padding-bottom: 4px;">
-      <div class="section-title">Assigned Courses</div>
+      <div class="section-title">Assigned Books</div>
       ${coursesHtml}
     </div>
   </div>

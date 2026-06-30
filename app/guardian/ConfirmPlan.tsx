@@ -163,7 +163,7 @@ const ConfirmPlan = () => {
             <Text className="text-[20px] font-sansSemiBold text-[#221D23] leading-[1.3] mt-4">
               £{plan.price.toFixed(2)}
               <Text className="text-[16px] text-[#474348] font-sans">
-                /month per learner
+                /month
               </Text>
             </Text>
             <View className="flex-row items-center gap-2 mt-3">

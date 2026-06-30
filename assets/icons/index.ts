@@ -119,8 +119,14 @@ import User2 from "./User2";
 import Retry from "./Retry";
 import ChevronUp from "./ChevronUp";
 import GrinningEmoji from "./GrinningEmoji";
+import FlatCloud from "./FlatCloud";
+import User3 from "./User3";
+import Pause from "./Pause";
 
 export const ICONS = {
+  Pause,
+  User3,
+  FlatCloud,
   GrinningEmoji,
   Checkbox,
   ChevronUp,

@@ -29,7 +29,7 @@ const KidSeriesProgressCard = ({ item }: { item: KidLearningOverview }) => {
 
   return (
     <View className="bg-white rounded-[16px] p-6 border border-[#D3D2D366] mb-5">
-      <Text className="font-sansSemiBold text-[20px] mb-6 text-[#1F4B22] mt-2">
+      <Text className="font-sansSemiBold text-[20px] mb-6 text-[#221D23] mt-2">
         {item.bookId?.title}
       </Text>
       <FlatList
@@ -185,8 +185,8 @@ export const KidSeriesProgressCardInner = ({
             `/kid/Playground?book=${series.seriesId.bookId}&series=${series?.seriesId._id}&chapterId=${chapterId}&lessonId=${lessonId}&mode=read&page=1`,
           )
         }
-        className="w-full mt-4 bg-white border-primary border-2"
-        textClassname="text-primary"
+        className="w-full mt-4 bg-white border-[#3F9243] border"
+        textClassname="text-[#3F9243]"
         text={
           Number(progress) === 0
             ? 'START'

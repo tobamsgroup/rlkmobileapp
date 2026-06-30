@@ -1,5 +1,6 @@
 import { ICONS } from '@/assets/icons';
 import { IMAGES } from '@/assets/images';
+import Button from '@/components/Button';
 import Container from '@/components/Container';
 import TopBackButton from '@/components/TopBackButton';
 import { useReadSettings } from '@/context/ReadContext';
@@ -319,11 +320,7 @@ const ReadingSettings = () => {
           </View>
 
           {/* Save Button */}
-          <Pressable onPress={onSave} className="mt-8 bg-green-700 rounded-full py-4 items-center">
-            <Text className="text-white font-semibold text-lg">
-              SAVE MY SETTINGS
-            </Text>
-          </Pressable>
+          <Button text="SAVE MY SETTINGS" onPress={onSave} className="mt-8" />
         </View>
       </View>
       {/* </TouchableWithoutFeedback> */}

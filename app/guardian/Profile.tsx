@@ -69,7 +69,7 @@ const Profile = () => {
 
               <View className="bg-[#DBEFDC] rounded-full py-1.5 px-4 mt-2">
                 <Text className="text-[16px] text-[#3F9243] font-sansMedium">
-                  Parent / Teacher
+                  Parent
                 </Text>
               </View>
               {isLoading ? (
@@ -243,12 +243,13 @@ const EditForm = ({
   };
 
   return (
-    <ReactNativeModal isVisible={open} onBackdropPress={onClose}>
+    <ReactNativeModal isVisible={open} style={{padding:0, margin:0}} onBackdropPress={onClose}>
       <ScrollView
         showsVerticalScrollIndicator={false}
         style={{ flex: 1, paddingTop: Constants.statusBarHeight }}
+        contentContainerStyle={{marginTop:'auto'}}
       >
-        <View className="bg-[#FAFAFA] p-5 rounded-[20px] items-center">
+        <View className="bg-[#FAFAFA] p-5 rounded-[20px] items-center pb-12">
           <Text className="text-dark text-[16px] font-sansSemiBold mb-6">
             Edit Profile
           </Text>
@@ -276,7 +277,7 @@ const EditForm = ({
             Update your personal details and preferences anytime.
           </Text>
           <SimpleInput
-            wrapperClassName="mt-4"
+            wrapperClassName="mt-8"
             name="first_name"
             label="First Name"
             handleChange={setFirstName}

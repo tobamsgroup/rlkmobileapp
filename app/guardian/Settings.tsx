@@ -24,7 +24,7 @@ const Settings = () => {
             onPress={() => router.push('/guardian/ChangePassword')}
             className="border-[#C3E4C5] bg-white border mb-5"
             textClassname="text-dark text-[16px]"
-            text="Password"
+            text="Change Password"
           />
           <Button
             onPress={() => router.push('/guardian/NotificationSettings')}

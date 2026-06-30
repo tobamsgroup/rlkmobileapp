@@ -88,7 +88,7 @@ export default function HomeScreen() {
 
             <View className="flex-1">
               <Text className="text-[16px] font-sansSemiBold text-[#474348] leading-[1.5]">
-                Welcome back 👋
+                Hello 👋
               </Text>
               {isLoading ? (
                 <Skeleton className="rounded-full w-2/3" />
@@ -257,10 +257,10 @@ export default function HomeScreen() {
               </View>
               <View className="flex-1">
                 <Text className="font-sansMedium text-[16px] text-dark leading-[1.5]">
-                  Assign New Course
+                  Assign New Book
                 </Text>
                 <Text className="font-sans text-dark flex-shrink text-[14px] mt-2 leading-[1.5]">
-                  Pick a new course for a child to explore!
+                  Pick a new book for a child to explore!
                 </Text>
               </View>
             </Pressable>
@@ -280,12 +280,9 @@ export default function HomeScreen() {
           bottom: 30,
           right: 24,
         }}
-        className="flex-row gap-2 items-center bg-[#3F9243] py-3 px-6 rounded-full z-50"
+        className="flex-row gap-2 bg-[#3F9243] h-[58px] w-[58px] items-center justify-center rounded-full z-50 shadow-md shadow-[#332B0066]"
       >
-        <ICONS.Add />
-        <Text className="text-white font-sansMedium text-[16px]">
-          ADD CHILD
-        </Text>
+        <ICONS.Add width={20} height={20} />
       </Pressable>
       <TrialLockModal
         title="Free Trial Ended!"
