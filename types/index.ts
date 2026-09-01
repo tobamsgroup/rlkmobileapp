@@ -1,4 +1,5 @@
 import { SubscriptionData } from '@/actions/subscription';
+import { ImageResizeMode } from 'react-native';
 
 export enum Role {
   TEACHER = 'Teacher',
@@ -362,6 +363,7 @@ export interface PageParagraph {
     content: string;
   }[];
   subColumnHeader?: string;
+  imageResizeMode?: ImageResizeMode;
 }
 
 export type ReadingProgressProps = {

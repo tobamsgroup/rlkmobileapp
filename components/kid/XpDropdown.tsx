@@ -11,6 +11,8 @@ import { Image, Pressable, ScrollView, Text, View } from 'react-native';
 import ReactNativeModal from 'react-native-modal';
 import Svg, { Path } from 'react-native-svg';
 import ProgressBar from '../ProgressBar';
+import Constants from "expo-constants";
+
 
 const XpDropdown = ({
   open,
@@ -50,7 +52,9 @@ const XpDropdown = ({
       style={{ margin: 0, padding: 0 }}
       backdropColor="#0000004D"
     >
-      <Pressable onPress={onClose} className="flex-1 bg-black/40 justify-center items-center px-6">
+      <Pressable style={{
+        paddingTop: Constants.statusBarHeight + 50
+      }} onPress={onClose} className="flex-1 bg-black/40 items-center px-6">
         <View
           style={{ paddingRight: scaleWidth(100) }}
           className="w-full items-end"

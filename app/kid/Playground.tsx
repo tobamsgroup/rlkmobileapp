@@ -1,10 +1,12 @@
 import { getSeriesChapters } from '@/actions/curriculum';
 import {
+  fetchKidLearning,
   getReadingProgress,
   updateLessonProgress,
   updatePLProgress,
 } from '@/actions/kid';
 import { ICONS } from '@/assets/icons';
+import { IMAGES } from '@/assets/images';
 import Button, { LinearButton, SecondaryButton } from '@/components/Button';
 import Journal from '@/components/kid/Journal';
 import LearnCore from '@/components/kid/LearnCore';
@@ -23,23 +25,29 @@ import { AssignedSeries } from '@/types';
 import {
   formatActivityPages,
   getPLProgress,
+  getSeriesProgress,
   handleParams,
   pageMap,
 } from '@/utils/kid';
 import { invalidateQueries } from '@/utils/query';
 import { STAUS_BAR_HEIGHT } from '@/utils/scale';
-import { showToast } from '@/utils/toast';
 import { useQuery } from '@tanstack/react-query';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router, useLocalSearchParams } from 'expo-router';
 import React, { useMemo, useRef, useState } from 'react';
-import { Image, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import {
+  Image,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
 import { PieChart } from 'react-native-gifted-charts';
 import Modal from 'react-native-modal';
 import { twMerge } from 'tailwind-merge';
 import Activity from './Activity';
 import CurriculumBar from './CurriculumBar';
-import { IMAGES } from '@/assets/images';
 
 const Playground = () => {
   const { book, series, chapterId, lessonId, mode, page } =
@@ -57,6 +65,12 @@ const Playground = () => {
     queryKey: ['series-chapters', series],
     queryFn: () => getSeriesChapters(series! as string),
     enabled: !!series, // replaces SWR null check
+  });
+  const { data: kidCourses, isLoading } = useQuery({
+    queryKey: ['kid-learning'],
+    queryFn: async () => {
+      return await fetchKidLearning();
+    },
   });
 
   const { data: allSeriesPages, isLoading: isLoadingSeriesPage } =
@@ -116,7 +130,9 @@ const Playground = () => {
     if (mode === 'play') {
       return pageMap?.[page! as string] / 8;
     } else {
-      return (activePage?.index || 0) / (chapterData?.pages?.length || 1);
+      const targetSeries = kidCourses?.find((d) => d.bookId?._id === book as string);
+      const p = getSeriesProgress(series as string, targetSeries?.assignedChapters || []);
+      return p/100
     }
   }, [mode, activePage, data, page]);
 
@@ -561,9 +577,9 @@ const Playground = () => {
         <View className="bg-[#DBEFDC] p-6  border-2 border-[#6ABC6D] rounded-[24px] items-center">
           <View className="bg-white rounded-[24px] p-5 items-center mb-6 w-full">
             <View className="w-16 h-16 rounded-full bg-[#1671D91A] items-center justify-center mt-5">
-              <Image source={IMAGES.PlayComing} className='w-[80px] h-[80px]'/>
+              <Image source={IMAGES.PlayComing} className="w-[80px] h-[80px]" />
             </View>
-            
+
             <Text className="text-center font-sansSemiBold text-[#265828] text-[20px] mb-2 mt-6">
               Play & Learn is Coming Soon!
             </Text>
@@ -577,7 +593,6 @@ const Playground = () => {
             className="w-full mt-6"
             text={'BACK TO READ MODE'}
           />
-
         </View>
       </Modal>
     </ScrollView>

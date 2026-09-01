@@ -1,4 +1,4 @@
-import { BillingStatus } from '@/actions/subscription';
+import { BillingStatus, KidInfo } from '@/actions/subscription';
 import { ICONS } from '@/assets/icons';
 import { formatDate } from '@/utils';
 import React from 'react';
@@ -11,6 +11,7 @@ type BillingCardProps = {
   status: BillingStatus;
   date: string;
   receiptUrl: string | null;
+  kid: KidInfo | null;
   onDownload: (url: string) => void;
 };
 
@@ -36,6 +37,7 @@ const BillingCard = ({
   date,
   receiptUrl,
   onDownload,
+  kid,
 }: BillingCardProps) => {
   const { bg, text } = STATUS_STYLES[status];
 
@@ -43,7 +45,7 @@ const BillingCard = ({
     <View className="border border-[#D3D2D366] rounded-[4px]">
       <View className=" py-4 px-4">
         <Text className="text-[16px] font-sansMedium text-[#221D23]">
-       Alexander Bob
+          {kid?.name}
         </Text>
       </View>
       <View className="p-4 gap-5">

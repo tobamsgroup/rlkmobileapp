@@ -453,6 +453,7 @@ const Subscription = () => {
             {kidInvoices?.map((invoice, i) => (
               <BillingCard
                 planName={invoice.planName}
+                kid={invoice?.kid}
                 amount={invoice.amount}
                 currency={invoice.currency}
                 status={invoice.status}

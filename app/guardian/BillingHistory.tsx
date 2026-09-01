@@ -107,6 +107,7 @@ const BillingHistory = () => {
                   status={invoice.status}
                   date={invoice.date}
                   receiptUrl={invoice.receiptUrl}
+                  kid={invoice.kid}
                   onDownload={(url) => {
                     setWebViewLoading(true);
                     setReceiptUrl(url);

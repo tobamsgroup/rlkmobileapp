@@ -235,13 +235,15 @@ export const Chapter = ({
       : null;
 
   return (
+    <>
+    
     <View
       style={{
-        backgroundColor: readingSettings.highContrast ? '#FEFAEE' : '#FAFDFF]',
+        backgroundColor: readingSettings.highContrast ? '#FEFAEE' : '#FAFDFF',
       }}
       className="flex-1  p-8 rounded-[12px]"
     >
-      <View className="gap-6">
+      <View >
         {data ? (
           <>
             {data?.title && (
@@ -275,7 +277,7 @@ export const Chapter = ({
         )}
 
         {data && (
-          <View className="flex-row justify-center gap-4">
+          <View className="flex-row justify-center gap-4 mt-3">
             {canGoPrev && (
               <SecondaryButton
                 className="flex-1"
@@ -374,15 +376,17 @@ export const Chapter = ({
         </View>
       )}
 
+    </View>
       {!openHelper && (
         <Pressable
+        
           className="right-[-16px] shadow top-[143px] absolute border items-center justify-center border-[#3F9243] bg-[#F1F9F1] rounded-[16px] h-16 w-14"
           onPress={() => setOpenHelper(true)}
         >
-          <ICONS.ChevronLeft width={24} height={24} />
+          <ICONS.ChevronLeft stroke={'black'} width={24} height={24} />
         </Pressable>
       )}
-    </View>
+    </>
   );
 };
 
@@ -406,7 +410,7 @@ const Paragraph = ({
     isActive(kind) ? currentCharIndex : null;
 
   return (
-    <View className="mb-6">
+    <View className="mb-1">
       {data?.header && (
         <Text
           style={{
@@ -429,7 +433,7 @@ const Paragraph = ({
 
       <View
         className={twMerge(
-          'flex flex-col w-full gap-8 mt-6',
+          'flex flex-col w-full gap-8 mt-2',
           data?.template === 'image-left' && 'lg:flex-row gap-4',
           data?.template === 'image-right' &&
             'lg:flex-row-reverse flex-col-reverse gap-4',
@@ -438,8 +442,8 @@ const Paragraph = ({
         {data?.image && (
           <Image
             source={{ uri: data.image }}
-            resizeMode="cover"
-            className="w-full h-56 rounded-xl mt-4"
+            resizeMode={data?.imageResizeMode || "cover"}
+            className="w-full h-56 rounded-xl mb-3"
           />
         )}
 
@@ -480,10 +484,10 @@ const Paragraph = ({
                     ? 'Lexend-Regular'
                     : 'Sans-Regular',
                 }}
-                className="mt-2 font-sans text-dark"
+                className=" font-sans text-dark"
               >
                 <KaraokeText
-                  text={data.content}
+                  text={normalizeNewlines(data?.content)}
                   isActive={isActive('content')}
                   charIndex={charIndexIfActive('content')}
                 />
@@ -505,7 +509,7 @@ const Paragraph = ({
           className="whitespace-pre-line mt-2 font-sans text-dark"
         >
           <KaraokeText
-            text={data.subContent}
+            text={normalizeNewlines(data?.subContent)}
             isActive={isActive('subContent')}
             charIndex={charIndexIfActive('subContent')}
           />
@@ -515,12 +519,15 @@ const Paragraph = ({
       {!!data?.list?.length && (
         <View
           className={twMerge(
-            'list-disc ml-8 space-y-2',
+            'list-disc ml-2 space-y-2',
             data.listPointStyle === 'numeric' && 'list-decimal',
           )}
         >
           {data?.list?.map((d, li) => (
-            <View className="whitespace-pre-line" key={li}>
+            <View className="whitespace-pre-line flex-row gap-2 items-center" key={li}>
+            { data.listPointStyle === 'numeric' ? <Text>{li + 1}.</Text> :  <View className='w-1 h-1 rounded-full bg-black/55 '/>}
+            <View>
+
               {d?.title && (
                 <Text
                   style={{
@@ -551,12 +558,13 @@ const Paragraph = ({
                   className="font-sans"
                 >
                   <KaraokeText
-                    text={d.content}
+                    text={normalizeNewlines(d?.content)}
                     isActive={isActive('list-content')}
                     charIndex={charIndexIfActive('list-content')}
                   />
                 </Text>
               )}
+              </View>
             </View>
           ))}
         </View>
@@ -564,3 +572,9 @@ const Paragraph = ({
     </View>
   );
 };
+
+
+function normalizeNewlines(text: string): string {
+  if(!text) return '';
+  return text.replace(/\n+/g, "\n");
+}

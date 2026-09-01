@@ -10,7 +10,7 @@
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.tobamsgroup.rlkmobileapp",
+      "bundleIdentifier": "com.tobamsgroup.rlkids",
       "NSPhotoLibraryUsageDescription": "RLKids needs access to your photo library to upload images.",
       "NSCameraUsageDescription": "RLKids needs access to your camera to take photos.",
       "NSMicrophoneUsageDescription": "RLKids  needs access to your microphone for use within the app",

@@ -198,7 +198,7 @@ const CurriculumBar = ({
           </Pressable>
         </View>
         <View className="flex-row items-center justify-between p-6 border-b border-b-[#D3D2D366]">
-          <Text className="text-dark text-[20px] font-sansSemiBold">
+          <Text className="text-dark text-[18px] font-sansSemiBold">
             Series {series?.seriesId?.index} : {series?.seriesId?.title}
           </Text>
         </View>
@@ -260,6 +260,8 @@ const CurriculumBar = ({
                       )}
                     </Pressable>
                     {expandedModules[module._id] && (
+                      <>
+                      
                       <View>
                         {!!!module?.pages?.length && (
                           <View
@@ -423,12 +425,15 @@ const CurriculumBar = ({
                             </>
                           );
                         })}
+                      
                       </View>
+                      </>
                     )}
                   </View>
                 );
               },
             )}
+            
           </>
         )}
         {mode === 'play' && (
