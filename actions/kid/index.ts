@@ -3,6 +3,7 @@ import {
   ActivityProps,
   Badge,
   ChapterPage,
+  ChapterPageAudio,
   ChapterPageData,
   KidLearningOverview,
   KidPRofile,
@@ -191,9 +192,12 @@ export const updateReadingSettings = async (voice: string): Promise<void> => {
 export const fetchChapterPageAudio = async (
   chapterId: string,
   page: number,
-): Promise<string> => {
+): Promise<ChapterPageAudio> => {
   const res = await axios.get(`/tts/${chapterId}/audio`, { params: { page } });
-  return res?.data?.data?.audioUrl;
+  return {
+    audioUrl: res?.data?.data?.audioUrl,
+    marks: res?.data?.data?.marks ?? [],
+  };
 };
 
 export const fetchWorkbooks = async (

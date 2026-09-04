@@ -5,7 +5,7 @@ import useKidProfile from '@/hooks/useKidProfile';
 import useQuizQuestions from '@/hooks/useQuizQuestions';
 import { QuizQuestion, ReadingProgressProps } from '@/types';
 import { getScenario } from '@/utils/kid';
-import { invalidateQueries } from '@/utils/query';
+import { invalidateProgress, invalidateQueries } from '@/utils/query';
 import { scaleHeight, scaleWidth } from '@/utils/scale';
 import { useLocalSearchParams } from 'expo-router';
 import React, { FC, useEffect, useMemo, useState } from 'react';
@@ -134,8 +134,8 @@ const Quiz = ({
         .then(() => console.log('Sent Result'))
         .catch((error) => console.log('Error sending result', error));
 
-      invalidateQueries('reading-progress');
-      invalidateQueries('kid_profile');
+      invalidateProgress();
+      invalidateQueries(['kid']);
       invalidateQueries(`quiz-${chapterId}-${page}`);
 
       setOpenConplete(true);

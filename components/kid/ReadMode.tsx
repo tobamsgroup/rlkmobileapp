@@ -1,7 +1,7 @@
 import { updateReadingProgress } from '@/actions/kid';
 import { ChapterPage as ChapterPageType, ReadingProgressProps } from '@/types';
 import { filterAssignedChapters, handleParams } from '@/utils/kid';
-import { invalidateQueries } from '@/utils/query';
+import { invalidateProgress } from '@/utils/query';
 import { showToast } from '@/utils/toast';
 import { useLocalSearchParams } from 'expo-router';
 import React, {
@@ -256,7 +256,7 @@ const ReadMode = ({
           return;
         }
         await updateReadingProgress(nextChapter._id, 1);
-        invalidateQueries('reading-progress');
+        invalidateProgress();
         moveToNextChapter();
         return;
       }
@@ -270,7 +270,7 @@ const ReadMode = ({
         // await updateLessonProgress(lessonId!, activityType, [], timeSpent);
         await updateReadingProgress(chapterId! as string, newIndex);
       }
-      invalidateQueries('reading-progress');
+      invalidateProgress();
       handleParams([['page', newIndex.toString()]]);
     }
   };

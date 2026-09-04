@@ -77,7 +77,7 @@ const ScenarioQuiz = ({
     setIsSubmitted(true);
     if (index === QUESTIONS?.length - 1) {
       claimXP(score === 5 ? 25 : 15).then(() =>
-        invalidateQueries('kid_profile'),
+        invalidateQueries(['kid']),
       );
     }
   };

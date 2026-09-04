@@ -366,6 +366,19 @@ export interface PageParagraph {
   imageResizeMode?: ImageResizeMode;
 }
 
+/** One karaoke sync point returned by the TTS endpoint. */
+export type AudioMark = {
+  segIndex: number;
+  charIndex: number;
+  time: number;
+};
+
+export type ChapterPageAudio = {
+  audioUrl: string;
+  /** Empty when the configured voice cannot emit timepoints (e.g. Chirp3-HD). */
+  marks: AudioMark[];
+};
+
 export type ReadingProgressProps = {
   book: string;
   index: number;
@@ -422,6 +435,10 @@ export type KidPRofile = {
   guardianSubscription?: {
     plan: string | null;
     currentPeriodEnd: string | null;
+  };
+  /** Server-side TTS voice; the audio cache on the backend is keyed by it. */
+  readingSettings?: {
+    voice?: string;
   };
 };
 

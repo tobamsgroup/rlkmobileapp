@@ -1,5 +1,6 @@
 import {
   AssignedChapter,
+  AudioMark,
   ChapterPage,
   KidLearningOverview,
   PageParagraph,
@@ -70,6 +71,13 @@ export function getTopTwoChapters(data: KidLearningOverview[]): ChapterProps[] {
   return source.sort((a, b) => b.progress - a.progress).slice(0, 2);
 }
 
+// How much of a chapter each mode is worth. Play & Learn is not released yet
+// (Playground shows a "Coming Soon" modal instead of switching), so reading a
+// chapter has to count for the whole chapter - otherwise progress caps at 50%.
+// Set READ_WEIGHT back to 50 when Play & Learn ships.
+export const READ_WEIGHT = 100;
+export const PLAY_WEIGHT = 100 - READ_WEIGHT;
+
 export function calculateChapterProgress({
   currentPLIndex,
   currentPageIndex,
@@ -79,12 +87,20 @@ export function calculateChapterProgress({
   currentPageIndex: number;
   totalPages: number;
 }) {
-  const cpI = currentPageIndex === 1 ? 0 : currentPLIndex;
-  const pageProgress =
-    currentPageIndex >= totalPages ? 50 : ((cpI || 0) / totalPages) * 50;
+  if (!totalPages) return '0';
+
+  // currentPageIndex is the 1-based page the kid is sitting on, so landing on
+  // page 1 means nothing has been read yet. Reaching the last page counts the
+  // chapter as fully read.
+  const pagesRead =
+    currentPageIndex >= totalPages
+      ? totalPages
+      : Math.max((currentPageIndex || 0) - 1, 0);
+
+  const pageProgress = (pagesRead / totalPages) * READ_WEIGHT;
 
   const plProgress =
-    ((currentPLIndex === 1 ? 0 : currentPLIndex || 0) / 8) * 50;
+    ((currentPLIndex === 1 ? 0 : currentPLIndex || 0) / 8) * PLAY_WEIGHT;
 
   const total = Math.min(pageProgress + plProgress, 100);
 
@@ -138,9 +154,42 @@ export const getSeriesProgress = (
       }),
     ),
   );
+  if (!chapterProgresses.length) return 0;
+
   const avgProgress =
     chapterProgresses.reduce((sum, p) => sum + p, 0) /
     chapterProgresses?.length;
+
+  return Number(avgProgress.toFixed(0)) || 0;
+};
+
+/**
+ * Series progress straight off /kid/reading-progress. Preferred over
+ * getSeriesProgress inside the Playground: that endpoint is refetched after
+ * every page turn / quiz and carries totalPages explicitly, whereas the
+ * kid-learning payload is only as fresh as its last refetch and relies on
+ * chapterId.pages being populated.
+ */
+export const getSeriesReadingProgress = (
+  seriesId: string,
+  readingProgress: ReadingProgressProps[] | undefined,
+) => {
+  const targetSeries = readingProgress?.find((r) => r.seriesId === seriesId);
+  const chapters = targetSeries?.chapters || [];
+  if (!chapters.length) return 0;
+
+  const chapterProgresses = chapters.map((chapter) =>
+    Number(
+      calculateChapterProgress({
+        currentPageIndex: chapter?.currentPageIndex,
+        currentPLIndex: chapter?.currentPLIndex,
+        totalPages: chapter?.totalPages,
+      }),
+    ),
+  );
+
+  const avgProgress =
+    chapterProgresses.reduce((sum, p) => sum + p, 0) / chapterProgresses.length;
 
   return Number(avgProgress.toFixed(0)) || 0;
 };
@@ -210,6 +259,7 @@ export function getFormattedSeriesOverview(
 
 
 export type SegmentKind =
+  | "title"
   | "header"
   | "subColumnHeader"
   | "content"
@@ -224,10 +274,26 @@ export type Segment = {
   text: string;
 };
 
+/**
+ * Collapses runs of newlines. Must be applied when BUILDING segments as well as
+ * when rendering them: the karaoke charIndex is an offset into the segment text,
+ * so if the renderer normalizes and the segment does not, every collapsed
+ * newline shifts the highlight one word further behind the audio.
+ */
+export function normalizeNewlines(text: string): string {
+  if (!text) return '';
+  return text.replace(/\n+/g, '\n');
+}
+
 export function buildSegments(page: ChapterPage | null): Segment[] {
   if (!page?.paragraphs?.length) return [];
 
   const segments: Segment[] = [];
+
+  // The backend narrates the page title first (assemblePageText /
+  // buildNarrationSegments). Omitting it here offset every mark on the page by
+  // however long the title takes to read.
+  if (page.title) segments.push({ pid: -1, kind: "title", text: page.title });
 
   page.paragraphs.forEach((p, pid) => {
     if (p.header) {
@@ -240,11 +306,15 @@ export function buildSegments(page: ChapterPage | null): Segment[] {
     }
 
     if (p.content) {
-      segments.push({ pid, kind: "content", text: p.content });
+      segments.push({ pid, kind: "content", text: normalizeNewlines(p.content) });
     }
 
     if (p.subContent) {
-      segments.push({ pid, kind: "subContent", text: p.subContent });
+      segments.push({
+        pid,
+        kind: "subContent",
+        text: normalizeNewlines(p.subContent),
+      });
     }
 
     if (Array.isArray(p.list) && p.list.length) {
@@ -262,7 +332,7 @@ export function buildSegments(page: ChapterPage | null): Segment[] {
             pid,
             kind: "list-content",
             listIndex: li,
-            text: item.content,
+            text: normalizeNewlines(item.content),
           });
         }
       });
@@ -270,6 +340,138 @@ export function buildSegments(page: ChapterPage | null): Segment[] {
   });
 
   return segments;
+}
+
+/**
+ * Karaoke timing model.
+ *
+ * The TTS endpoint returns a bare audioUrl with no speech marks, so the only
+ * signal available is `currentTime / duration`. Mapping that ratio linearly
+ * over character count assumes a constant speaking rate, which TTS does not
+ * have: it inserts real silence at sentence ends, clauses and paragraph
+ * breaks. Those pauses burn audio time while consuming zero characters, so a
+ * flat mapping drifts back and forth across a page.
+ *
+ * Instead each character gets a cost of 1 and every pause-inducing boundary
+ * gets a cost equal to the characters that could have been spoken during it.
+ * CHARS_PER_SECOND matches the estimate already used by createManualKaraoke.
+ */
+const CHARS_PER_SECOND = 15;
+
+const PAUSE_COST = {
+  sentence: 0.4 * CHARS_PER_SECOND, // . ! ?
+  clause: 0.18 * CHARS_PER_SECOND, // , ; :
+  newline: 0.3 * CHARS_PER_SECOND,
+  segment: 0.5 * CHARS_PER_SECOND, // gap between two segments
+};
+
+export type KaraokeTimeline = {
+  /** Cumulative cost at the start of each character slot. */
+  cumulative: Float64Array;
+  /** Which segment owns each slot. */
+  segmentOf: Int32Array;
+  /** Offset of the slot within its own segment. */
+  charOf: Int32Array;
+  total: number;
+};
+
+export function buildKaraokeTimeline(
+  segments: Segment[],
+): KaraokeTimeline | null {
+  const slots = segments.reduce((n, seg) => n + seg.text.length, 0);
+  if (!slots) return null;
+
+  const cumulative = new Float64Array(slots);
+  const segmentOf = new Int32Array(slots);
+  const charOf = new Int32Array(slots);
+
+  let cost = 0;
+  let k = 0;
+
+  segments.forEach((seg, si) => {
+    const { text } = seg;
+    for (let c = 0; c < text.length; c++) {
+      cumulative[k] = cost;
+      segmentOf[k] = si;
+      charOf[k] = c;
+      k++;
+
+      cost += 1;
+      const ch = text[c];
+      if (ch === '.' || ch === '!' || ch === '?') cost += PAUSE_COST.sentence;
+      else if (ch === ',' || ch === ';' || ch === ':') cost += PAUSE_COST.clause;
+      else if (ch === '\n') cost += PAUSE_COST.newline;
+    }
+    if (si < segments.length - 1) cost += PAUSE_COST.segment;
+  });
+
+  return { cumulative, segmentOf, charOf, total: cost };
+}
+
+/**
+ * Maps a 0-1 playback ratio onto a segment + character offset. Binary search,
+ * so it is cheap enough to run on every animation tick.
+ */
+export function resolveKaraokePosition(
+  timeline: KaraokeTimeline,
+  ratio: number,
+): { segIndex: number; charIndex: number } {
+  const target = Math.max(0, Math.min(ratio, 1)) * timeline.total;
+
+  let lo = 0;
+  let hi = timeline.cumulative.length - 1;
+  let best = 0;
+
+  while (lo <= hi) {
+    const mid = (lo + hi) >> 1;
+    if (timeline.cumulative[mid] <= target) {
+      best = mid;
+      lo = mid + 1;
+    } else {
+      hi = mid - 1;
+    }
+  }
+
+  return { segIndex: timeline.segmentOf[best], charIndex: timeline.charOf[best] };
+}
+
+/**
+ * Exact position from real TTS timepoints. Returns the last mark at or before
+ * `currentTime`, so the highlight lands on the word actually being spoken
+ * rather than on an estimate. Preferred over resolveKaraokePosition whenever
+ * the endpoint returned marks.
+ */
+export function resolveMarkPosition(
+  marks: AudioMark[],
+  currentTime: number,
+): { segIndex: number; charIndex: number } | null {
+  if (!marks.length) return null;
+  if (currentTime < marks[0].time) {
+    return { segIndex: marks[0].segIndex, charIndex: marks[0].charIndex };
+  }
+
+  let lo = 0;
+  let hi = marks.length - 1;
+  let best = 0;
+
+  while (lo <= hi) {
+    const mid = (lo + hi) >> 1;
+    if (marks[mid].time <= currentTime) {
+      best = mid;
+      lo = mid + 1;
+    } else {
+      hi = mid - 1;
+    }
+  }
+
+  return { segIndex: marks[best].segIndex, charIndex: marks[best].charIndex };
+}
+
+/** Start of the whitespace-delimited word containing `index`. */
+export function wordStartAt(text: string, index: number): number {
+  let start = Math.max(0, Math.min(index, text.length));
+  while (start > 0 && !/\s/.test(text[start - 1])) start--;
+  return start;
 }
 
 export const createManualKaraoke = (

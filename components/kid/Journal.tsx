@@ -93,6 +93,18 @@ export default function Journal({ onNext }: { onNext: () => void }) {
   const stopRecording = async () => {
     await recorder.stop();
 
+    // Leaving the session in play-and-record mode routes all later playback to
+    // the iOS earpiece at low volume - including Read Mode narration on other
+    // screens - so hand it back as soon as recording is done.
+    try {
+      await AudioModule.setAudioModeAsync({
+        allowsRecording: false,
+        playsInSilentMode: true,
+      });
+    } catch (err) {
+      console.log('[Journal] audio mode reset error:', err);
+    }
+
     if (recorder.uri) {
       setAudioUri(recorder.uri);
     }

@@ -1,6 +1,5 @@
 import { getSeriesChapters } from '@/actions/curriculum';
 import {
-  fetchKidLearning,
   getReadingProgress,
   updateLessonProgress,
   updatePLProgress,
@@ -25,11 +24,11 @@ import { AssignedSeries } from '@/types';
 import {
   formatActivityPages,
   getPLProgress,
-  getSeriesProgress,
+  getSeriesReadingProgress,
   handleParams,
   pageMap,
 } from '@/utils/kid';
-import { invalidateQueries } from '@/utils/query';
+import { invalidateProgress } from '@/utils/query';
 import { STAUS_BAR_HEIGHT } from '@/utils/scale';
 import { useQuery } from '@tanstack/react-query';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -66,13 +65,6 @@ const Playground = () => {
     queryFn: () => getSeriesChapters(series! as string),
     enabled: !!series, // replaces SWR null check
   });
-  const { data: kidCourses, isLoading } = useQuery({
-    queryKey: ['kid-learning'],
-    queryFn: async () => {
-      return await fetchKidLearning();
-    },
-  });
-
   const { data: allSeriesPages, isLoading: isLoadingSeriesPage } =
     useSeriesChapterPages(series! as string);
 
@@ -128,13 +120,10 @@ const Playground = () => {
 
   const progress = useMemo(() => {
     if (mode === 'play') {
-      return pageMap?.[page! as string] / 8;
-    } else {
-      const targetSeries = kidCourses?.find((d) => d.bookId?._id === book as string);
-      const p = getSeriesProgress(series as string, targetSeries?.assignedChapters || []);
-      return p/100
+      return (pageMap?.[page! as string] || 0) / 8;
     }
-  }, [mode, activePage, data, page]);
+    return getSeriesReadingProgress(series as string, readingProgress) / 100;
+  }, [mode, page, series, readingProgress]);
 
   const targetSeries = useMemo(() => {
     if (!data) return;
@@ -166,7 +155,7 @@ const Playground = () => {
         [],
         totalTimeSpent,
       );
-      invalidateQueries('reading-progress');
+      invalidateProgress();
     } catch (error) {
       console.log('error');
     }
@@ -207,7 +196,7 @@ const Playground = () => {
 
     if (mode === 'read' && chapterId) {
       const timeSpent = Math.floor((Date.now() - startTimeRef.current) / 1000);
-      invalidateQueries('reading-progress');
+      invalidateProgress();
     }
 
     if (mode === 'read') {
@@ -270,7 +259,7 @@ const Playground = () => {
       case 'mid':
         if (currentProgress === 3) {
           await updatePLProgress(chapterId! as string, 4);
-          invalidateQueries('reading-progress');
+          invalidateProgress();
         }
         return handleParams([
           ['lessonId', 'scenario'],
@@ -288,7 +277,7 @@ const Playground = () => {
       case 'journal':
         if (currentProgress === 5) {
           await updatePLProgress(chapterId! as string, 6);
-          invalidateQueries('reading-progress');
+          invalidateProgress();
         }
         return handleParams([
           ['lessonId', newActivityPages?.[0]?.lessons?.[5]?._id || ''],
@@ -298,7 +287,7 @@ const Playground = () => {
       case 'learn':
         if (currentProgress === 2) {
           await updatePLProgress(chapterId! as string, 3);
-          invalidateQueries('reading-progress');
+          invalidateProgress();
         }
         return handleParams([
           ['lessonId', 'mid'],
@@ -308,7 +297,7 @@ const Playground = () => {
       case 'scenario':
         if (currentProgress === 4) {
           await updatePLProgress(chapterId! as string, 5);
-          invalidateQueries('reading-progress');
+          invalidateProgress();
         }
         return handleParams([
           ['lessonId', 'journal'],
@@ -318,7 +307,7 @@ const Playground = () => {
       case 'rewards':
         if (currentProgress === 7) {
           await updatePLProgress(chapterId! as string, 8);
-          invalidateQueries('reading-progress');
+          invalidateProgress();
         }
         return setOpenSwitch(true);
 
@@ -326,7 +315,7 @@ const Playground = () => {
         if (Number(page) === 1) {
           if (!currentProgress || currentProgress === 1) {
             await updatePLProgress(chapterId! as string, 2);
-            invalidateQueries('reading-progress');
+            invalidateProgress();
           }
           return handleParams([
             ['lessonId', 'learn'],
@@ -336,7 +325,7 @@ const Playground = () => {
         if (Number(page) === 5) {
           if (currentProgress === 6) {
             await updatePLProgress(chapterId! as string, 7);
-            invalidateQueries('reading-progress');
+            invalidateProgress();
           }
           return handleParams([
             ['lessonId', 'end'],

@@ -4,13 +4,36 @@ import { Image, Pressable, Text, View } from 'react-native';
 import { fetchChapterPageAudio } from '@/actions/kid';
 import { ICONS } from '@/assets/icons';
 import { useReadSettings } from '@/context/ReadContext';
-import { ChapterPage as ChapterPageType, PageParagraph } from '@/types';
-import { AudioPlayer, createAudioPlayer } from 'expo-audio';
+import useKidProfile from '@/hooks/useKidProfile';
+import {
+  AudioMark,
+  ChapterPage as ChapterPageType,
+  PageParagraph,
+} from '@/types';
+import { AudioModule, AudioPlayer, createAudioPlayer } from 'expo-audio';
 import { ActivityIndicator } from 'react-native';
 import { twMerge } from 'tailwind-merge';
-import { buildSegments, Segment } from '../../utils/kid';
+import {
+  buildKaraokeTimeline,
+  buildSegments,
+  KaraokeTimeline,
+  normalizeNewlines,
+  resolveKaraokePosition,
+  resolveMarkPosition,
+  Segment,
+  wordStartAt,
+} from '../../utils/kid';
 import Button, { SecondaryButton } from '../Button';
 import { KaraokeText } from './KaraokeText';
+
+/**
+ * How often native pushes playback position to JS. expo-audio defaults to
+ * 500ms, which is far too coarse to drive a word-level highlight.
+ */
+const AUDIO_UPDATE_INTERVAL = 50;
+const KARAOKE_TICK_MS = 50;
+/** Never extrapolate further than this past the last native sample (seconds). */
+const MAX_CLOCK_EXTRAPOLATION = 0.35;
 
 export const Chapter = ({
   data,
@@ -29,6 +52,11 @@ export const Chapter = ({
 }) => {
   const { readingSettings, updateReadingSettings, saveSettings } =
     useReadSettings();
+
+  // The backend caches synthesized audio per (chapter, page, voice), so a voice
+  // change makes the URL and marks we are holding stale.
+  const { data: kidProfile } = useKidProfile();
+  const ttsVoice = kidProfile?.readingSettings?.voice;
 
   const updateFont = (type: 'increase' | 'decrease' | 'reset') => {
     updateReadingSettings({
@@ -57,15 +85,25 @@ export const Chapter = ({
   const audioRef = useRef<AudioPlayer | null>(null);
   const karaokeTimerRef = useRef<NodeJS.Timeout | null>(null);
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
+  /**
+   * Real word timings from Google, when the configured voice can emit them.
+   * Chirp3-HD voices return none, in which case we fall back to the estimated
+   * timeline. See constants/tts-voices.constant.ts on the backend.
+   */
+  const marksRef = useRef<AudioMark[]>([]);
   const [isLoadingAudio, setIsLoadingAudio] = useState(false);
 
   /** Segments */
   const segments = useMemo(() => buildSegments(data), [data]);
+  const timeline = useMemo(() => buildKaraokeTimeline(segments), [segments]);
+
   const segmentsRef = useRef<Segment[]>([]);
+  const timelineRef = useRef<KaraokeTimeline | null>(null);
 
   useEffect(() => {
     segmentsRef.current = segments;
-  }, [segments]);
+    timelineRef.current = timeline;
+  }, [segments, timeline]);
 
   /** Playback state */
   const isPlayingRef = useRef(false);
@@ -86,25 +124,72 @@ export const Chapter = ({
     setIsPaused(v);
   };
 
+  /**
+   * expo-audio pushes `currentTime` from native to JS on a fixed interval
+   * (AUDIO_UPDATE_INTERVAL below), so the raw value is a staircase, not a live
+   * clock. Reading it directly leaves the highlight up to one interval behind
+   * the audio and makes it jump rather than glide. Between native samples we
+   * extrapolate with the wall clock, capped so a stalled or seeking player can
+   * never let the estimate run away.
+   */
+  const clockRef = useRef({ nativeTime: -1, wall: 0 });
+
+  const resetClock = () => {
+    clockRef.current = { nativeTime: -1, wall: 0 };
+  };
+
+  const readPlayerTime = (player: AudioPlayer) => {
+    const native = player.currentTime;
+    const now = Date.now();
+    const clock = clockRef.current;
+
+    if (native !== clock.nativeTime) {
+      clock.nativeTime = native;
+      clock.wall = now;
+      return native;
+    }
+
+    const drift = Math.min(
+      (now - clock.wall) / 1000,
+      MAX_CLOCK_EXTRAPOLATION,
+    );
+    return native + drift * (player.playbackRate || 1);
+  };
+
   /** Karaoke: map audio currentTime → segment + char index */
+  const lastWordRef = useRef({ seg: -1, start: -1 });
+
+  const resetKaraokePosition = () => {
+    lastWordRef.current = { seg: -1, start: -1 };
+  };
+
   const updateKaraokeFromTime = (currentTime: number, duration: number) => {
     const segs = segmentsRef.current;
-    if (!segs.length || duration <= 0) return;
+    if (!segs.length) return;
 
-    const ratio = Math.min(currentTime / duration, 1);
-    const totalChars = segs.reduce((s, seg) => s + seg.text.length + 1, 0);
-    const targetOffset = Math.floor(ratio * totalChars);
+    // Exact timings win; the estimated timeline is only a stand-in for voices
+    // that cannot report where they are.
+    const resolved =
+      resolveMarkPosition(marksRef.current, currentTime) ??
+      (timelineRef.current && duration > 0
+        ? resolveKaraokePosition(timelineRef.current, currentTime / duration)
+        : null);
 
-    let charCount = 0;
-    for (let i = 0; i < segs.length; i++) {
-      const segLen = segs[i].text.length + 1;
-      if (charCount + segLen > targetOffset) {
-        setCurrentSegIndex(i);
-        setCurrentCharIndex(targetOffset - charCount);
-        return;
-      }
-      charCount += segLen;
-    }
+    if (!resolved) return;
+    const { segIndex, charIndex } = resolved;
+    if (segIndex >= segs.length) return;
+
+    // KaraokeText highlights the whole word around charIndex, so re-rendering
+    // for every character inside that word repaints the entire page for no
+    // visible change - and on a long page that alone is enough to starve the
+    // JS thread and delay the next tick.
+    const start = wordStartAt(segs[segIndex].text, charIndex);
+    const last = lastWordRef.current;
+    if (last.seg === segIndex && last.start === start) return;
+
+    lastWordRef.current = { seg: segIndex, start };
+    setCurrentSegIndex(segIndex);
+    setCurrentCharIndex(charIndex);
   };
 
   const stopKaraokePolling = () => {
@@ -116,28 +201,39 @@ export const Chapter = ({
 
   const startKaraokePolling = () => {
     stopKaraokePolling();
+    resetClock();
     //@ts-ignore
     karaokeTimerRef.current = setInterval(() => {
       const player = audioRef.current;
       if (!player) return;
 
-      const ct = player.currentTime;
       const dur = player.duration;
+      const ct = player.currentTime;
 
-      if (dur > 0 && ct >= dur - 0.15) {
-        // Reached end — reset state
+      // End detection uses the raw native time; the extrapolated value may sit
+      // slightly ahead of it and would cut the last word short.
+      //
+      // The isLoaded/ct guards matter: while a remote MP3 is still buffering,
+      // `duration` can report a small positive value, making `dur - 0.15`
+      // negative and `ct >= dur - 0.15` true at ct=0. That flagged the track as
+      // finished the instant it started - isPlaying went false while the audio
+      // kept playing, so the toggle called playTTS() and restarted the page
+      // instead of pausing it.
+      if (player.isLoaded && dur > 0 && ct > 0 && ct >= dur - 0.15) {
         stopKaraokePolling();
+        player.pause();
         setPlayingState(false);
         setPausedState(false);
         setCurrentSegIndex(-1);
         setCurrentCharIndex(null);
+        resetKaraokePosition();
         return;
       }
 
       if (isPlayingRef.current) {
-        updateKaraokeFromTime(ct, dur);
+        updateKaraokeFromTime(readPlayerTime(player), dur);
       }
-    }, 100);
+    }, KARAOKE_TICK_MS);
   };
 
   /** STOP */
@@ -149,6 +245,7 @@ export const Chapter = ({
     setPausedState(false);
     setCurrentSegIndex(-1);
     setCurrentCharIndex(null);
+    resetKaraokePosition();
   };
 
   /** PLAY — fetches URL on first press if not yet loaded */
@@ -161,7 +258,12 @@ export const Chapter = ({
       if (!chapterId || !data || typeof data.index !== 'number') return;
       setIsLoadingAudio(true);
       try {
-        url = await fetchChapterPageAudio(chapterId, data.index as number);
+        const audio = await fetchChapterPageAudio(
+          chapterId,
+          data.index as number,
+        );
+        url = audio.audioUrl;
+        marksRef.current = audio.marks ?? [];
         setAudioUrl(url);
       } catch (err) {
         console.log('[TTS] fetch error:', err);
@@ -170,16 +272,35 @@ export const Chapter = ({
       }
       setIsLoadingAudio(false);
     }
+    if (!url) return;
+
+    // Narration is content the kid explicitly asked to hear, so it must survive
+    // the hardware mute switch. This also clears `allowsRecording`, which
+    // Journal turns on and never turns off - on iOS that leaves the session in
+    // play-and-record mode, routing playback to the earpiece at low volume and
+    // making the play button look broken.
+    try {
+      await AudioModule.setAudioModeAsync({
+        allowsRecording: false,
+        playsInSilentMode: true,
+      });
+    } catch (err) {
+      console.log('[TTS] audio mode error:', err);
+    }
 
     audioRef.current?.pause();
     audioRef.current?.remove();
-    audioRef.current = createAudioPlayer({ uri: url });
+    audioRef.current = createAudioPlayer(
+      { uri: url },
+      { updateInterval: AUDIO_UPDATE_INTERVAL },
+    );
     audioRef.current.play();
 
     setPlayingState(true);
     setPausedState(false);
     setCurrentSegIndex(0);
     setCurrentCharIndex(0);
+    resetKaraokePosition();
     startKaraokePolling();
   };
 
@@ -211,14 +332,33 @@ export const Chapter = ({
     setPausedState(false);
     setCurrentSegIndex(0);
     setCurrentCharIndex(0);
+    resetKaraokePosition();
     startKaraokePolling();
   };
 
-  /** Reset audio state when page changes */
+  /** Reset audio state when the page changes */
   useEffect(() => {
     stopTTS();
     setAudioUrl(null);
+    marksRef.current = [];
   }, [chapterId, data?.index]);
+
+  /**
+   * A voice change makes the loaded URL and marks stale. The first defined
+   * value is skipped: that is just the kid-profile query resolving, and
+   * treating it as a change would stop playback the moment it arrives.
+   */
+  const knownVoiceRef = useRef<string | undefined>(undefined);
+  useEffect(() => {
+    if (ttsVoice === undefined) return;
+    const previous = knownVoiceRef.current;
+    knownVoiceRef.current = ttsVoice;
+    if (previous === undefined || previous === ttsVoice) return;
+
+    stopTTS();
+    setAudioUrl(null);
+    marksRef.current = [];
+  }, [ttsVoice]);
 
   /** Cleanup on unmount */
   useEffect(() => {
@@ -230,8 +370,8 @@ export const Chapter = ({
   }, []);
 
   const activeSeg =
-    currentSegIndex >= 0 && currentSegIndex < segmentsRef.current.length
-      ? segmentsRef.current[currentSegIndex]
+    currentSegIndex >= 0 && currentSegIndex < segments.length
+      ? segments[currentSegIndex]
       : null;
 
   return (
@@ -251,7 +391,13 @@ export const Chapter = ({
                 style={{ fontSize: readingSettings.fontSize.header }}
                 className="font-sansSemiBold"
               >
-                {data.title}
+                <KaraokeText
+                  text={data.title}
+                  isActive={activeSeg?.kind === 'title'}
+                  charIndex={
+                    activeSeg?.kind === 'title' ? currentCharIndex : null
+                  }
+                />
               </Text>
             )}
 
@@ -327,6 +473,8 @@ export const Chapter = ({
               >
                 {isLoadingAudio ? (
                   <ActivityIndicator size="small" color="#265828" />
+                ) : isPlaying ? (
+                  <ICONS.PauseFilled width={64} height={51} />
                 ) : (
                   <ICONS.ReadModeSpeakerYellow />
                 )}
@@ -403,11 +551,17 @@ const Paragraph = ({
 }) => {
   const { readingSettings } = useReadSettings();
 
-  const isActive = (kind: any) =>
-    !!active && active.pid === index && active.kind === kind;
+  // listIndex matters: without it every list row of the same kind in this
+  // paragraph reports itself active and highlights simultaneously, each one
+  // applying the active row's charIndex to its own text.
+  const isActive = (kind: any, listIndex?: number) =>
+    !!active &&
+    active.pid === index &&
+    active.kind === kind &&
+    (listIndex === undefined || active.listIndex === listIndex);
 
-  const charIndexIfActive = (kind: any) =>
-    isActive(kind) ? currentCharIndex : null;
+  const charIndexIfActive = (kind: any, listIndex?: number) =>
+    isActive(kind, listIndex) ? currentCharIndex : null;
 
   return (
     <View className="mb-1">
@@ -541,8 +695,8 @@ const Paragraph = ({
                 >
                   <KaraokeText
                     text={d.title}
-                    isActive={isActive('list-title')}
-                    charIndex={charIndexIfActive('list-title')}
+                    isActive={isActive('list-title', li)}
+                    charIndex={charIndexIfActive('list-title', li)}
                   />
                 </Text>
               )}
@@ -559,8 +713,8 @@ const Paragraph = ({
                 >
                   <KaraokeText
                     text={normalizeNewlines(d?.content)}
-                    isActive={isActive('list-content')}
-                    charIndex={charIndexIfActive('list-content')}
+                    isActive={isActive('list-content', li)}
+                    charIndex={charIndexIfActive('list-content', li)}
                   />
                 </Text>
               )}
@@ -572,9 +726,3 @@ const Paragraph = ({
     </View>
   );
 };
-
-
-function normalizeNewlines(text: string): string {
-  if(!text) return '';
-  return text.replace(/\n+/g, "\n");
-}
