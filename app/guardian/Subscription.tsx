@@ -17,14 +17,19 @@ import {
 } from '@/constants/subscription';
 import { getSubscriptionDaysRemaining } from '@/utils';
 import { scaleWidth } from '@/utils/scale';
-import { useQuery } from '@tanstack/react-query';
+import {
+  IS_APPLE_IAP,
+  manageAppleSubscriptions,
+  restoreApplePurchases,
+} from '@/hooks/useAppleSubscription';
+import { showToast } from '@/utils/toast';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import React, { useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   Image,
-  Linking,
   Pressable,
   StyleSheet,
   Text,
@@ -33,6 +38,7 @@ import {
 import Modal from 'react-native-modal';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import WebView from 'react-native-webview';
+import { useParentalGate } from '@/context/ParentalGateContext';
 
 const STATUS_LABEL: Record<
   string,
@@ -45,6 +51,7 @@ const STATUS_LABEL: Record<
 };
 
 const Subscription = () => {
+  const { openExternalLink, requireParentalGate } = useParentalGate();
   const [openCancellation, setOpenCancellation] = useState(false);
   const [portalLoading, setPortalLoading] = useState(false);
   const [upsellDismissed, setUpsellDismissed] = useState(false);
@@ -72,6 +79,47 @@ const Subscription = () => {
     queryFn: getBillingHistory,
   });
 
+  const queryClient = useQueryClient();
+  const [restoring, setRestoring] = useState(false);
+
+  const refreshSubscription = () => {
+    queryClient.invalidateQueries({ queryKey: ['guardian-kids'] });
+    queryClient.invalidateQueries({ queryKey: ['billing-history'] });
+  };
+
+  // App Store subscriptions can only be cancelled/re-enabled by the user
+  // through Apple's manage subscriptions sheet
+  const handleManageAppleSubscription = async () => {
+    try {
+      await manageAppleSubscriptions();
+    } catch {
+      showToast('error', 'Unable to open App Store subscriptions.');
+    } finally {
+      refreshSubscription();
+    }
+  };
+
+  const handleRestorePurchases = async () => {
+    setRestoring(true);
+    try {
+      const restored = await restoreApplePurchases();
+      refreshSubscription();
+      if (restored > 0) {
+        showToast('success', 'Purchases restored.');
+      } else {
+        showToast('info', 'No App Store subscriptions found to restore.');
+      }
+    } catch (err: any) {
+      showToast(
+        'error',
+        err?.response?.data?.message ??
+          'Failed to restore purchases. Please try again.',
+      );
+    } finally {
+      setRestoring(false);
+    }
+  };
+
   // Auto-select first kid once data loads
   useEffect(() => {
     if (kidsWithSubs.length && !kid) {
@@ -83,6 +131,7 @@ const Subscription = () => {
   const selectedKid =
     kidsWithSubs.find((k) => k._id === kid) ?? kidsWithSubs[0];
   const subscription = selectedKid?.subscription;
+  const isAppleManaged = subscription?.provider === 'apple';
 
   // Kids available in the dropdown (everyone except the currently selected one)
   const remainingKids = useMemo(
@@ -101,7 +150,7 @@ const Subscription = () => {
     setPortalLoading(true);
     try {
       const { url } = await createPortalSession();
-      await Linking.openURL(url);
+      openExternalLink(url);
     } catch {
     } finally {
       setPortalLoading(false);
@@ -298,6 +347,21 @@ const Subscription = () => {
             }
             text={`${plan === 'free' ? 'UPGRADE' : subStatus === 'cancelled' ? 'REACTIVATE' : subStatus === 'expired' ? 'ACTIVATE' : 'CHANGE'} PLAN`}
           />
+          {IS_APPLE_IAP && (
+            <Pressable
+              onPress={() => requireParentalGate(handleRestorePurchases)}
+              disabled={restoring}
+              className="mt-4 items-center"
+            >
+              {restoring ? (
+                <ActivityIndicator color="#3F9243" />
+              ) : (
+                <Text className="text-[16px] font-sansMedium text-[#3F9243]">
+                  RESTORE PURCHASES
+                </Text>
+              )}
+            </Pressable>
+          )}
         </View>
 
         {/* Next billing card — only for paid plans */}
@@ -346,12 +410,23 @@ const Subscription = () => {
               )}
             </Pressable> */}
               {subStatus === 'cancelled' ? (
-                <Text className="text-[16px] font-sansMedium text-[#DE2121] leading-[1.5] mt-4">
+                <Text
+                  onPress={
+                    isAppleManaged
+                      ? () => requireParentalGate(handleManageAppleSubscription)
+                      : undefined
+                  }
+                  className="text-[16px] font-sansMedium text-[#DE2121] leading-[1.5] mt-4"
+                >
                   CANCELS {formatDate(subscription?.currentPeriodEnd)}
                 </Text>
               ) : (
                 <Text
-                  onPress={() => setOpenCancellation(true)}
+                  onPress={() =>
+                    isAppleManaged
+                      ? requireParentalGate(handleManageAppleSubscription)
+                      : setOpenCancellation(true)
+                  }
                   className="text-[16px] font-sansMedium text-[#DE2121] leading-[1.5] mt-4"
                 >
                   CANCEL SUBSCRIPTION
@@ -459,10 +534,12 @@ const Subscription = () => {
                 status={invoice.status}
                 date={invoice.date}
                 receiptUrl={invoice.receiptUrl}
-                onDownload={(url) => {
-                  setWebViewLoading(true);
-                  setReceiptUrl(url);
-                }}
+                onDownload={(url) =>
+                  requireParentalGate(() => {
+                    setWebViewLoading(true);
+                    setReceiptUrl(url);
+                  })
+                }
                 key={i}
               />
             ))}

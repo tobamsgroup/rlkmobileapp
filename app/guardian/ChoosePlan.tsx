@@ -17,12 +17,12 @@ import { router, useLocalSearchParams } from 'expo-router';
 import React, { useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
-  Linking,
   Pressable,
   Text,
   View,
 } from 'react-native';
 import { twMerge } from 'tailwind-merge';
+import { useParentalGate } from '@/context/ParentalGateContext';
 
 type PlanWithId = {
   planId: SubscriptionPlan;
@@ -40,6 +40,7 @@ type PlanWithId = {
 };
 
 const ChoosePlan = () => {
+  const { openExternalLink } = useParentalGate();
   const queryClient = useQueryClient();
   const [title, setModalTitle] = useState('');
   const [modalDesc, setModalDesc] = useState('');
@@ -217,7 +218,7 @@ const ChoosePlan = () => {
           </Text>
           <View className="border border-[#D3D2D366] rounded-[16px] mt-6 p-4 gap-4">
             <Pressable
-              onPress={() => Linking.openURL('https://rlkids.ai/pricing/read')}
+              onPress={() => openExternalLink('https://rlkids.ai/pricing/read')}
               className="flex-row items-center  gap-2"
             >
               <Text className="text-[16px] text-[#221D23] font-sans">
@@ -226,7 +227,7 @@ const ChoosePlan = () => {
               <ICONS.ArrowUpRight />
             </Pressable>
             <Pressable
-              onPress={() => Linking.openURL('https://rlkids.ai/pricing/read')}
+              onPress={() => openExternalLink('https://rlkids.ai/pricing/read')}
               className="flex-row items-center  gap-2"
             >
               <Text className="text-[16px] text-[#221D23] font-sans">
@@ -236,7 +237,7 @@ const ChoosePlan = () => {
             </Pressable>
             <Pressable
               onPress={() =>
-                Linking.openURL('https://rlkids.ai/faqs?category=parent')
+                openExternalLink('https://rlkids.ai/faqs?category=parent')
               }
               className="flex-row items-center  gap-2"
             >
@@ -246,7 +247,7 @@ const ChoosePlan = () => {
               <ICONS.ArrowUpRight />
             </Pressable>
             <Pressable
-              onPress={() => Linking.openURL('https://rlkids.ai/contact')}
+              onPress={() => openExternalLink('https://rlkids.ai/contact')}
               className="flex-row items-center  gap-2"
             >
               <Text className="text-[16px] text-[#221D23] font-sans">
@@ -255,7 +256,7 @@ const ChoosePlan = () => {
               <ICONS.ArrowUpRight />
             </Pressable>
             <Pressable
-              onPress={() => Linking.openURL('https://rlkids.ai/contact')}
+              onPress={() => openExternalLink('https://rlkids.ai/contact')}
               className="flex-row items-center  gap-2"
             >
               <Text className="text-[16px] text-[#221D23] font-sans">

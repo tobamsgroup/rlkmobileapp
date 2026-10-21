@@ -83,6 +83,32 @@ export const PLAN_DETAILS: Record<SubscriptionPlan, PlanDetail> = {
 
 
 
+// ─── Apple In-App Purchase (iOS) ────────────────────────────────────────────
+// App Store Connect has one subscription group per learner slot
+// ("Learner 1" … "Learner 5"), each containing every paid plan. An Apple ID can
+// only hold one active subscription per group, so each child occupies a slot.
+// Must match APPLE_PRODUCT_ID_PREFIX / APPLE_SUBSCRIPTION_SLOTS on the backend.
+export const APPLE_PRODUCT_ID_PREFIX = 'com.tobamsgroup.rlkids';
+export const APPLE_SUBSCRIPTION_SLOTS = 5;
+
+export type PaidPlan = Exclude<SubscriptionPlan, 'free'>;
+
+export const PAID_PLANS: PaidPlan[] = [
+  'starter',
+  'explorer',
+  'builder',
+  'future_skills',
+  'library_pass',
+];
+
+export const getAppleProductId = (slot: number, plan: PaidPlan) =>
+  `${APPLE_PRODUCT_ID_PREFIX}.slot${slot}.${plan}`;
+
+export const ALL_APPLE_PRODUCT_IDS: string[] = Array.from(
+  { length: APPLE_SUBSCRIPTION_SLOTS },
+  (_, i) => PAID_PLANS.map((plan) => getAppleProductId(i + 1, plan)),
+).flat();
+
 export const PLAN_ORDER: SubscriptionPlan[] = [
   'free',
   'starter',

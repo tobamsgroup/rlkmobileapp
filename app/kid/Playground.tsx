@@ -465,8 +465,8 @@ const Playground = () => {
           <View className=" bg-[#DBEFDC] p-6">
             <Pressable
               onPress={() => {
-                // handleParams([['mode', mode === 'read' ? 'play' : 'read']]);
-                setShowPlayModal(true);
+                handleParams([['mode', mode === 'read' ? 'play' : 'read']]);
+                // setShowPlayModal(true);
               }}
               className="relative flex-row items-center gap-2 py-2 px-3"
             >
@@ -512,7 +512,7 @@ const Playground = () => {
               page !== 'learn' &&
               page !== 'mid' &&
               page !== 'journal' &&
-              page !== 'end' && (
+              page !== 'end' && ( 
                 <View className="flex justify-center mt-5 gap-4 items-center">
                   {Number(page) !== 1 && (
                     <SecondaryButton onPress={() => onPrev()}>
@@ -534,7 +534,7 @@ const Playground = () => {
                     </View>
                   </Button>
                 </View>
-              )}
+)}
           </View>
         )}
       </View>

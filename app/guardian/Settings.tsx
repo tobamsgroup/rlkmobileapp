@@ -3,9 +3,11 @@ import Container from '@/components/Container';
 import TopBackButton from '@/components/TopBackButton';
 import { router } from 'expo-router';
 import React from 'react';
-import { Linking, Text, View } from 'react-native';
+import { Text, View } from 'react-native';
+import { useParentalGate } from '@/context/ParentalGateContext';
 
 const Settings = () => {
+  const { openExternalLink } = useParentalGate();
   return (
     <Container>
       <View className="px-6 py-5 flex-1">
@@ -33,7 +35,7 @@ const Settings = () => {
             text="Notifications"
           />
           <Button
-            onPress={() => Linking.openURL('https://rlkids.ai/faqs')}
+            onPress={() => openExternalLink('https://rlkids.ai/faqs')}
             className="border-[#C3E4C5] bg-white border mb-5"
             textClassname="text-dark text-[16px]"
             text="Help & Support"

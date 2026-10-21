@@ -9,15 +9,16 @@ import { scaleHeight, scaleWidth, SCREEN_WIDTH } from "@/utils/scale";
 import { router } from "expo-router";
 import {
   Image,
-  Linking,
   Pressable,
   ScrollView,
   StyleSheet,
   Text,
   View,
 } from "react-native";
+import { useParentalGate } from '@/context/ParentalGateContext';
 
 export default function More() {
+  const { openExternalLink } = useParentalGate();
   const dispatch = useAppDispatch();
   const { data, isLoading } = useGuardian();
   return (
@@ -102,7 +103,7 @@ export default function More() {
             <ICONS.ChevronRight />
           </Pressable>
           <Pressable
-            onPress={() => Linking.openURL("https://rlkids.ai/faqs")}
+            onPress={() => openExternalLink("https://rlkids.ai/faqs")}
             className="flex-row items-center gap-2 py-6 border-b border-b-[#D3D2D366]"
           >
             <View className="items-center justify-center w-10 h-10 rounded-full bg-[#D3D2D333]">
@@ -129,7 +130,7 @@ export default function More() {
           <View className="flex-row items-center justify-around">
             <Text
               onPress={() =>
-                Linking.openURL("https://rlkids.ai/privacy-policy")
+                openExternalLink("https://rlkids.ai/privacy-policy")
               }
               className="text-[#474348] font-sansMedium "
             >
@@ -138,7 +139,7 @@ export default function More() {
             <View className="w-1 h-1 rounded-full bg-[#474348]" />
             <Text
               onPress={() =>
-                Linking.openURL("https://rlkids.ai/terms-and-conditions")
+                openExternalLink("https://rlkids.ai/terms-and-conditions")
               }
               className="text-[#474348] font-sansMedium "
             >

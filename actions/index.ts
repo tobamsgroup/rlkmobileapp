@@ -104,3 +104,9 @@ export const deleteChildAccount = async (
   const res = await axios.delete(`/guardian/kid/${id}`, { data: { password, reason } });
   return res.data;
 };
+
+// Parental gate: checks the parent account password (works from kid sessions too).
+export const verifyParentPassword = async (password: string) => {
+  const res = await axios.post('/auth/verify-parent-password', { password });
+  return res.data;
+};

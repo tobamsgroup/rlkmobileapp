@@ -14,9 +14,11 @@ import { showToast } from '@/utils/toast';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import React, { useState } from 'react';
-import { Linking, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
+import { useParentalGate } from '@/context/ParentalGateContext';
 
 const ParentAccess = () => {
+  const { openExternalLink } = useParentalGate();
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const { data } = useKidProfile();
@@ -103,7 +105,7 @@ const ParentAccess = () => {
             <View className="bg-[#1671D91A] px-4 py-2 rounded-[8px] mt-6">
               <Text className="font-sans text-[#1671D9] text-center">
                 Need help?{' '}
-                <Text onPress={() => Linking.openURL('https://rlkids.ai/contact')} className="text-[#004D99]">Contact support</Text>
+                <Text onPress={() => openExternalLink('https://rlkids.ai/contact')} className="text-[#004D99]">Contact support</Text>
               </Text>
             </View>
           </View>

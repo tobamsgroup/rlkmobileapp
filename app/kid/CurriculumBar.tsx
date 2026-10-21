@@ -153,6 +153,8 @@ const CurriculumBar = ({
     );
   };
 
+  console.log({newActivityPages})
+
   // Get play progress text for display
   const getProgressText = (
     mode: string | null,
@@ -175,6 +177,8 @@ const CurriculumBar = ({
     return `${Number(current)}/${total}`;
   };
 
+
+  console.log({newActivityPages})
   return (
     <ReactNativeModal
       style={{ padding: 0, margin: 0 }}
@@ -663,6 +667,7 @@ const CurriculumBar = ({
                               width={16}
                               height={16}
                               stroke={'#3F9243'}
+                              strokeWidth={2}
                             />
                           </View>
                           <Text className="text-[16px] font-sansMedium text-dark">

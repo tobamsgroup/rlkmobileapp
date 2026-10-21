@@ -16,10 +16,12 @@ import { scaleHeight, scaleWidth } from '@/utils/scale';
 import { useQuery } from '@tanstack/react-query';
 import { router } from 'expo-router';
 import { useEffect, useMemo, useState } from 'react';
-import { FlatList, Image, Linking, Text, View } from 'react-native';
+import { FlatList, Image, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useParentalGate } from '@/context/ParentalGateContext';
 
 export default function Learners() {
+  const { openExternalLink } = useParentalGate();
   const [filteredData, setFilteredData] = useState<GroupedByKid[]>([]);
   const [search, setSearch] = useState('');
   const [openModal, setOpenModal] = useState(false);
@@ -93,7 +95,7 @@ export default function Learners() {
           — Need to add more learners?{' '}
           <Text
             className="text-[#337535] font-sansSemiBold underline"
-            onPress={() => Linking.openURL('https://rlkids.ai/contact')}
+            onPress={() => openExternalLink('https://rlkids.ai/contact')}
           >
             Contact support
           </Text>{' '}

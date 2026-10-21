@@ -42,6 +42,9 @@ const FlagUSA = require('./flag-usa.jpg');
 const KidDashboardOverlay = require('./KidDashboardOverlay.png');
 const KidDashboardWelcome = require('./KidDashboardWelcome.png');
 const LockedTrophy = require('./LockedTrophy.png');
+const ParentalControlLockIcon = require('./ParentalControlLockIcon.png');
+const TipKidReading = require('./TipKidReading.png');
+const ExploreBooksStack = require('./ExploreBooksStack.png');
 const Star = require('./Star.png');
 const Chat = require('./chat.png');
 const SearchGlassCartoon = require('./SearchGlassCartoon.png');
@@ -99,6 +102,9 @@ export const IMAGES = {
   NoBadge,
   SearchGlassCartoon,
   LockedTrophy,
+  ParentalControlLockIcon,
+  TipKidReading,
+  ExploreBooksStack,
   Star,
   KidDashboardOverlay,
   KidDashboardWelcome,

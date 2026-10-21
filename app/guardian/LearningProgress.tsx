@@ -1,111 +1,111 @@
-import { getAllKids } from '@/actions/curriculum';
 import { getKidsOverview } from '@/actions/home';
+import { getReadingOverview } from '@/actions/learner-progress';
 import {
   getKidAverageQuizScore,
   getKidOverallChapterCompletionRate,
   loginKidAsGuardian,
 } from '@/actions/learners';
 import { ICONS } from '@/assets/icons';
-import { IMAGES } from '@/assets/images';
-import Button from '@/components/Button';
+import { LinearButton } from '@/components/Button';
 import Container from '@/components/Container';
+import {
+  ActivityFeed,
+  BookCard,
+  BookCardSkeleton,
+  BookCarousel,
+  EmptyState,
+  firstName,
+  formatHours,
+  KidAvatar,
+  KidSwitcher,
+  ProgressView,
+  ProgressViewOption,
+  SectionCard,
+  SectionDropdown,
+  SectionHeader,
+  StatCard,
+} from '@/components/LearnerProgress';
 import EditChildProfile from '@/components/Learners/EditChildProfile';
-import ProgressBar from '@/components/ProgressBar';
 import Skeleton from '@/components/Skeleton';
 import TopBackButton from '@/components/TopBackButton';
+import { useParentalGate } from '@/context/ParentalGateContext';
 import { useAppDispatch } from '@/hooks/redux';
 import { storeData } from '@/lib/storage';
 import { login } from '@/redux/authSlice';
+import { LearnerBookCard, SuggestedBook } from '@/types/learnerProgress';
 import { getSubscriptionDaysRemaining } from '@/utils';
 import { generateKidReportHtml } from '@/utils/reportGenerator';
 import { scaleWidth } from '@/utils/scale';
 import { showToast } from '@/utils/toast';
 import Entypo from '@expo/vector-icons/Entypo';
 import Feather from '@expo/vector-icons/Feather';
+import Ionicons from '@expo/vector-icons/Ionicons';
 import { useQuery } from '@tanstack/react-query';
 import * as FileSystem from 'expo-file-system/legacy';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as Print from 'expo-print';
 import { router, useLocalSearchParams } from 'expo-router';
 import * as Sharing from 'expo-sharing';
-import React, { useMemo, useRef, useState } from 'react';
+import React, { useState } from 'react';
 import {
   ActivityIndicator,
-  Image,
   Pressable,
   StyleSheet,
   Text,
   TouchableWithoutFeedback,
   View,
 } from 'react-native';
-import { LineChart, PieChart } from 'react-native-gifted-charts';
-import { captureRef } from 'react-native-view-shot';
-import { twMerge } from 'tailwind-merge';
+
+const VIEW_OPTIONS: ProgressViewOption[] = [
+  { value: 'read', label: 'Read Progress' },
+  { value: 'play', label: 'Play & Learn Insights', locked: true },
+  { value: 'activity', label: 'Activity History' },
+];
 
 const LearningProgress = () => {
+  const { requireParentalGate } = useParentalGate();
   const params = useLocalSearchParams();
-  const [openRemaining, setOpenRemaining] = useState(false);
+  const [kid, setKid] = useState(params?.id as string);
+  const [view, setView] = useState<ProgressView>('read');
   const [openEdit, setOpenEdit] = useState(false);
-  const [kid, setKid] = useState(params?.id);
+  const [openMenu, setOpenMenu] = useState(false);
   const [loading, setLoading] = useState(false);
   const [exportLoading, setExportLoading] = useState(false);
-  const pieChartContainerRef = useRef<View>(null);
-  const lineChartContainerRef = useRef<View>(null);
-  const [openMenu, setOpenMenu] = useState(false);
   const [openBillingAlert, setOpenBillingAlert] = useState(true);
   const dispatch = useAppDispatch();
-  const pieData = [
-    { value: 100, color: '#9c9c9c' },
-    // { value: 0, color: '#4CAF50' },
-    // { value: 100, color: '#D5B300' },
-    // { value: 0, color: '#4CAF50' },
-  ];
-  // const data = [
-  //   { value: 250, label: "Mon" },
-  //   { value: 30, label: "Tue" },
-  //   { value: 26, label: "Wed" },
-  //   { value: 140, label: "Thu" },
-  //   { value: 40, label: "Fri" },
-  //   { value: 40, label: "Sat" },
-  // ];
 
-  const { data, isLoading } = useQuery({
+  const { data: overview, isLoading } = useQuery({
+    queryKey: ['reading-overview', kid],
+    queryFn: async () => await getReadingOverview(kid),
+    enabled: !!kid,
+  });
+
+  // Legacy overview: profile editing, report export and plan banners
+  const { data } = useQuery({
     queryKey: ['learning-overview', kid],
-    queryFn: async () => {
-      return await getKidsOverview(kid as string);
-    },
+    queryFn: async () => await getKidsOverview(kid),
+    enabled: !!kid,
   });
 
-  const { data: allKids } = useQuery({
-    queryKey: ['kids'],
-    queryFn: async () => {
-      return await getAllKids();
-    },
-  });
+  const learner = overview?.learner;
+  const stats = overview?.stats;
+  const name = firstName(learner?.name);
 
-  const remainingKids = useMemo(() => {
-    if (!allKids && !data) return [];
-    return allKids?.filter?.((k) => k._id !== data?.kid?.id);
-  }, [allKids, data, kid]);
+  const openBook = (book: LearnerBookCard) =>
+    router.push(
+      `/guardian/BookProgress?kidId=${kid}&seriesId=${book.seriesId}&name=${encodeURIComponent(learner?.name ?? '')}`,
+    );
 
-  const { data: completionRateDetails } = useQuery({
-    queryKey: ['completion-rate', kid],
-    queryFn: async () => {
-      return await getKidOverallChapterCompletionRate(kid as string);
-    },
-  });
-  const { data: averageScore } = useQuery({
-    queryKey: ['average-score', kid],
-    queryFn: async () => {
-      return await getKidAverageQuizScore(kid as string);
-    },
-  });
+  const assignBook = (book: SuggestedBook) =>
+    router.push(
+      `/guardian/AssignChild?title=${book.category?.title}&id=${book.seriesId}&seriesTitle=${book.title}`,
+    );
 
-  const handleSwitchSession = async (kidId: string) => {
+  const handleSwitchSession = async () => {
     if (loading) return;
     setLoading(true);
     try {
-      const kidData = await loginKidAsGuardian(kidId);
+      const kidData = await loginKidAsGuardian(kid);
       await storeData('user', kidData);
       dispatch(login(kidData));
       showToast('success', 'Login Successful!');
@@ -117,11 +117,16 @@ const LearningProgress = () => {
       setLoading(false);
     }
   };
+
   const handleExportReport = async () => {
     if (exportLoading || !data) return;
     setExportLoading(true);
     try {
       const generatedDate = new Date().toLocaleDateString('en-GB');
+      const [completionRateDetails, averageScore] = await Promise.all([
+        getKidOverallChapterCompletionRate(kid).catch(() => undefined),
+        getKidAverageQuizScore(kid).catch(() => undefined),
+      ]);
 
       // Fetch and base64-encode kid avatar using expo-file-system
       // (FileReader / Blob are Web APIs unavailable in React Native / Hermes)
@@ -135,9 +140,7 @@ const LearningProgress = () => {
           );
           avatarBase64 = await FileSystem.readAsStringAsync(
             downloadResult.uri,
-            {
-              encoding: FileSystem.EncodingType.Base64,
-            },
+            { encoding: FileSystem.EncodingType.Base64 },
           );
           await FileSystem.deleteAsync(tmpPath, { idempotent: true });
         } catch {
@@ -145,35 +148,12 @@ const LearningProgress = () => {
         }
       }
 
-      // Capture chart screenshots
-      let pieChartBase64: string | null = null;
-      let lineChartBase64: string | null = null;
-      try {
-        pieChartBase64 = await captureRef(pieChartContainerRef, {
-          format: 'png',
-          quality: 1,
-          result: 'base64',
-        });
-      } catch {
-        pieChartBase64 = null;
-      }
-      try {
-        lineChartBase64 = await captureRef(lineChartContainerRef, {
-          format: 'png',
-          quality: 1,
-          result: 'base64',
-        });
-      } catch {
-        lineChartBase64 = null;
-      }
-
-      // Build HTML and generate PDF
       const html = generateKidReportHtml({
         data,
         completionRateDetails,
         averageScore,
-        pieChartBase64,
-        lineChartBase64,
+        pieChartBase64: null,
+        lineChartBase64: null,
         avatarBase64,
         generatedDate,
       });
@@ -201,128 +181,39 @@ const LearningProgress = () => {
     }
   };
 
-  //  const plan = subscription?.plan ?? 'free';
-  //   const planDetail = PLAN_DETAILS[plan];
-  //   const statusStyle = STATUS_LABEL[subStatus] ?? STATUS_LABEL.active;
-  //   const isFreePlan = plan === 'free';
-  //   const isPaidPlan = !isFreePlan;
+  const daysRemaining = getSubscriptionDaysRemaining(
+    data?.kid?.subscription?.currentPeriodEnd,
+  );
 
-  //   useEffect(() => {
-  //     if (subscription?.cancelAtPeriodEnd) {
-  //       setStatus('cancelled');
-  //     } else if (
-  //       getSubscriptionDaysRemaining(subscription?.currentPeriodEnd) < 1
-  //     ) {
-  //       setStatus('expired');
-  //     } else {
-  //       setStatus(subscription?.status || 'active');
-  //     }
-  //   }, [subscription]);
+  const recommended = overview?.recommendedNextRead;
 
   return (
     <Container scrollable>
-      <TouchableWithoutFeedback onPress={() => setOpenRemaining(false)}>
-        <View className="px-6 py-5">
+      <TouchableWithoutFeedback onPress={() => setOpenMenu(false)}>
+        <View className="px-6 py-5 pb-10">
           <TopBackButton />
           <Text className="font-sansSemiBold text-dark text-[20px] my-4">
             Learning Progress
           </Text>
 
-          <View className="relative">
-            <Pressable
-              onPress={() => setOpenRemaining(!openRemaining)}
-              className="bg-white rounded-[12px] p-4 py-[12px] flex-row items-center justify-between relative z-10"
-            >
-              <View className="flex-row items-center gap-3">
-                {isLoading ? (
-                  <Skeleton
-                    style={{ width: 48, height: 48 }}
-                    className="rounded-full"
-                  />
-                ) : (
-                  <>
-                    {data?.kid?.picture && (
-                      <Image
-                        style={{
-                          width: 48,
-                          height: 48,
-                        }}
-                        source={
-                          data?.kid?.picture
-                            ? { uri: data?.kid?.picture }
-                            : IMAGES.KidProfilePlaceholder
-                        }
-                        className={twMerge(
-                          'rounded-full border-[#D5B300]',
-                          data?.kid?.picture && 'border',
-                        )}
-                      />
-                    )}
-                    {!data?.kid?.picture && (
-                      <View className="bg-[#D3D2D366] w-12 h-12 rounded-full items-center justify-center">
-                        <Text className="text-[20px] font-sansSemiBold">
-                          {data?.kid?.name?.split(' ')?.[0]?.[0]}
-                          {data?.kid?.name?.split(' ')?.[1]?.[0]}
-                        </Text>
-                      </View>
-                    )}
-                  </>
-                )}
-                {isLoading ? (
-                  <Skeleton className="w-2/3 rounded-full" />
-                ) : (
-                  <Text className="text-[16px] font-sansMedium text-dark">
-                    {data?.kid?.name}
-                  </Text>
-                )}
-              </View>
-              <ICONS.ChevronDown />
-            </Pressable>
-            {openRemaining && (
-              <View className="p-4 rounded-[20px] shadow-md bg-white absolute top-[70px] w-full z-20">
-                {remainingKids?.map((r) => (
-                  <Pressable
-                    key={r?._id}
-                    onPress={() => {
-                      setKid(r?._id);
-                      setOpenRemaining(false);
-                    }}
-                    className="bg-white rounded-[12px] py-3 flex-row items-center justify-between relative"
-                  >
-                    <View key={r?._id} className="flex-row items-center gap-3">
-                      {r?.picture && (
-                        <Image
-                          style={{
-                            width: scaleWidth(36),
-                            height: scaleWidth(36),
-                          }}
-                          source={{ uri: r?.picture }}
-                          className={twMerge(
-                            'rounded-full border-[#D5B300]',
-                            data?.kid?.picture && 'border',
-                          )}
-                        />
-                      )}
-                      {!r?.picture && (
-                        <View className="bg-[#D3D2D366] w-12 h-12 rounded-full items-center justify-center">
-                          <Text className="text-[20px] font-sansSemiBold">
-                            {data?.kid?.name?.split(' ')?.[0]?.[0]}
-                            {data?.kid?.name?.split(' ')?.[1]?.[0]}
-                          </Text>
-                        </View>
-                      )}
-                      <Text className="text-[16px] font-sansMedium text-dark">
-                        {r?.name}
-                      </Text>
-                    </View>
-                  </Pressable>
-                ))}
-              </View>
-            )}
-          </View>
-          {getSubscriptionDaysRemaining(
-            data?.kid?.subscription?.currentPeriodEnd,
-          ) < 1 && (
+          <KidSwitcher
+            loading={isLoading}
+            kid={
+              learner
+                ? {
+                    _id: learner._id,
+                    name: learner.name,
+                    picture: learner.picture,
+                  }
+                : undefined
+            }
+            onSelect={(id) => {
+              setKid(id);
+              setView('read');
+            }}
+          />
+
+          {data && daysRemaining < 1 && (
             <View className="px-6 py-4 bg-[#FDEC8D]/80 border-[#FFD700] border rounded-[16px] mt-6 relative">
               <Text className="text-[16px] text-[#221D23] font-sans leading-[1.5]">
                 <Text className="font-sansSemiBold">Learning is paused —</Text>{' '}
@@ -340,25 +231,15 @@ const LearningProgress = () => {
                 <ICONS.ArrowRight />
               </Pressable>
               <ICONS.FlatCloud
-                style={{
-                  position: 'absolute',
-                  right: 130,
-                  top: 4,
-                }}
+                style={{ position: 'absolute', right: 130, top: 4 }}
               />
               <ICONS.FlatCloud
-                style={{
-                  position: 'absolute',
-                  left: 16,
-                  bottom: 0,
-                }}
+                style={{ position: 'absolute', left: 16, bottom: 0 }}
               />
             </View>
           )}
           {data?.kid?.subscription?.plan === 'free' &&
-            getSubscriptionDaysRemaining(
-              data?.kid?.subscription?.currentPeriodEnd,
-            ) > 1 &&
+            daysRemaining > 1 &&
             openBillingAlert && (
               <View className="px-6 py-4 bg-[#FDEC8D]/80 border-[#1671D9] border rounded-[16px] mt-6">
                 <LinearGradient
@@ -379,19 +260,11 @@ const LearningProgress = () => {
                 </Pressable>
                 <Text className="text-[16px] text-[#221D23] font-sans leading-[1.5]">
                   <Text className="font-sansSemiBold">
-                    Your child’s trial ends in{' '}
-                    {getSubscriptionDaysRemaining(
-                      data?.kid?.subscription?.currentPeriodEnd,
-                    )}{' '}
-                    days —
+                    Your child’s trial ends in {daysRemaining} days —
                   </Text>{' '}
-                  {getSubscriptionDaysRemaining(
-                    data?.kid?.subscription?.currentPeriodEnd,
-                  ) <= 2
+                  {daysRemaining <= 2
                     ? 'Keep your child learning without interruption.'
-                    : getSubscriptionDaysRemaining(
-                          data?.kid?.subscription?.currentPeriodEnd,
-                        ) <= 6
+                    : daysRemaining <= 6
                       ? 'Upgrade to keep their learning going.'
                       : 'Help your child explore books and build a reading habit.'}
                 </Text>
@@ -407,54 +280,42 @@ const LearningProgress = () => {
                   <ICONS.ArrowRight />
                 </Pressable>
                 <ICONS.FlatCloud
-                  style={{
-                    position: 'absolute',
-                    right: 130,
-                    top: 4,
-                  }}
+                  style={{ position: 'absolute', right: 130, top: 4 }}
                 />
                 <ICONS.FlatCloud
-                  style={{
-                    position: 'absolute',
-                    left: 16,
-                    bottom: 0,
-                  }}
+                  style={{ position: 'absolute', left: 16, bottom: 0 }}
                 />
               </View>
             )}
 
-          <View className="bg-white rounded-[20px] p-5 mt-5">
-            <View className="flex-row justify-between mb-5 items-center">
+          {/* Profile */}
+          <SectionCard className="z-20">
+            <View className="flex-row justify-between items-start mb-5">
               {isLoading ? (
                 <Skeleton
-                  style={{ width: scaleWidth(79), height: scaleWidth(79) }}
+                  style={{ width: scaleWidth(96), height: scaleWidth(96) }}
                   className="rounded-full"
                 />
               ) : (
-                <Image
-                  style={{ width: scaleWidth(79), height: scaleWidth(79) }}
-                  source={
-                    data?.kid?.picture
-                      ? { uri: data?.kid?.picture }
-                      : IMAGES.KidProfilePlaceholder
-                  }
-                  className={twMerge(
-                    'rounded-full border-[#D5B300]',
-                    data?.kid?.picture && 'border',
-                  )}
+                <KidAvatar
+                  picture={learner?.picture}
+                  size={scaleWidth(96)}
                 />
               )}
               <Pressable
-                onPress={() => setOpenMenu(prev => !prev)}
-                className="border border-[#D3D2D366]  p-3 rounded-[8px]"
+                onPress={() => setOpenMenu((prev) => !prev)}
+                className="border border-[#D3D2D366] p-3 rounded-[8px]"
               >
-                <Entypo name="dots-three-vertical" size={24} color="black" />
+                <Entypo name="dots-three-vertical" size={20} color="black" />
               </Pressable>
               {openMenu && (
-                <View className="p-4 rounded-[20px] shadow-md bg-white absolute top-[70px] w-full z-20 gap-6">
+                <View className="p-4 rounded-[20px] shadow-md bg-white absolute top-[60px] right-0 w-[70%] z-30 gap-6">
                   <Pressable
                     className="flex-row items-center gap-2"
-                    onPress={() => setOpenEdit(true)}
+                    onPress={() => {
+                      setOpenMenu(false);
+                      setOpenEdit(true);
+                    }}
                   >
                     <View className="bg-[#D3D2D366] w-7 h-7 rounded-full items-center justify-center">
                       <Feather name="user" size={16} color="#221D23" />
@@ -465,7 +326,7 @@ const LearningProgress = () => {
                   </Pressable>
                   <Pressable
                     className="flex-row items-center gap-2"
-                    onPress={handleExportReport}
+                    onPress={() => requireParentalGate(handleExportReport)}
                     disabled={exportLoading}
                   >
                     <View className="bg-[#D3D2D366] w-7 h-7 rounded-full items-center justify-center">
@@ -482,7 +343,7 @@ const LearningProgress = () => {
                   <Pressable
                     onPress={() =>
                       router.push(
-                        `/guardian/DeleteChildProfile?id=${data?.kid?.id}&name=${data?.kid?.name?.split(' ')?.[0]}`,
+                        `/guardian/DeleteChildProfile?id=${kid}&name=${name}`,
                       )
                     }
                     className="flex-row items-center gap-2"
@@ -498,297 +359,258 @@ const LearningProgress = () => {
               )}
             </View>
             {isLoading ? (
-              <Skeleton className="w-2/3 rounded-full mb-2" />
+              <>
+                <Skeleton className="w-2/3 rounded-full mb-3" />
+                <Skeleton className="w-1/3 rounded-full mb-3" />
+                <Skeleton className="w-2/5 rounded-full mb-3" />
+              </>
             ) : (
-              <Text className="font-sansSemiBold text-[18px] text-[#393939] mb-2">
-                {data?.kid?.name}
-              </Text>
-            )}
-            {isLoading ? (
-              <Skeleton className="w-2/3 rounded-full mb-2" />
-            ) : (
-              <Text className="text-[16px] text-[#474348] font-sans mb-2">
-                @{data?.kid?.username}
-              </Text>
-            )}
-            {isLoading ? (
-              <Skeleton className="w-2/5 rounded-full mb-2" />
-            ) : (
-              <View>
-                <View className="flex-row items-center gap-2">
-                  <Text className="text-[16px] text-[#474348] font-sans mt-2 ">
-                    {data?.kid?.age} Years
-                  </Text>
-                  {data?.kid?.gender && (
+              <>
+                <Text className="font-sansSemiBold text-[20px] text-[#393939]">
+                  {learner?.name}
+                </Text>
+                <Text className="text-[16px] text-[#474348] font-sans mt-3">
+                  @{learner?.username}
+                </Text>
+                <View className="flex-row items-center gap-2 mt-3">
+                  {learner?.age != null && (
+                    <Text className="text-[16px] text-[#474348] font-sans">
+                      {learner.age} Years
+                    </Text>
+                  )}
+                  {!!learner?.gender && (
                     <>
-                      <View className="w-2 h-2 rounded-full bg-[#FFD700] mt-2" />
-                      <Text className="text-[16px] text-[#474348] font-sans mt-2">
-                        {data?.kid?.gender}
+                      <View className="w-1.5 h-1.5 rounded-full bg-[#FFD700]" />
+                      <Text className="text-[16px] text-[#474348] font-sans capitalize">
+                        {learner.gender}
                       </Text>
                     </>
                   )}
-                  <>
-                    <View className="w-2 h-2 rounded-full bg-[#FFD700] mt-2" />
-                    <Text className="text-[16px]  mt-2 bg-[#3F69921A] capitalize px-2 py-0.5 rounded-[8px] font-sansMedium text-[#3F6992]">
-                      {data?.kid?.subscription?.plan}
+                </View>
+                <View className="flex-row items-center gap-2 mt-3">
+                  {!!overview?.subscription?.planName && (
+                    <Text className="text-[15px] bg-[#EBEFF4] px-3 py-1 rounded-[8px] font-sansMedium text-[#3F6992] overflow-hidden">
+                      {overview.subscription.planName}
                     </Text>
-                  </>
+                  )}
+                  <Text className="text-[15px] bg-[#F6F6F6] px-3 py-1 rounded-[8px] font-sansMedium text-dark overflow-hidden">
+                    Read Only
+                  </Text>
                 </View>
-              </View>
+              </>
             )}
-            <View className="bg-[#FFF7CCB2] p-3 flex-row item justify-between items-center mt-4">
-              <View className="flex-row items-center gap-2">
-                <Image
-                  style={{ width: scaleWidth(28), height: scaleWidth(28) }}
-                  source={IMAGES.BadgeTrophy}
-                  className="rounded-full"
-                />
-                <Text className="font-sansMedium text-dark">
-                  0 Badge Earned
-                </Text>
-              </View>
-            </View>
-            {isLoading ? (
-              <Skeleton className="h-[48px] rounded-full mt-5" />
-            ) : (
-              <Button
-                onPress={() => handleSwitchSession(kid as string)}
-                loading={loading}
-                className="mt-5"
-                text="LOG IN AS USER"
-              />
-            )}
-            {isLoading ? (
-              <Skeleton className="h-[48px] rounded-full mt-5" />
-            ) : (
-              <Button
-                onPress={() =>
-                  router.push(`/guardian/LearningOverview?id=${kid}`)
-                }
-                className="mt-5 border-2 border-[#D3D2D3] bg-white"
-                textClassname="text-dark"
-                text="VIEW BOOKS"
-              />
-            )}
-          </View>
-          <View className="bg-white rounded-[20px] p-5 mt-5 ">
-            <View className=" mb-5 border-[0.5px] p-5 rounded-[12px] border-[#C3E4C5]">
-              <Text className="text-[#474348] font-sans">
-                Chapter Completion Rate
-              </Text>
-              <View className="mt-3 flex-row items-center  gap-5 w-full">
-                <View className="w-[80%]">
-                  <ProgressBar
-                    percent={completionRateDetails?.completionRate || 0}
-                  />
-                </View>
-                <Text className="w-full text-[20px] font-sansSemiBold text-dark">
-                  {completionRateDetails?.completionRate || 0}%
-                </Text>
-              </View>
-            </View>
-            <View className=" mb-5 border-[0.5px] p-5 rounded-[12px] border-[#C3E4C5]">
-              <Text className="text-[#474348] font-sans">
-                Total Missions Completed
-              </Text>
-              <View className="mt-3 flex-row items-center justify-between gap-5">
-                <Text className="flex-shrink-0 text-[20px] font-sansSemiBold text-dark">
-                  0
-                </Text>
-                <View className="w-12 h-12 rounded-full bg-[#0991371A] items-center justify-center">
-                  <ICONS.Check />
-                </View>
-              </View>
-            </View>
-            <View className=" mb-5 border-[0.5px] p-5 rounded-[12px] border-[#C3E4C5]">
-              <Text className="text-[#474348] font-sans">Learning Streaks</Text>
-              <View className="mt-3 flex-row items-center justify-between gap-5">
-                <Text className="flex-shrink-0 text-[20px] font-sansSemiBold text-dark">
-                  0
-                </Text>
-                <View className="w-12 h-12 rounded-full bg-[#FFF7CC] items-center justify-center">
-                  <ICONS.Fire />
-                </View>
-              </View>
-            </View>
-          </View>
-
-          {/* performance data */}
-          <View className="bg-white rounded-[20px] p-5 mt-5 ">
-            <Text className="text-[18px] font-sansSemiBold text-dark mb-5">
-              Performance Data
-            </Text>
-
-            <View className=" mb-5 border-[0.5px] p-5 rounded-[12px] border-[#C3E4C5]">
-              <Text className="text-[#474348] font-sans">Avg. Quiz Score</Text>
-              <View className="mt-3 flex-row items-center justify-between gap-5">
-                <Text className="flex-shrink-0 text-[20px] font-sansSemiBold text-dark">
-                  0%
-                </Text>
-                <View className="w-12 h-12 rounded-full bg-[#0991371A] items-center justify-center">
-                  <ICONS.Check />
-                </View>
-              </View>
-            </View>
-
-            <View className=" mb-5 border-[0.5px] p-5 rounded-[12px] border-[#C3E4C5]">
-              <Text className="text-[#474348] font-sans">Journal Entry</Text>
-              <View className="mt-3 flex-row items-center justify-between gap-5">
-                <Text className="flex-shrink-0 text-[20px] font-sansSemiBold text-dark">
-                  -
-                </Text>
-                <View className="w-12 h-12 rounded-full bg-[#C821DE1A] items-center justify-center">
-                  <ICONS.Notebook />
-                </View>
-              </View>
-            </View>
-
-            <View className=" mb-5 border-[0.5px] p-5 rounded-[12px] border-[#C3E4C5]">
-              <Text className="text-[#474348] font-sans">
-                Mission Complexity
-              </Text>
-              <View className="mt-3 flex-row items-center justify-between gap-5">
-                <Text className="flex-shrink-0 text-[20px] font-sansSemiBold text-dark">
-                  -
-                </Text>
-                <View className="w-12 h-12 rounded-full bg-[#FFF7CC] items-center justify-center">
-                  <ICONS.Puzzle />
-                </View>
-              </View>
-            </View>
-            {/* audio vs text */}
-            <View
-              ref={pieChartContainerRef}
-              className="bg-white rounded-[20px] p-5 mt-5  border border-[#D3D2D366]"
+            <Pressable
+              onPress={handleSwitchSession}
+              disabled={loading || isLoading}
+              className="mt-6 border border-[#3F9243] bg-[#F1F9F1] rounded-full py-3.5 flex-row items-center justify-center gap-2"
             >
-              <Text className="text-dark font-sansMedium text-[18px]">
-                Audio vs. Text Usage {'\n'}(Read Aloud)
-              </Text>
-              <View className="mt-5 border border-[#D3D2D366] rounded-[24px] py-3 px-5 flex-row items-center gap-6">
-                <PieChart
-                  donut
-                  textColor="black"
-                  radius={60}
-                  textSize={20}
-                  data={pieData}
-                  innerRadius={50}
-                />
-                <View>
-                  <View className="flex-row gap-2.5 items-center mb-2">
-                    <View className="w-3 h-3 rounded-full bg-[#D5B300] " />
-                    <Text className="font-sansMedium text-[16px] text-[#265828]">
-                      Audio
-                    </Text>
-                  </View>
-                  <View className="flex-row gap-2.5 items-center">
-                    <View className="w-3 h-3 rounded-full bg-[#6ABC6D]" />
-                    <Text className="font-sansMedium text-[16px] text-[#265828]">
-                      Text
-                    </Text>
-                  </View>
-                </View>
-              </View>
-            </View>
+              {loading ? (
+                <ActivityIndicator color="#3F9243" />
+              ) : (
+                <>
+                  <Text className="text-[16px] font-sansMedium text-[#3F9243]">
+                    LOG IN AS LEARNER
+                  </Text>
+                  <Feather name="external-link" size={18} color="#3F9243" />
+                </>
+              )}
+            </Pressable>
+          </SectionCard>
 
-            {/* creative tools */}
-            <View className="bg-white rounded-[20px] p-5 mt-5  border border-[#D3D2D366]">
-              <Text className="font-sansMedium text-dark text-[18px] mb-5">
-                Creative Tools Used
-              </Text>
-              {/* <View className="flex-row items-center gap-2 px-1 mb-3">
-                <View className="w-1 h-1 rounded-full bg-[#474348] " />
-                <Text className="text-[#474348] font-sans text-[16px]">
-                  Drawing Tool
-                </Text>
-              </View>
-              <View className="flex-row items-center gap-2 px-1 mb-3">
-                <View className="w-1 h-1 rounded-full bg-[#474348] " />
-                <Text className="text-[#474348] font-sans text-[16px]">
-                  Story Builder
-                </Text>
-              </View>
-              <View className="flex-row items-center gap-2 px-1 ">
-                <View className="w-1 h-1 rounded-full bg-[#474348] " />
-                <Text className="text-[#474348] font-sans text-[16px]">
-                  Audio Recorder
-                </Text>
-              </View> */}
-              <Text className="text-[#474348] font-sans text-[16px]">-</Text>
-            </View>
-          </View>
+          {/* Summary stats */}
+          <SectionCard className="pb-1">
+            <StatCard
+              loading={isLoading}
+              iconBg="#E8F1FB"
+              icon={<Ionicons name="book" size={22} color="#1671D9" />}
+              label="Books Assigned"
+              value={stats?.booksAssigned ?? 0}
+            />
+            <StatCard
+              loading={isLoading}
+              iconBg="#FBF7E5"
+              icon={<Ionicons name="trophy" size={20} color="#D5B300" />}
+              label="Badges Earned"
+              value={stats?.badgesEarned ?? 0}
+            />
+            <StatCard
+              loading={isLoading}
+              iconBg="#FCE9E9"
+              icon={<Ionicons name="heart" size={22} color="#DE2121" />}
+              label="Learning Interest"
+              value={learner?.learningInterests?.join(', ') || '-'}
+            />
+            <StatCard
+              loading={isLoading}
+              iconBg="#FBF7E5"
+              icon={<ICONS.Fire />}
+              label="Learning Streak"
+              value={`${stats?.streakDays ?? 0} days`}
+            />
+          </SectionCard>
 
-          {/* engagement and outcome */}
-          <View className="bg-white rounded-[20px] p-5 mt-5 ">
-            <Text className="text-[18px] font-sansSemiBold text-dark mb-5">
-              Engagement and Outcome
-            </Text>
-            <View className=" mb-5 border-[0.5px] p-5 rounded-[12px] border-[#D3D2D366]">
-              <View className="items-center border-b border-b-[#D3D2D366] py-4">
-                <Text className="font-sansSemiBold text-[18px] text-[#265828]">
-                  -
-                </Text>
-                <Text className="font-sansMedium text-[16px] text-[#474348] mt-3">
-                  Creativity Score
-                </Text>
-              </View>
-              <View className="items-center border-b border-b-[#D3D2D366] py-4">
-                <Text className="font-sansSemiBold text-[18px] text-[#265828]">
-                  -
-                </Text>
-                <Text className="font-sansMedium text-[16px] text-[#474348] mt-3">
-                  Comprehension
-                </Text>
-              </View>
-              <View className="items-center py-4">
-                <Text className="font-sansSemiBold text-[18px] text-[#265828]">
-                  -
-                </Text>
-                <Text className="font-sansMedium text-[16px] text-[#474348] mt-3">
-                  Planning Ability
-                </Text>
-              </View>
-            </View>
-            <View ref={lineChartContainerRef} className="flex-1">
-              <Text className="font-sansMedium text-[18px] text-dark mb-6">
-                Time on Task (Last 7 Days)
-              </Text>
-
-              <LineChart
-                noOfSections={5}
-                spacing1={50}
-                hideDataPoints1
-                stepValue={50}
-                curved
-                data={[
-                  { value: 0, label: 'Mon' },
-                  { value: 0, label: 'Tue' },
-                  { value: 0, label: 'Wed' },
-                  { value: 0, label: 'Thu' },
-                  { value: 0, label: 'Fri' },
-                  { value: 0, label: 'Sat' },
-                  { value: 0, label: 'Sun' },
-                ]}
-                color1="#4CAF50"
-                yAxisTextStyle={{
-                  fontFamily: 'Sans-Regular',
-                  color: '#474348',
-                  fontSize: 12,
-                }}
-                xAxisLabelTextStyle={{
-                  fontFamily: 'Sans-Regular',
-                  color: '#474348',
-                  fontSize: 12,
-                }}
-                xAxisColor={'#D3D2D366'}
-                yAxisColor={'#D3D2D366'}
-              />
-            </View>
-          </View>
-          <EditChildProfile
-            open={openEdit}
-            onClose={() => setOpenEdit(false)}
-            kid={data?.kid!}
+          <SectionDropdown
+            options={VIEW_OPTIONS}
+            value={view}
+            onChange={setView}
+            showSelectedIcon={false}
           />
+
+          {view === 'read' && (
+            <>
+              <SectionCard className="pb-1">
+                <SectionHeader
+                  title="Reading Progress"
+                  subtitle={`A snapshot of ${name}’s reading journey`}
+                />
+                <StatCard
+                  loading={isLoading}
+                  iconBg="#FFF7CC"
+                  icon={
+                    <Ionicons name="flame-outline" size={22} color="#AA8F00" />
+                  }
+                  label="Reading Streak"
+                  value={`${stats?.streakDays ?? 0} days`}
+                />
+                <StatCard
+                  loading={isLoading}
+                  iconBg="#E8F1FB"
+                  icon={<Feather name="book-open" size={20} color="#004D99" />}
+                  label="Books Read"
+                  value={stats?.booksRead ?? 0}
+                />
+                <StatCard
+                  loading={isLoading}
+                  iconBg="#E6F4EB"
+                  icon={
+                    <Ionicons
+                      name="stats-chart-outline"
+                      size={19}
+                      color="#099137"
+                    />
+                  }
+                  label="Books In Progress"
+                  value={stats?.booksInProgress ?? 0}
+                />
+                <StatCard
+                  loading={isLoading}
+                  iconBg="#F9E9FB"
+                  icon={<Feather name="clock" size={20} color="#C821DE" />}
+                  label="Reading Time"
+                  value={formatHours(stats?.readingTimeSeconds)}
+                />
+              </SectionCard>
+
+              <SectionCard>
+                <SectionHeader
+                  title="Currently Reading"
+                  subtitle={`${name}’s current book and progress`}
+                />
+                {isLoading ? (
+                  <BookCardSkeleton />
+                ) : overview?.currentlyReading ? (
+                  <BookCard
+                    book={overview.currentlyReading}
+                    onPress={() => openBook(overview.currentlyReading!)}
+                  />
+                ) : (
+                  <EmptyState text={`${name} hasn’t started a book yet.`} />
+                )}
+              </SectionCard>
+
+              <SectionCard>
+                <SectionHeader
+                  title="Recommended Next Read"
+                  subtitle={`Based on ${name}’s reading progress and interests`}
+                />
+                {isLoading ? (
+                  <BookCardSkeleton />
+                ) : recommended ? (
+                  <BookCard
+                    book={recommended}
+                    onPress={() =>
+                      recommended.isAssigned
+                        ? openBook(recommended)
+                        : router.push(
+                            `/guardian/CurriculumSeriesOverview?title=${recommended.category?.title}&id=${recommended.category?.categoryId}`,
+                          )
+                    }
+                  />
+                ) : (
+                  <EmptyState text="No recommendations yet." />
+                )}
+              </SectionCard>
+
+              <SectionCard>
+                <SectionHeader
+                  title={`Books Assigned to ${name}`}
+                  subtitle={`View books assigned to ${name} and their current progress`}
+                />
+                {isLoading ? (
+                  <BookCardSkeleton />
+                ) : overview?.assignedBooks?.items?.length ? (
+                  <BookCarousel
+                    key={`assigned-${kid}`}
+                    items={overview.assignedBooks.items}
+                    renderItem={(book) => (
+                      <BookCard book={book} onPress={() => openBook(book)} />
+                    )}
+                  />
+                ) : (
+                  <EmptyState text="No books assigned yet." />
+                )}
+                <LinearButton
+                  className="mt-6"
+                  text="VIEW ALL"
+                  onPress={() =>
+                    router.push(`/guardian/AssignedBooks?kidId=${kid}`)
+                  }
+                />
+              </SectionCard>
+
+              <SectionCard>
+                <SectionHeader
+                  title={`Explore More Books for ${name}`}
+                  subtitle="Curated book recommendations based on interests and reading level"
+                />
+                {isLoading ? (
+                  <BookCardSkeleton />
+                ) : overview?.exploreMore?.length ? (
+                  <BookCarousel
+                    key={`explore-${kid}`}
+                    items={overview.exploreMore}
+                    renderItem={(book) => (
+                      <BookCard book={book} onAssign={() => assignBook(book)} />
+                    )}
+                  />
+                ) : (
+                  <EmptyState text="All available books are already assigned." />
+                )}
+                <LinearButton
+                  className="mt-6"
+                  text="VIEW ALL"
+                  onPress={() => router.push('/(tabs)/curriculum')}
+                />
+              </SectionCard>
+            </>
+          )}
+
+          {(view === 'read' || view === 'activity') && (
+            <ActivityFeed
+              title="Recent Learning Activity"
+              subtitle={`${name}’s latest learning activity`}
+              items={overview?.recentActivity ?? []}
+              loading={isLoading}
+            />
+          )}
+
+          {data?.kid && (
+            <EditChildProfile
+              open={openEdit}
+              onClose={() => setOpenEdit(false)}
+              kid={data.kid}
+            />
+          )}
         </View>
       </TouchableWithoutFeedback>
     </Container>

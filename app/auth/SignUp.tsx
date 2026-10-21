@@ -12,9 +12,10 @@ import { showToast } from '@/utils/toast';
 import Octicons from '@expo/vector-icons/Octicons';
 import { router } from 'expo-router';
 import React, { useEffect, useMemo, useState } from 'react';
-import { Image, Linking, Pressable, Text, View } from 'react-native';
+import { Image, Pressable, Text, View } from 'react-native';
 import { twMerge } from 'tailwind-merge';
 import { z } from 'zod';
+import { useParentalGate } from '@/context/ParentalGateContext';
 
 const RegisterSchema = z.object({
   email: z.email().min(1, 'Enter a valid email'),
@@ -31,6 +32,7 @@ const RegisterSchema = z.object({
 });
 
 const SignUp = () => {
+  const { openExternalLink } = useParentalGate();
   const [step, setStep] = useState(1);
   const [mode, setMode] = useState('email');
   const [email, setEmail] = useState('');
@@ -220,7 +222,7 @@ const SignUp = () => {
               By signing up, you agree to our{' '}
               <Text
                 onPress={() =>
-                  Linking.openURL(
+                  openExternalLink(
                     'https://www.recycledlearningkids.com/terms-and-conditions',
                   )
                 }
@@ -231,7 +233,7 @@ const SignUp = () => {
               and{' '}
               <Text
                 onPress={() =>
-                  Linking.openURL(
+                  openExternalLink(
                     'https://www.recycledlearningkids.com/privacy-policy',
                   )
                 }

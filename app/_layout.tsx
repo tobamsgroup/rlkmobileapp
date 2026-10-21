@@ -1,6 +1,7 @@
 import "react-native-gesture-handler";
 import { savePushToken } from '@/actions';
 import ToastAlert from '@/components/ToastAlert';
+import { ParentalGateProvider } from '@/context/ParentalGateContext';
 import { ReadSettingsProvider } from '@/context/ReadContext';
 import { SoundProvider } from '@/context/SoundContext';
 import { useAppDispatch, useAppSelector } from '@/hooks/redux';
@@ -168,7 +169,9 @@ export default function RootLayout() {
         <ReadSettingsProvider>
           <Provider store={store}>
             <GestureHandlerRootView>
-            <AppContent />
+              <ParentalGateProvider>
+                <AppContent />
+              </ParentalGateProvider>
             </GestureHandlerRootView>
           </Provider>
         </ReadSettingsProvider>

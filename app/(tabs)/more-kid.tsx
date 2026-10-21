@@ -10,14 +10,15 @@ import { router } from 'expo-router';
 import React from 'react';
 import {
   Image,
-  Linking,
   Pressable,
   ScrollView,
   Text,
   View,
 } from 'react-native';
+import { useParentalGate } from '@/context/ParentalGateContext';
 
 const MoreKid = () => {
+  const { openExternalLink } = useParentalGate();
   const dispatch = useAppDispatch();
   const { data, isLoading } = useKidProfile();
   return (
@@ -139,7 +140,7 @@ const MoreKid = () => {
             <View className="flex-row items-center justify-around mt-12">
               <Text
                 onPress={() =>
-                  Linking.openURL('https://rlkids.ai/privacy-policy')
+                  openExternalLink('https://rlkids.ai/privacy-policy')
                 }
                 className="text-[#474348] font-sansMedium "
               >
@@ -148,7 +149,7 @@ const MoreKid = () => {
               <View className="w-1 h-1 rounded-full bg-[#474348]" />
               <Text
                 onPress={() =>
-                  Linking.openURL('https://rlkids.ai/terms-and-conditions')
+                  openExternalLink('https://rlkids.ai/terms-and-conditions')
                 }
                 className="text-[#474348] font-sansMedium "
               >

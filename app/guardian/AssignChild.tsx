@@ -206,6 +206,8 @@ const AssignChild = () => {
       invalidateQueries(`series-volume`);
       invalidateQueries('kids-volume');
       invalidateQueries('activities');
+      invalidateQueries('reading-overview');
+      invalidateQueries('assigned-books');
     } catch (error: any) {
       showToast(
         'error',

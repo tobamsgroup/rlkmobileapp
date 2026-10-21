@@ -80,6 +80,7 @@ const EditChildProfile = ({
       invalidateQueries('guardian-kids');
       invalidateQueries('kids');
       invalidateQueries('learning-overview');
+      invalidateQueries('reading-overview');
       HAPTIC.success();
       onClose();
       showToast('success', 'Child Profile Updated Successfully');

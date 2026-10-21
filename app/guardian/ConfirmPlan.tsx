@@ -10,6 +10,11 @@ import Button from '@/components/Button';
 import Container from '@/components/Container';
 import TopBackButton from '@/components/TopBackButton';
 import { PLAN_DETAILS, formatDateShort } from '@/constants/subscription';
+import {
+  IS_APPLE_IAP,
+  isPurchaseCancelled,
+  useAppleSubscription,
+} from '@/hooks/useAppleSubscription';
 import { showToast } from '@/utils/toast';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import Constants from 'expo-constants';
@@ -26,6 +31,7 @@ import {
 import Modal from 'react-native-modal';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { WebView } from 'react-native-webview';
+import { useParentalGate } from '@/context/ParentalGateContext';
 import { twMerge } from 'tailwind-merge';
 
 const SUCCESS_URL =
@@ -41,6 +47,8 @@ const ConfirmPlan = () => {
   const queryClient = useQueryClient();
   const successHandledRef = useRef(false);
   const [addedKidIds, setAddedKidIds] = useState<string[]>([]);
+  const apple = useAppleSubscription();
+  const { openExternalLink, requireParentalGate } = useParentalGate();
 
   const params = useLocalSearchParams();
   const selectedKidId = params.kid as string;
@@ -67,6 +75,18 @@ const ConfirmPlan = () => {
   const totalKids = 1 + addedKidIds.length;
   const totalPrice = (plan?.price ?? 0) * totalKids;
 
+  // On iOS, Apple requires showing the App Store's localized price
+  const applePrice =
+    IS_APPLE_IAP && planId ? apple.getPlanDisplayPrice(planId) : undefined;
+  const planPriceLabel = applePrice ?? `£${(plan?.price ?? 0).toFixed(2)}`;
+  const totalPriceLabel = applePrice ?? `£${totalPrice.toFixed(2)}`;
+
+  const refreshSubscriptionQueries = () => {
+    queryClient.invalidateQueries({ queryKey: ['subscription'] });
+    queryClient.invalidateQueries({ queryKey: ['guardian-kids'] });
+    queryClient.invalidateQueries({ queryKey: ['billing-history'] });
+  };
+
   const toggleKid = (kidId: string) => {
     setAddedKidIds((prev) =>
       prev.includes(kidId)
@@ -78,6 +98,30 @@ const ConfirmPlan = () => {
   const handleCompletePayment = async () => {
     if (!planId || !selectedKidId) return;
     setLoading(true);
+
+    if (IS_APPLE_IAP) {
+      try {
+        await apple.purchase(selectedKidId, planId);
+        refreshSubscriptionQueries();
+        router.replace('/guardian/Subscription');
+        showToast('success', 'Payment Successful.');
+      } catch (error: any) {
+        if (isPurchaseCancelled(error)) {
+          showToast('info', 'Purchase cancelled. No charges were made.');
+        } else {
+          Alert.alert(
+            'Payment Error',
+            error?.response?.data?.message ??
+              error?.message ??
+              'Something went wrong. Please try again.',
+          );
+        }
+      } finally {
+        setLoading(false);
+      }
+      return;
+    }
+
     try {
       const result = await createCheckoutSession(selectedKidId, planId);
 
@@ -161,7 +205,7 @@ const ConfirmPlan = () => {
               {plan.name}
             </Text>
             <Text className="text-[20px] font-sansSemiBold text-[#221D23] leading-[1.3] mt-4">
-              £{plan.price.toFixed(2)}
+              {planPriceLabel}
               <Text className="text-[16px] text-[#474348] font-sans">
                 /month
               </Text>
@@ -250,7 +294,7 @@ const ConfirmPlan = () => {
                 Amount to pay today
               </Text>
               <Text className="text-[18px] font-sansMedium text-[#221D23]">
-                £{totalPrice.toFixed(2)}
+                {totalPriceLabel}
               </Text>
             </View>
           </View>
@@ -266,7 +310,7 @@ const ConfirmPlan = () => {
                   Amount to pay today
                 </Text>
                 <Text className="text-[16px] font-sans text-[#474348]">
-                  £{totalPrice.toFixed(2)}
+                  {totalPriceLabel}
                 </Text>
               </View>
               {totalKids > 1 && (
@@ -275,7 +319,7 @@ const ConfirmPlan = () => {
                     Learners
                   </Text>
                   <Text className="text-[16px] font-sans text-[#474348]">
-                    £{plan.price.toFixed(2)} × {totalKids} Learners
+                    {planPriceLabel} × {totalKids} Learners
                   </Text>
                 </View>
               )}
@@ -312,20 +356,41 @@ const ConfirmPlan = () => {
                 <View className="w-3 h-3 bg-[#3F9243] rounded-full" />
               </View>
               <Text className="text-[#221D23] text-[16px] font-sans">
-                PAY VIA STRIPE
+                {IS_APPLE_IAP ? 'PAY WITH APPLE' : 'PAY VIA STRIPE'}
               </Text>
             </Pressable>
             <View className="border-b border-b-[#D3D2D366] my-6 w-full" />
             <Button
               text={loading ? 'PROCESSING...' : 'COMPLETE PAYMENT'}
               className="w-full"
-              onPress={handleCompletePayment}
+              onPress={() => requireParentalGate(handleCompletePayment)}
               disabled={loading}
             />
             <Text className="mt-4 font-sansItalic text-[#474348] text-[12px]">
-              Secure payment powered by Stripe. Complete your payment without
-              leaving the app.
+              {IS_APPLE_IAP
+                ? `Payment will be charged to your Apple ID account at confirmation of purchase. The ${plan.name} plan is a monthly auto-renewing subscription that renews automatically unless cancelled at least 24 hours before the end of the current period. You can manage or cancel it in your App Store account settings.`
+                : 'Secure payment powered by Stripe. Complete your payment without leaving the app.'}
             </Text>
+            {IS_APPLE_IAP && (
+              <View className="flex-row gap-4 mt-3">
+                <Text
+                  onPress={() =>
+                    openExternalLink('https://rlkids.ai/terms-and-conditions')
+                  }
+                  className="font-sansMedium text-[#3F9243] text-[12px] underline"
+                >
+                  Terms of Use
+                </Text>
+                <Text
+                  onPress={() =>
+                    openExternalLink('https://rlkids.ai/privacy-policy')
+                  }
+                  className="font-sansMedium text-[#3F9243] text-[12px] underline"
+                >
+                  Privacy Policy
+                </Text>
+              </View>
+            )}
           </View>
         </View>
       </Container>

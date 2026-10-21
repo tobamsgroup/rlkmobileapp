@@ -14,9 +14,14 @@ export type SubscriptionStatus =
   | 'past_due'
   | 'incomplete';
 
+export type SubscriptionProvider = 'stripe' | 'apple';
+
 export type SubscriptionData = {
   plan: SubscriptionPlan;
   status: SubscriptionStatus;
+  provider?: SubscriptionProvider | null;
+  appleProductId?: string | null;
+  appleSlot?: number | null;
   stripeSubscriptionId?: string | null;
   stripePriceId?: string | null;
   currentPeriodEnd?: string | null;
@@ -120,6 +125,51 @@ export const confirmCheckoutSession = async (
 // view invoices, etc.
 export const createPortalSession = async (): Promise<{ url: string }> => {
   const res = await axios.get('/subscription/portal');
+  return res.data?.data;
+};
+
+// ─── Apple In-App Purchase (iOS) ────────────────────────────────────────────
+
+export type AppleSubscriptionIntent = {
+  productId: string;
+  appAccountToken: string;
+  slot: number;
+};
+
+// Step 1: ask the backend which App Store product (learner slot + plan) and
+// appAccountToken to use for this kid.
+export const prepareAppleSubscription = async (
+  kidId: string,
+  planId: SubscriptionPlan,
+): Promise<AppleSubscriptionIntent> => {
+  const res = await axios.post('/subscription/apple/prepare', {
+    kidId,
+    planId,
+  });
+  return res.data?.data;
+};
+
+// Step 2: send the StoreKit signed transaction (JWS) for server-side
+// verification. The kid's plan is activated only after this succeeds.
+export const verifyAppleSubscription = async (
+  kidId: string,
+  signedTransaction: string,
+): Promise<SubscriptionData> => {
+  const res = await axios.post('/subscription/apple/verify', {
+    kidId,
+    signedTransaction,
+  });
+  return res.data?.data;
+};
+
+// Re-links existing App Store subscriptions on this Apple ID to the
+// guardian's kids (e.g. after reinstalling the app).
+export const restoreAppleSubscriptions = async (
+  signedTransactions: string[],
+): Promise<{ restored: number }> => {
+  const res = await axios.post('/subscription/apple/restore', {
+    signedTransactions,
+  });
   return res.data?.data;
 };
 

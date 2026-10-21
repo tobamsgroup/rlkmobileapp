@@ -11,6 +11,7 @@ import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-nati
 import Modal from 'react-native-modal';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { WebView } from 'react-native-webview';
+import { useParentalGate } from '@/context/ParentalGateContext';
 import { twMerge } from 'tailwind-merge';
 
 const DATE_RANGES: Record<string, number | null> = {
@@ -23,6 +24,7 @@ const DATE_RANGES: Record<string, number | null> = {
 const STATUS_TABS: (BillingStatus | 'All')[] = ['All', 'Paid', 'Pending', 'Failed'];
 
 const BillingHistory = () => {
+  const { requireParentalGate } = useParentalGate();
   const [statusFilter, setStatusFilter] = useState<BillingStatus | 'All'>('All');
   const [dateRange, setDateRange] = useState<string>('All time');
   const [receiptUrl, setReceiptUrl] = useState<string | null>(null);
@@ -108,10 +110,12 @@ const BillingHistory = () => {
                   date={invoice.date}
                   receiptUrl={invoice.receiptUrl}
                   kid={invoice.kid}
-                  onDownload={(url) => {
-                    setWebViewLoading(true);
-                    setReceiptUrl(url);
-                  }}
+                  onDownload={(url) =>
+                    requireParentalGate(() => {
+                      setWebViewLoading(true);
+                      setReceiptUrl(url);
+                    })
+                  }
                 />
               ))}
             </View>
