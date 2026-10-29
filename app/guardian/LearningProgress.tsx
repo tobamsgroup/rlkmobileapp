@@ -15,6 +15,7 @@ import {
   BookCarousel,
   EmptyState,
   firstName,
+  formatDays,
   formatHours,
   KidAvatar,
   KidSwitcher,
@@ -341,6 +342,24 @@ const LearningProgress = () => {
                     </Text>
                   </Pressable>
                   <Pressable
+                    className="flex-row items-center gap-2"
+                    onPress={() => {
+                      setOpenMenu(false);
+                      router.push(`/guardian/LearningTimeControls?kidId=${kid}`);
+                    }}
+                  >
+                    <View className="bg-[#D3D2D366] w-7 h-7 rounded-full items-center justify-center">
+                      <Ionicons
+                        name="hourglass-outline"
+                        size={16}
+                        color="#221D23"
+                      />
+                    </View>
+                    <Text className="text-[#221D23] font-sans text-[16px]">
+                      Learning Time Controls
+                    </Text>
+                  </Pressable>
+                  <Pressable
                     onPress={() =>
                       router.push(
                         `/guardian/DeleteChildProfile?id=${kid}&name=${name}`,
@@ -445,7 +464,7 @@ const LearningProgress = () => {
               iconBg="#FBF7E5"
               icon={<ICONS.Fire />}
               label="Learning Streak"
-              value={`${stats?.streakDays ?? 0} days`}
+              value={formatDays(stats?.learningStreakDays ?? stats?.streakDays)}
             />
           </SectionCard>
 
@@ -470,7 +489,7 @@ const LearningProgress = () => {
                     <Ionicons name="flame-outline" size={22} color="#AA8F00" />
                   }
                   label="Reading Streak"
-                  value={`${stats?.streakDays ?? 0} days`}
+                  value={formatDays(stats?.streakDays)}
                 />
                 <StatCard
                   loading={isLoading}

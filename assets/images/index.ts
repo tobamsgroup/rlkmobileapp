@@ -72,6 +72,16 @@ const BadgeOverlay3 = require('./BadgeOverlay3.png')
 const DollarCoin = require('./dollar-coin.png')
 const ConstructionRobot = require('./constructionRobot.png')
 const SweatFaceEmoji = require('./sweat-face-emoji.png')
+const KidRelaxing = require('./learning-time/KidRelaxing.png');
+const KidCelebrating = require('./learning-time/KidCelebrating.png');
+const KidReading = require('./learning-time/KidReading.png');
+const KidThinking = require('./learning-time/KidThinking.png');
+const KidMeditating = require('./learning-time/KidMeditating.png');
+const BreakIdeaStretch = require('./learning-time/BreakIdeaStretch.png');
+const TakeADeepBreath = require('./learning-time/TakeADeepBreath.png');
+const BreakIdeaWater = require('./learning-time/BreakIdeaWater.png');
+const BreakIdeaEyes = require('./learning-time/BreakIdeaEyes.png');
+const WelcomeBookMascot = require('./WelcomeBookMascot.png');
 const PlayComing = require('./playcoming.png')
 
 export const IMAGES = {
@@ -150,5 +160,15 @@ export const IMAGES = {
   BookClosed,
   ChatboxLeft,
   MoreOverlay,
-  SweatFaceEmoji
+  SweatFaceEmoji,
+  KidRelaxing,
+  KidCelebrating,
+  KidReading,
+  KidThinking,
+  KidMeditating,
+  BreakIdeaStretch,
+  BreakIdeaWater,
+  BreakIdeaEyes,
+  WelcomeBookMascot,
+  TakeADeepBreath,
 };

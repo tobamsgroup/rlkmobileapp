@@ -2,7 +2,11 @@ import { verifyParentPassword } from '@/actions';
 import { IMAGES } from '@/assets/images';
 import { LinearButton, SecondaryButton } from '@/components/Button';
 import { SimpleInput } from '@/components/Input';
-import { useAppSelector } from '@/hooks/redux';
+import { loginGuardianAsKid } from '@/actions/kid';
+import { useAppDispatch, useAppSelector } from '@/hooks/redux';
+import axios from '@/lib/axios';
+import { storeData } from '@/lib/storage';
+import { login } from '@/redux/authSlice';
 import { HAPTIC } from '@/utils/haptic';
 import { scaleWidth } from '@/utils/scale';
 import React, { FC, useEffect, useMemo, useState } from 'react';
@@ -27,6 +31,7 @@ const makeChallenge = () => {
 // adult-level arithmetic challenge since there is no password to verify.
 const ParentalGateModal: FC<Props> = ({ open, onSuccess, onClose }) => {
   const user = useAppSelector((state) => state.auth.user) as any;
+  const dispatch = useAppDispatch();
   const [value, setValue] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -40,6 +45,36 @@ const ParentalGateModal: FC<Props> = ({ open, onSuccess, onClose }) => {
       setLoading(false);
     }
   }, [open]);
+
+  const verifyPassword = async () => {
+    try {
+      await verifyParentPassword(value);
+    } catch (err: any) {
+      // Fallback for backends without /auth/verify-parent-password yet
+      if (err?.response?.status !== 404) throw err;
+      if (user?.role === 'kid') {
+        await loginGuardianAsKid(user._id, value);
+        return;
+      }
+      const res = await axios.post('/auth/login/guardian', {
+        email: user?.email,
+        password: value,
+        rememberMe: true,
+      });
+      // Login replaces the server-side refresh token, so keep the new tokens
+      const fresh = res?.data?.data;
+      if (fresh?.accessToken) {
+        const session = {
+          ...user,
+          accessToken: fresh.accessToken,
+          refreshToken: fresh.refreshToken,
+          expiresIn: fresh.expiresIn,
+        };
+        await storeData('user', session);
+        dispatch(login(session));
+      }
+    }
+  };
 
   const handleContinue = async () => {
     if (loading) return;
@@ -63,7 +98,7 @@ const ParentalGateModal: FC<Props> = ({ open, onSuccess, onClose }) => {
 
     setLoading(true);
     try {
-      await verifyParentPassword(value);
+      await verifyPassword();
       HAPTIC.success();
       onSuccess();
     } catch (err: any) {

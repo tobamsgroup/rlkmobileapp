@@ -1,5 +1,9 @@
 import "react-native-gesture-handler";
 import { savePushToken } from '@/actions';
+import LearningTimeLeftToast, {
+  LEARNING_TIME_LEFT_TOAST,
+} from '@/components/kid/LearningTimeLeftToast';
+import LearningTimeOverlay from '@/components/kid/LearningTimeOverlay';
 import ToastAlert from '@/components/ToastAlert';
 import { ParentalGateProvider } from '@/context/ParentalGateContext';
 import { ReadSettingsProvider } from '@/context/ReadContext';
@@ -32,6 +36,9 @@ const toastConfig: ToastConfig = {
   success: (props) => <ToastAlert type="success" text={props?.text1} />,
   error: (props) => <ToastAlert type="error" text={props?.text1} />,
   info: (props) => <ToastAlert type="info" text={props?.text1} />,
+  [LEARNING_TIME_LEFT_TOAST]: (props) => (
+    <LearningTimeLeftToast title={props?.text1} message={props?.text2} />
+  ),
 };
 
 Notifications.setNotificationHandler({
@@ -57,6 +64,7 @@ function AppContent() {
 
   const isLoggedIn = useAppSelector((state) => state.auth.isLoggedIn);
   const user = useAppSelector((state) => state.auth.user) as any;
+  const isKid = user?.role?.toLowerCase() === 'kid';
   const dispatch = useAppDispatch();
   const wasLoggedIn = useRef(false);
 
@@ -103,8 +111,15 @@ function AppContent() {
         </Stack.Protected>
         <Stack.Protected guard={isLoggedIn}>
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-          <Stack.Screen name="kid" options={{ headerShown: false }} />
-          <Stack.Screen options={{ headerShown: false }} />
+          <Stack.Screen name="notifications" options={{ headerShown: false }} />
+          {/* Each role only keeps its own screens, so nothing from the last
+              session is left on the stack after logging out or switching */}
+          <Stack.Protected guard={isKid}>
+            <Stack.Screen name="kid" options={{ headerShown: false }} />
+          </Stack.Protected>
+          <Stack.Protected guard={!isKid}>
+            <Stack.Screen name="guardian" options={{ headerShown: false }} />
+          </Stack.Protected>
         </Stack.Protected>
         <Stack.Screen
           name="modal"
@@ -112,6 +127,7 @@ function AppContent() {
         />
       </Stack>
       <StatusBar style="dark" />
+      <LearningTimeOverlay />
       <Toast
         position="top"
         bottomOffset={50}

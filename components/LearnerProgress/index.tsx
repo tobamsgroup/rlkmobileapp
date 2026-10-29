@@ -9,6 +9,7 @@ import {
   SuggestedBook,
 } from '@/types/learnerProgress';
 import { ensureHttps, timeAgo } from '@/utils';
+import { format } from 'date-fns';
 import { scaleHeight, scaleWidth } from '@/utils/scale';
 import Feather from '@expo/vector-icons/Feather';
 import Ionicons from '@expo/vector-icons/Ionicons';
@@ -33,7 +34,17 @@ export const formatDuration = (seconds = 0) => {
   return `${m}m`;
 };
 
+export const formatDays = (days = 0) =>
+  `${days} ${days === 1 ? 'day' : 'days'}`;
+
 export const firstName = (name?: string) => name?.split(' ')?.[0] ?? '';
+
+// "Book 1: Our Amazing Planet" — series titles are stored without the number
+export const bookTitle = (book?: { title?: string; seriesIndex?: number }) => {
+  const title = book?.title?.trim() ?? '';
+  if (!book?.seriesIndex || /^book\s*\d+/i.test(title)) return title;
+  return `Book ${book.seriesIndex}: ${title}`;
+};
 
 // ─── Avatar & kid switcher ──────────────────────────────────────────────────
 
@@ -211,15 +222,21 @@ export const StatCard = ({
   value,
   suffix,
   loading,
+  comingSoon,
 }: {
   icon: ReactNode;
   iconBg: string;
   label: string;
-  value: ReactNode;
+  value?: ReactNode;
   suffix?: string;
   loading?: boolean;
+  // Greyed-out card for a stat that isn't available yet
+  comingSoon?: boolean;
 }) => (
-  <View className="border border-[#EDEDED] rounded-[16px] p-5 mb-4 flex-row items-center gap-5 bg-white">
+  <View
+    style={comingSoon ? { opacity: 0.6 } : undefined}
+    className="border border-[#EDEDED] rounded-[16px] p-5 mb-4 flex-row items-center gap-5 bg-white"
+  >
     <View
       style={{ backgroundColor: iconBg }}
       className="w-14 h-14 rounded-full items-center justify-center"
@@ -227,10 +244,15 @@ export const StatCard = ({
       {icon}
     </View>
     <View className="flex-1">
-      <Text className="text-[14px] font-sans text-[#474348] mb-3">
-        {label}
-      </Text>
-      {loading ? (
+      <Text className="text-[14px] font-sans text-[#474348] mb-3">{label}</Text>
+      {comingSoon ? (
+        <View className="flex-row items-center gap-2 bg-[#F2F2F2] border border-[#E5E5E5] rounded-full px-4 py-2">
+          <Feather name="lock" size={16} color="#918E91" />
+          <Text className="text-[15px] font-sans text-[#918E91]">
+            Coming Soon
+          </Text>
+        </View>
+      ) : loading ? (
         <Skeleton className="w-1/3 rounded-full" />
       ) : (
         <Text className="text-[22px] font-sansSemiBold text-dark">
@@ -319,7 +341,7 @@ export const BookCard = ({
         {book.category?.title}
       </Text>
       <Text className="text-[16px] font-sans text-[#474348] mt-2 mb-4">
-        {book.title}
+        {bookTitle(book)}
       </Text>
       {onAssign ? (
         <Pressable
@@ -379,9 +401,7 @@ export function BookCarousel<T>({
   }) => (
     <Pressable
       disabled={disabled}
-      onPress={() =>
-        setIndex((i) => (direction === 'left' ? i - 1 : i + 1))
-      }
+      onPress={() => setIndex((i) => (direction === 'left' ? i - 1 : i + 1))}
       style={{ opacity: disabled ? 0.4 : 1 }}
       className="w-11 h-11 rounded-full bg-[#F6F6F6] items-center justify-center"
     >
@@ -419,9 +439,7 @@ export type ProgressView = 'read' | 'play' | 'exercises' | 'activity';
 
 const VIEW_ICONS: Record<ProgressView, (color: string) => ReactNode> = {
   read: (c) => <Feather name="book-open" size={20} color={c} />,
-  play: (c) => (
-    <Ionicons name="game-controller-outline" size={21} color={c} />
-  ),
+  play: (c) => <Ionicons name="game-controller-outline" size={21} color={c} />,
   exercises: (c) => <Feather name="file-text" size={20} color={c} />,
   activity: (c) => <Ionicons name="stats-chart-outline" size={19} color={c} />,
 };
@@ -553,6 +571,91 @@ const ACTIVITY_STYLE: Record<
     color: '#3F9243',
     icon: (c) => <Feather name="activity" size={17} color={c} />,
   },
+  reading: {
+    bg: '#F9E9FB',
+    color: '#C821DE',
+    icon: (c) => <Feather name="book" size={17} color={c} />,
+  },
+  login: {
+    bg: '#FFF7CC',
+    color: '#AA8F00',
+    icon: (c) => <Feather name="log-in" size={17} color={c} />,
+  },
+  session_started: {
+    bg: '#E6F4EB',
+    color: '#3F9243',
+    icon: (c) => <Feather name="book-open" size={17} color={c} />,
+  },
+  daily_limit_reached: {
+    bg: '#FBF1EA',
+    color: '#C8702A',
+    icon: (c) => <Feather name="clock" size={17} color={c} />,
+  },
+  break_reminder: {
+    bg: '#E8F1FB',
+    color: '#1671D9',
+    icon: (c) => <Feather name="coffee" size={17} color={c} />,
+  },
+};
+
+const TIME_CONTROL_EVENTS: ActivityEventType[] = [
+  'session_started',
+  'daily_limit_reached',
+  'break_reminder',
+];
+
+const formatClock = (date?: unknown) =>
+  date ? format(new Date(date as string), 'h:mm a') : '';
+
+const DetailRow = ({ label, value }: { label: string; value: string }) => (
+  <View className="flex-row items-center gap-3">
+    <View className="w-2 h-2 rounded-full bg-[#3F9243]" />
+    <Text className="flex-1 text-[14px] font-sans text-dark">{label}</Text>
+    <Text className="text-[14px] font-sans text-dark">{value}</Text>
+  </View>
+);
+
+// Expanded body of a learning-time-control event
+const TimeControlDetails = ({ item }: { item: ActivityEvent }) => {
+  const meta = item.meta ?? {};
+  const startedAt = formatClock(meta.sessionStartedAt);
+
+  let body: ReactNode;
+  if (item.type === 'session_started') {
+    body = (
+      <Text className="text-[14px] font-sans text-dark">
+        Session started at {startedAt}.
+      </Text>
+    );
+  } else if (item.type === 'daily_limit_reached') {
+    body = (
+      <View className="gap-3">
+        {!!startedAt && (
+          <Text className="text-[14px] font-sansItalic text-dark">
+            Session started at {startedAt}.
+          </Text>
+        )}
+        <DetailRow
+          label="Daily learning limit"
+          value={`${meta.limitMinutes} mins`}
+        />
+        <DetailRow label="Limit reached" value={formatClock(item.occurredAt)} />
+        <DetailRow
+          label="Learning status"
+          value={meta.action === 'reminder' ? 'Can Continue' : 'Paused'}
+        />
+      </View>
+    );
+  } else {
+    body = (
+      <Text className="text-[14px] font-sans text-dark leading-[1.5]">
+        A break reminder appeared after {String(meta.intervalMinutes)} minutes
+        of continuous learning. Breaks are optional.
+      </Text>
+    );
+  }
+
+  return <View className="bg-[#F4F9F4] rounded-xl p-3 mt-3">{body}</View>;
 };
 
 export const ActivityFeed = ({
@@ -567,52 +670,114 @@ export const ActivityFeed = ({
   items: ActivityEvent[];
   loading?: boolean;
   className?: string;
-}) => (
-  <SectionCard className={className}>
-    <SectionHeader title={title} subtitle={subtitle} />
-    {loading ? (
-      [1, 2, 3].map((i) => (
-        <View key={i} className="flex-row gap-3 mb-6">
-          <Skeleton className="w-10 h-10 rounded-full" />
-          <View className="flex-1 gap-2">
-            <Skeleton className="w-1/2 rounded-full" />
-            <Skeleton className="w-1/3 rounded-full" />
+}) => {
+  const [expanded, setExpanded] = useState<Set<string>>(new Set());
+  const toggle = (key: string) =>
+    setExpanded((prev) => {
+      const next = new Set(prev);
+      if (next.has(key)) next.delete(key);
+      else next.add(key);
+      return next;
+    });
+
+  return (
+    <SectionCard className={className}>
+      <SectionHeader title={title} subtitle={subtitle} />
+      {loading ? (
+        [1, 2, 3].map((i) => (
+          <View key={i} className="flex-row gap-3 mb-6">
+            <Skeleton className="w-10 h-10 rounded-full" />
+            <View className="flex-1 gap-2">
+              <Skeleton className="w-1/2 rounded-full" />
+              <Skeleton className="w-1/3 rounded-full" />
+            </View>
           </View>
-        </View>
-      ))
-    ) : items.length ? (
-      items.map((item, i) => {
-        const style = ACTIVITY_STYLE[item.type] ?? ACTIVITY_STYLE.lesson_activity;
-        return (
-          <View
-            key={`${item.type}-${item.occurredAt}-${i}`}
-            className={twMerge('flex-row gap-3', i < items.length - 1 && 'mb-6')}
-          >
+        ))
+      ) : items.length ? (
+        items.map((item, i) => {
+          const style =
+            ACTIVITY_STYLE[item.type] ?? ACTIVITY_STYLE.lesson_activity;
+          const key = `${item.type}-${item.occurredAt}-${i}`;
+          const isLast = i === items.length - 1;
+
+          if (TIME_CONTROL_EVENTS.includes(item.type)) {
+            const open = expanded.has(key);
+            return (
+              <Pressable
+                key={key}
+                onPress={() => toggle(key)}
+                accessibilityRole="button"
+                accessibilityState={{ expanded: open }}
+                className={twMerge(
+                  !isLast && 'mb-6 pb-6 border-b border-b-[#F2F2F2]',
+                )}
+              >
+                <View className="flex-row gap-3">
+                  <View
+                    style={{ backgroundColor: style.bg }}
+                    className="w-10 h-10 rounded-full items-center justify-center"
+                  >
+                    {style.icon(style.color)}
+                  </View>
+                  <View className="flex-1">
+                    <Text className="text-[16px] font-sansMedium text-dark leading-[1.4]">
+                      {item.title}
+                    </Text>
+                    {!open && (
+                      <Text className="text-[14px] font-sans text-[#474348] mt-3">
+                        {timeAgo(item.occurredAt)}
+                      </Text>
+                    )}
+                  </View>
+                </View>
+                {open && (
+                  <>
+                    <TimeControlDetails item={item} />
+                    <Text className="text-[14px] font-sans text-[#474348] mt-3 px-3">
+                      {timeAgo(item.occurredAt)}
+                    </Text>
+                  </>
+                )}
+              </Pressable>
+            );
+          }
+
+          // Reading sessions show the chapter and minutes read
+          const subtitle =
+            item.type === 'reading' || !item.category
+              ? item.description
+              : item.category;
+          return (
             <View
-              style={{ backgroundColor: style.bg }}
-              className="w-10 h-10 rounded-full items-center justify-center"
+              key={key}
+              className={twMerge('flex-row gap-3', !isLast && 'mb-6')}
             >
-              {style.icon(style.color)}
+              <View
+                style={{ backgroundColor: style.bg }}
+                className="w-10 h-10 rounded-full items-center justify-center"
+              >
+                {style.icon(style.color)}
+              </View>
+              <View className="flex-1">
+                <Text className="text-[16px] font-sansMedium text-dark leading-[1.4]">
+                  {item.title}
+                </Text>
+                <Text className="text-[14px] font-sans text-[#474348] mt-1.5">
+                  {subtitle}
+                </Text>
+                <Text className="text-[14px] font-sans text-[#474348] mt-3">
+                  {timeAgo(item.occurredAt)}
+                </Text>
+              </View>
             </View>
-            <View className="flex-1">
-              <Text className="text-[16px] font-sansMedium text-dark leading-[1.4]">
-                {item.title}
-              </Text>
-              <Text className="text-[14px] font-sans text-[#474348] mt-1.5">
-                {item.category || item.description}
-              </Text>
-              <Text className="text-[14px] font-sans text-[#474348] mt-3">
-                {timeAgo(item.occurredAt)}
-              </Text>
-            </View>
-          </View>
-        );
-      })
-    ) : (
-      <EmptyState text="No learning activity yet." />
-    )}
-  </SectionCard>
-);
+          );
+        })
+      ) : (
+        <EmptyState text="No learning activity yet." />
+      )}
+    </SectionCard>
+  );
+};
 
 // ─── Chapter / exercise status rows ─────────────────────────────────────────
 
@@ -625,7 +790,14 @@ const STATUS_CHIP: Record<
   not_started: { label: 'Not Started', bg: '#FBF7E5', color: '#AA8F00' },
   not_assigned: { label: 'Not Assigned', bg: '#F6EEF8', color: '#A33BB3' },
   locked: { label: 'Locked', bg: '#EDEDED', color: '#474348' },
+  upgrade_required: {
+    label: 'Upgrade Required',
+    bg: '#FBF1EA',
+    color: '#C8702A',
+  },
 };
+
+export const UPGRADE_COLOR = STATUS_CHIP.upgrade_required.color;
 
 export const StatusChip = ({ status }: { status: ExerciseStatus }) => {
   const chip = STATUS_CHIP[status] ?? STATUS_CHIP.not_started;
@@ -637,6 +809,13 @@ export const StatusChip = ({ status }: { status: ExerciseStatus }) => {
       {status === 'locked' && (
         <Feather name="lock" size={13} color={chip.color} />
       )}
+      {status === 'upgrade_required' && (
+        <MaterialCommunityIcons
+          name="crown-outline"
+          size={15}
+          color={chip.color}
+        />
+      )}
       <Text style={{ color: chip.color }} className="text-[13px] font-sans">
         {chip.label}
       </Text>
@@ -646,15 +825,29 @@ export const StatusChip = ({ status }: { status: ExerciseStatus }) => {
 
 export const StatusRows = ({
   rows,
+  onUpgrade,
 }: {
-  rows: { key: string; position: number; title: string; status: ExerciseStatus }[];
+  rows: {
+    key: string;
+    position: number;
+    title: string;
+    status: ExerciseStatus;
+  }[];
+  // Tapping an "Upgrade Required" row
+  onUpgrade?: () => void;
 }) => (
   <View className="bg-white">
     {rows.map((row, i) => {
-      const muted = row.status === 'locked' || row.status === 'not_assigned';
+      const muted =
+        row.status === 'locked' ||
+        row.status === 'not_assigned' ||
+        row.status === 'upgrade_required';
+      const upgradable = row.status === 'upgrade_required' && !!onUpgrade;
       return (
-        <View
+        <Pressable
           key={row.key}
+          disabled={!upgradable}
+          onPress={onUpgrade}
           className={twMerge(
             'px-4 py-5',
             i < rows.length - 1 && 'border-b border-b-[#EDEDED]',
@@ -680,7 +873,7 @@ export const StatusRows = ({
             </Text>
           </View>
           <StatusChip status={row.status} />
-        </View>
+        </Pressable>
       );
     })}
   </View>

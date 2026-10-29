@@ -26,70 +26,88 @@ import { twMerge } from 'tailwind-merge';
 
 const PAGE_SIZE = 12;
 
-const STATUS_OPTIONS: { label: string; value?: BookStatus }[] = [
-  { label: 'All Status' },
+// `label` is shown on the trigger, `chipLabel` inside the panel
+type FilterOption = { label: string; chipLabel?: string; value?: string };
+
+const STATUS_OPTIONS: FilterOption[] = [
+  { label: 'All Status', chipLabel: 'All Books' },
   { label: 'Not Started', value: 'not_started' },
   { label: 'In Progress', value: 'in_progress' },
   { label: 'Completed', value: 'completed' },
 ];
 
-type FilterOption = { label: string; value?: string };
-
-const FilterSelect = ({
+const FilterTrigger = ({
   options,
   value,
   open,
   onToggle,
-  onChange,
 }: {
   options: FilterOption[];
   value?: string;
   open: boolean;
   onToggle: () => void;
-  onChange: (value?: string) => void;
 }) => {
   const selected = options.find((o) => o.value === value) ?? options[0];
+  const color = open ? '#3F9243' : '#221D23';
   return (
-    <View className="flex-1 relative">
-      <Pressable
-        onPress={onToggle}
-        className="bg-[#FAFDFF] border border-[#DBEFDC] rounded-full px-4 py-3 flex-row items-center justify-between gap-2"
-      >
-        <Text
-          numberOfLines={1}
-          className="flex-1 text-[14px] font-sans text-dark"
-        >
-          {selected?.label}
-        </Text>
-        <Feather
-          name={open ? 'chevron-up' : 'chevron-down'}
-          size={18}
-          color="#221D23"
-        />
-      </Pressable>
-      {open && (
-        <View className="absolute top-[52px] w-full bg-white rounded-[16px] shadow-md py-2 z-40">
-          {options.map((option) => (
-            <Pressable
-              key={option.label}
-              onPress={() => onChange(option.value)}
-              className="px-4 py-2.5"
-            >
-              <Text
-                className={twMerge(
-                  'text-[14px] font-sans text-dark',
-                  option.value === value && 'font-sansMedium text-[#3F9243]',
-                )}
-              >
-                {option.label}
-              </Text>
-            </Pressable>
-          ))}
-        </View>
+    <Pressable
+      onPress={onToggle}
+      className={twMerge(
+        'flex-1 bg-[#FAFDFF] border border-[#EDEDED] rounded-full px-4 py-3 flex-row items-center justify-between gap-2',
+        open && 'bg-[#F1F9F1] border-[#DBEFDC]',
       )}
-    </View>
+    >
+      <Text
+        numberOfLines={1}
+        style={{ color }}
+        className="flex-1 text-[14px] font-sans"
+      >
+        {selected?.label}
+      </Text>
+      <Feather
+        name={open ? 'chevron-up' : 'chevron-down'}
+        size={18}
+        color={color}
+      />
+    </Pressable>
   );
 };
+
+// Chip panel shown inline under both filter triggers (the card grows)
+const FilterChips = ({
+  options,
+  value,
+  onChange,
+}: {
+  options: FilterOption[];
+  value?: string;
+  onChange: (value?: string) => void;
+}) => (
+  <View className="mt-4 bg-white rounded-[12px] border border-[#EDEDED] p-4 flex-row flex-wrap justify-center gap-3">
+    {options.map((option) => {
+      const active = option.value === value;
+      return (
+        <Pressable
+          key={option.label}
+          onPress={() => onChange(option.value)}
+          className={twMerge(
+            'rounded-full border border-[#EDEDED] bg-white px-5 py-2.5',
+            active && 'bg-[#3F9243] border-[#3F9243]',
+          )}
+        >
+          <Text
+            className={twMerge(
+              'text-[14px] font-sans text-dark',
+              active && 'text-white font-sansMedium',
+            )}
+          >
+            {option.chipLabel ?? option.label}
+          </Text>
+        </Pressable>
+      );
+    })}
+  </View>
+);
 
 const AssignedBooks = () => {
   const params = useLocalSearchParams();
@@ -183,31 +201,45 @@ const AssignedBooks = () => {
             </Pressable>
           )}
         </View>
-        <View className="flex-row gap-3 mt-4 z-30">
-          <FilterSelect
-            options={STATUS_OPTIONS}
-            value={status}
-            open={openFilter === 'status'}
-            onToggle={() =>
-              setOpenFilter((f) => (f === 'status' ? null : 'status'))
-            }
-            onChange={(v) => {
-              setStatus(v as BookStatus | undefined);
-              setOpenFilter(null);
-            }}
-          />
-          <FilterSelect
-            options={categories}
-            value={categoryId}
-            open={openFilter === 'category'}
-            onToggle={() =>
-              setOpenFilter((f) => (f === 'category' ? null : 'category'))
-            }
-            onChange={(v) => {
-              setCategoryId(v);
-              setOpenFilter(null);
-            }}
-          />
+        <View className="mt-4 z-30">
+          <View className="flex-row gap-3">
+            <FilterTrigger
+              options={STATUS_OPTIONS}
+              value={status}
+              open={openFilter === 'status'}
+              onToggle={() =>
+                setOpenFilter((f) => (f === 'status' ? null : 'status'))
+              }
+            />
+            <FilterTrigger
+              options={categories}
+              value={categoryId}
+              open={openFilter === 'category'}
+              onToggle={() =>
+                setOpenFilter((f) => (f === 'category' ? null : 'category'))
+              }
+            />
+          </View>
+          {openFilter === 'status' && (
+            <FilterChips
+              options={STATUS_OPTIONS}
+              value={status}
+              onChange={(v) => {
+                setStatus(v as BookStatus | undefined);
+                setOpenFilter(null);
+              }}
+            />
+          )}
+          {openFilter === 'category' && (
+            <FilterChips
+              options={categories}
+              value={categoryId}
+              onChange={(v) => {
+                setCategoryId(v);
+                setOpenFilter(null);
+              }}
+            />
+          )}
         </View>
       </View>
       <View className="bg-white rounded-t-[24px] px-5 pt-6 pb-2 mt-5 -z-10">

@@ -1,5 +1,5 @@
 import { ICONS } from '@/assets/icons';
-import React, { FC } from 'react';
+import React, { FC, ReactNode } from 'react';
 import { Text, View } from 'react-native';
 import Modal from 'react-native-modal';
 import { twMerge } from 'tailwind-merge';
@@ -15,6 +15,9 @@ type Props = {
   onProceed?: () => void;
   showChevron?: boolean;
   isAlert?: boolean;
+  // Replaces the default lock icon
+  icon?: ReactNode;
+  iconBg?: string;
 };
 
 const TrialLockModal: FC<Props> = (props) => {
@@ -23,16 +26,19 @@ const TrialLockModal: FC<Props> = (props) => {
       <View className="bg-[#DBEFDC] p-[18px]    rounded-[24px] items-center">
         <View className="bg-white rounded-[12px] p-5 items-center  w-full">
           <View
+            style={props?.iconBg ? { backgroundColor: props.iconBg } : undefined}
             className={twMerge(
               'w-16 h-16 rounded-full bg-[#1671D91A] items-center justify-center',
               props?.isAlert && 'bg-[#DE21211A]',
             )}
           >
-            <ICONS.LockOff
-              width={32}
-              height={32}
-              stroke={props?.isAlert ? '#DE2121' : '#1671D9'}
-            />
+            {props?.icon ?? (
+              <ICONS.LockOff
+                width={32}
+                height={32}
+                stroke={props?.isAlert ? '#DE2121' : '#1671D9'}
+              />
+            )}
           </View>
 
           <Text className="text-center font-sansSemiBold text-[#265828] text-[20px] mb-2 mt-6">

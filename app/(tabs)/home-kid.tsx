@@ -11,6 +11,7 @@ import Skeleton from '@/components/Skeleton';
 import ChildLockModal from '@/components/Subscription/ChildLockModal';
 import { useAppDispatch } from '@/hooks/redux';
 import useKidProfile from '@/hooks/useKidProfile';
+import { useLearningHoursNotice } from '@/hooks/useLearningTimeGuard';
 import { ensureHttps, getSubscriptionDaysRemaining } from '@/utils';
 import { getTopTwoChapters } from '@/utils/kid';
 import { scaleWidth } from '@/utils/scale';
@@ -26,6 +27,7 @@ const HomeKid = () => {
   const [openSubEndedBanner, setOpenSubEndedBanner] = useState(false);
 
   const { data: profile, isLoading: isLoadingProfile } = useKidProfile();
+  useLearningHoursNotice();
   const { data, isLoading } = useQuery({
     queryKey: ['kid-learning'],
     queryFn: async () => {

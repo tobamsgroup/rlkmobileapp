@@ -23,6 +23,16 @@ export const getAssignedBooks = async (
   return res?.data?.data;
 };
 
+// Kid-only reading-time heartbeat (max 120 seconds per call)
+export const recordReadingTime = async (payload: {
+  chapterId: string;
+  seconds: number;
+  date: string;
+}) => {
+  const res = await axios.post('/kid/reading-time', payload);
+  return res?.data?.data;
+};
+
 export const getBookProgress = async (
   kidId: string,
   seriesId: string,

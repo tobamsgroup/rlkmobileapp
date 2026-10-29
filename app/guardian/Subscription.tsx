@@ -25,7 +25,7 @@ import {
 import { showToast } from '@/utils/toast';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { LinearGradient } from 'expo-linear-gradient';
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import React, { useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
@@ -59,7 +59,9 @@ const Subscription = () => {
   const [webViewLoading, setWebViewLoading] = useState(true);
   const [subStatus, setStatus] = useState('active');
   const [openRemaining, setOpenRemaining] = useState(false);
-  const [kid, setKid] = useState('');
+  // Preselected when arriving from an upgrade prompt for a specific learner
+  const { kidId } = useLocalSearchParams<{ kidId?: string }>();
+  const [kid, setKid] = useState(kidId ?? '');
 
   const { data: kidsWithSubs = [], isLoading } = useQuery({
     queryKey: ['guardian-kids'],

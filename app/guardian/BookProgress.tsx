@@ -6,6 +6,7 @@ import {
   ActivityFeed,
   BookCover,
   BookProgressBar,
+  bookTitle,
   EmptyState,
   firstName,
   formatDuration,
@@ -14,7 +15,9 @@ import {
   SectionDropdown,
   StatCard,
   StatusRows,
+  UPGRADE_COLOR,
 } from '@/components/LearnerProgress';
+import TrialLockModal from '@/components/Subscription/TrialLockModal';
 import Skeleton from '@/components/Skeleton';
 import TopBackButton from '@/components/TopBackButton';
 import { useAppDispatch } from '@/hooks/redux';
@@ -25,6 +28,7 @@ import { showToast } from '@/utils/toast';
 import Entypo from '@expo/vector-icons/Entypo';
 import Feather from '@expo/vector-icons/Feather';
 import Ionicons from '@expo/vector-icons/Ionicons';
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { useQuery } from '@tanstack/react-query';
 import { router, useLocalSearchParams } from 'expo-router';
 import React, { ReactNode, useState } from 'react';
@@ -43,6 +47,34 @@ const VIEW_OPTIONS: ProgressViewOption[] = [
   { value: 'exercises', label: 'Exercises' },
   { value: 'activity', label: 'Activity History' },
 ];
+
+const MenuItem = ({
+  icon,
+  label,
+  onPress,
+}: {
+  icon: ReactNode;
+  label: string;
+  onPress: () => void;
+}) => (
+  <Pressable onPress={onPress} className="flex-row items-center gap-3">
+    <View className="bg-[#D3D2D366] w-8 h-8 rounded-full items-center justify-center">
+      {icon}
+    </View>
+    <Text className="text-[#221D23] font-sans text-[16px]">{label}</Text>
+  </Pressable>
+);
+
+const UPGRADE_COPY = {
+  chapter: {
+    title: 'Upgrade to Access This Chapter',
+    desc: 'This chapter is not available on the learner’s current plan. Upgrade their plan to unlock more chapters in this book.',
+  },
+  book: {
+    title: 'Upgrade to Assign the Full Book',
+    desc: 'The learner’s current plan includes a single chapter. Upgrade their plan to assign every chapter in this book.',
+  },
+};
 
 const ListCard = ({
   title,
@@ -98,6 +130,9 @@ const BookProgress = () => {
   const [view, setView] = useState<ProgressView>('read');
   const [openMenu, setOpenMenu] = useState(false);
   const [switching, setSwitching] = useState(false);
+  const [upgradeFor, setUpgradeFor] = useState<'chapter' | 'book' | null>(
+    null,
+  );
   const dispatch = useAppDispatch();
 
   const { data, isLoading, isError } = useQuery({
@@ -108,6 +143,34 @@ const BookProgress = () => {
 
   const book = data?.book;
   const stats = data?.stats;
+  const hasWorkbook = !!data?.exercises?.available;
+  const isFreePlan = data?.subscription?.plan === 'free';
+
+  const seriesParams = book
+    ? `title=${encodeURIComponent(book.category?.title ?? '')}&id=${book.seriesId}&seriesTitle=${encodeURIComponent(book.title)}`
+    : '';
+
+  const handleAssignFullBook = () => {
+    setOpenMenu(false);
+    if (!book) return;
+    if (isFreePlan) {
+      setUpgradeFor('book');
+      return;
+    }
+    router.push(
+      `/guardian/AssignChild?${seriesParams}&kidId=${kidId}&kidName=${encodeURIComponent(params.name ?? '')}&scope=entire`,
+    );
+  };
+
+  const handleViewDetails = () => {
+    setOpenMenu(false);
+    if (book) router.push(`/guardian/AssignChild?${seriesParams}`);
+  };
+
+  const handleUpgrade = () => {
+    setUpgradeFor(null);
+    router.push(`/guardian/Subscription?kidId=${kidId}`);
+  };
 
   const handleLoginAsLearner = async () => {
     if (switching) return;
@@ -158,36 +221,26 @@ const BookProgress = () => {
                 <Entypo name="dots-three-vertical" size={20} color="black" />
               </Pressable>
               {openMenu && (
-                <View className="p-4 rounded-[20px] shadow-md bg-white absolute top-[56px] right-0 w-[75%] z-30 gap-6">
-                  <Pressable
+                <View className="p-5 rounded-[20px] shadow-md bg-white absolute top-[56px] right-0 w-[75%] z-30 gap-6">
+                  <MenuItem
+                    icon={<Feather name="user" size={16} color="#221D23" />}
+                    label="Log in as Learner"
                     onPress={handleLoginAsLearner}
-                    className="flex-row items-center gap-2"
-                  >
-                    <View className="bg-[#D3D2D366] w-7 h-7 rounded-full items-center justify-center">
-                      <Feather name="external-link" size={14} color="#221D23" />
-                    </View>
-                    <Text className="text-[#221D23] font-sans text-[16px]">
-                      Log in as Learner
-                    </Text>
-                  </Pressable>
-                  {!!book && (
-                    <Pressable
-                      onPress={() => {
-                        setOpenMenu(false);
-                        router.push(
-                          `/guardian/AssignChild?title=${book.category?.title}&id=${book.seriesId}&seriesTitle=${book.title}`,
-                        );
-                      }}
-                      className="flex-row items-center gap-2"
-                    >
-                      <View className="bg-[#D3D2D366] w-7 h-7 rounded-full items-center justify-center">
-                        <Feather name="plus" size={16} color="#221D23" />
-                      </View>
-                      <Text className="text-[#221D23] font-sans text-[16px]">
-                        Assign More Chapters
-                      </Text>
-                    </Pressable>
+                  />
+                  {book?.accessType !== 'full' && (
+                    <MenuItem
+                      icon={
+                        <Feather name="book-open" size={15} color="#221D23" />
+                      }
+                      label="Assign Full Book"
+                      onPress={handleAssignFullBook}
+                    />
                   )}
+                  <MenuItem
+                    icon={<Feather name="share" size={15} color="#221D23" />}
+                    label="View Book Details"
+                    onPress={handleViewDetails}
+                  />
                 </View>
               )}
             </View>
@@ -203,7 +256,7 @@ const BookProgress = () => {
                   {book?.category?.title}
                 </Text>
                 <Text className="text-[16px] font-sans text-[#474348] mt-2">
-                  {book?.title}
+                  {bookTitle(book)}
                 </Text>
                 <Text className="text-[16px] font-sans text-[#474348] mt-5 mb-3">
                   Reading Progress
@@ -248,18 +301,27 @@ const BookProgress = () => {
               iconBg="#F6EEF8"
               icon={<Feather name="file-text" size={20} color="#A33BB3" />}
               label="Workbook Exercises"
-              value={stats?.workbookExercises?.completed ?? 0}
-              suffix={`of ${stats?.workbookExercises?.total ?? 0}`}
+              value={
+                hasWorkbook ? (stats?.workbookExercises?.completed ?? 0) : (
+                  <Text className="text-[16px] font-sans text-[#474348]">
+                    No workbook yet
+                  </Text>
+                )
+              }
+              suffix={
+                hasWorkbook
+                  ? `of ${stats?.workbookExercises?.total ?? 0}`
+                  : undefined
+              }
             />
+            {/* Play & Learn activities aren't tracked here yet */}
             <StatCard
-              loading={isLoading}
-              iconBg="#FBF7E5"
+              comingSoon
+              iconBg="#EDEDED"
               icon={
-                <Ionicons name="game-controller" size={22} color="#D5B300" />
+                <Ionicons name="game-controller" size={22} color="#918E91" />
               }
               label="Activities Completed"
-              value={stats?.activities?.completed ?? 0}
-              suffix={`of ${stats?.activities?.total ?? 0}`}
             />
           </View>
 
@@ -292,6 +354,7 @@ const BookProgress = () => {
                     title: c.title,
                     status: c.status,
                   }))}
+                  onUpgrade={() => setUpgradeFor('chapter')}
                 />
               ) : (
                 <View className="p-5">
@@ -305,15 +368,21 @@ const BookProgress = () => {
             <ListCard
               title="Workbook Exercises"
               subtitle={
-                <View className="flex-row items-center gap-2">
+                hasWorkbook || isLoading ? (
+                  <View className="flex-row items-center gap-2">
+                    <Text className="text-[16px] font-sans text-[#474348]">
+                      {data?.exercises?.total ?? 0} Exercises
+                    </Text>
+                    <View className="w-1.5 h-1.5 rounded-full bg-[#474348]" />
+                    <Text className="text-[16px] font-sans text-[#474348]">
+                      {data?.exercises?.unlocked ?? 0} Unlocked
+                    </Text>
+                  </View>
+                ) : (
                   <Text className="text-[16px] font-sans text-[#474348]">
-                    {data?.exercises?.total ?? 0} Exercises
+                    No workbook yet
                   </Text>
-                  <View className="w-1.5 h-1.5 rounded-full bg-[#474348]" />
-                  <Text className="text-[16px] font-sans text-[#474348]">
-                    {data?.exercises?.unlocked ?? 0} Unlocked
-                  </Text>
-                </View>
+                )
               }
             >
               {isLoading ? (
@@ -330,10 +399,17 @@ const BookProgress = () => {
                     title: e.title,
                     status: e.status,
                   }))}
+                  onUpgrade={() => setUpgradeFor('chapter')}
                 />
               ) : (
                 <View className="p-5">
-                  <EmptyState text="This book doesn’t have a workbook yet." />
+                  <EmptyState
+                    text={
+                      hasWorkbook
+                        ? 'No exercises in this workbook yet.'
+                        : 'No workbook yet'
+                    }
+                  />
                 </View>
               )}
             </ListCard>
@@ -417,6 +493,23 @@ const BookProgress = () => {
           </View>
         </View>
       </TouchableWithoutFeedback>
+      <TrialLockModal
+        open={!!upgradeFor}
+        title={UPGRADE_COPY[upgradeFor ?? 'chapter'].title}
+        desc={UPGRADE_COPY[upgradeFor ?? 'chapter'].desc}
+        icon={
+          <MaterialCommunityIcons
+            name="crown-outline"
+            size={32}
+            color={UPGRADE_COLOR}
+          />
+        }
+        iconBg="#FBF1EA"
+        buttonText1="UPGRADE PLAN"
+        buttonText2="MAYBE LATER"
+        onProceed={handleUpgrade}
+        onClose={() => setUpgradeFor(null)}
+      />
     </Container>
   );
 };

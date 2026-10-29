@@ -18,6 +18,8 @@ import { getActiveLesson, PLAY_LEARN_PROGRESS_KEY } from '@/constants';
 import useChapterPages from '@/hooks/useChapterPages';
 import useKidLearningOverview from '@/hooks/useKidLearning';
 import useKidProfile from '@/hooks/useKidProfile';
+import useLearningTimeGuard from '@/hooks/useLearningTimeGuard';
+import useReadingTimeTracker from '@/hooks/useReadingTimeTracker';
 import useSeriesChapterPages from '@/hooks/useSeriesChapterPages';
 import { getData, storeData } from '@/lib/storage';
 import { AssignedSeries } from '@/types';
@@ -58,6 +60,11 @@ const Playground = () => {
   const [accumulatedTime, setAccumulatedTime] = useState<number>(0);
   const [openSwitch, setOpenSwitch] = useState(false);
   const [showPlayModal, setShowPlayModal] = useState(false);
+
+  // Active learning time (reading, quizzes and activities) counts towards
+  // the daily limit, so track it for the whole Playground, not just ReadMode
+  useReadingTimeTracker(chapterId as string | undefined);
+  useLearningTimeGuard();
 
   const { data } = useKidLearningOverview();
   const { data: chapters, isLoading: isLoadingChapters } = useQuery({

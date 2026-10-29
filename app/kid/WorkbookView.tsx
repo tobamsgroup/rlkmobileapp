@@ -1,6 +1,7 @@
 import { updateWorkbookProgress } from '@/actions/kid';
 import { ICONS } from '@/assets/icons';
 import Button, { LinearButton, SecondaryButton } from '@/components/Button';
+import useLearningTimeGuard from '@/hooks/useLearningTimeGuard';
 import { WorkbookChapter } from '@/types';
 import { invalidateQueries } from '@/utils/query';
 import { STAUS_BAR_HEIGHT } from '@/utils/scale';
@@ -15,6 +16,7 @@ import { twMerge } from 'tailwind-merge';
 const WorkbookView = () => {
   const pdfRef = useRef<PdfRef>(null);
   const { chapter } = useLocalSearchParams();
+  useLearningTimeGuard();
   const [openModal, setOpenModal] = useState(false);
   const startedRef = useRef(false);
   const parsedChapter = useMemo(() => {

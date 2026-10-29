@@ -8,7 +8,9 @@ export type ChapterStatus =
   | 'completed'
   | 'in_progress'
   | 'not_started'
-  | 'not_assigned';
+  | 'not_assigned'
+  // Not assigned, and the learner's plan doesn't allow assigning more
+  | 'upgrade_required';
 
 export type ExerciseStatus = ChapterStatus | 'locked';
 
@@ -19,7 +21,13 @@ export type ActivityEventType =
   | 'workbook_exercise'
   | 'game'
   | 'video_lesson'
-  | 'lesson_activity';
+  | 'lesson_activity'
+  | 'reading'
+  | 'login'
+  // Learning time controls — tap to expand details
+  | 'session_started'
+  | 'daily_limit_reached'
+  | 'break_reminder';
 
 export interface BookCategory {
   categoryId: string;
@@ -65,11 +73,20 @@ export interface ActivityEvent {
   title: string;
   description: string;
   category: string;
-  seriesId: string;
+  seriesId: string | null;
   seriesTitle: string;
   chapterId: string | null;
   occurredAt: string;
   meta?: Record<string, unknown>;
+}
+
+export interface LearnerSubscription {
+  plan: string;
+  planName: string;
+  status: string | null;
+  currentPeriodEnd: string | null;
+  freeTrialExpiresAt: string | null;
+  learningPaused: boolean;
 }
 
 export interface ReadingOverview {
@@ -83,18 +100,14 @@ export interface ReadingOverview {
     learningInterests: string[];
     totalXp: number;
   };
-  subscription: {
-    plan: string;
-    planName: string;
-    status: string | null;
-    currentPeriodEnd: string | null;
-    freeTrialExpiresAt: string | null;
-    learningPaused: boolean;
-  };
+  subscription: LearnerSubscription;
   stats: {
     booksAssigned: number;
     badgesEarned: number;
+    // Consecutive days with reading time
     streakDays: number;
+    // Consecutive days with any learning activity (reading, quizzes, logins…)
+    learningStreakDays: number;
     booksRead: number;
     booksInProgress: number;
     readingTimeSeconds: number;
@@ -156,6 +169,7 @@ export interface WorkbookExercise {
 
 export interface BookProgressResponse {
   book: LearnerBookCard;
+  subscription: LearnerSubscription;
   stats: {
     chaptersCompleted: number;
     totalChapters: number;

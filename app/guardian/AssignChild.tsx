@@ -38,10 +38,18 @@ import { twMerge } from 'tailwind-merge';
 const AssignChild = () => {
   const params = useLocalSearchParams();
   const [step, setStep] = useState(1);
+  // From Book Progress "Assign Full Book": learner and scope come preselected
+  const topUpKidId = params?.kidId as string | undefined;
   const [selectedKids, setSelectedKids] = useState<
     { id: string; name: string }[]
-  >([]);
-  const [selectedScope, setSelectedScope] = useState('');
+  >(
+    topUpKidId
+      ? [{ id: topUpKidId, name: (params?.kidName as string) ?? '' }]
+      : [],
+  );
+  const [selectedScope, setSelectedScope] = useState(
+    (params?.scope as string) ?? '',
+  );
   const [selectedModule, setSelectedModule] = useState<
     { id: string; title: string; index: number }[]
   >([]);
@@ -134,8 +142,11 @@ const AssignChild = () => {
         showToast('error', 'You can only assign a chapter');
         return;
       }
+      // A learner with only some chapters can be topped up to the full book
       const assigned = getAlreadyAssignedKidNames(
-        selectedKids,
+        selectedKids.filter(
+          (k) => !(selectedScope === 'entire' && k.id === topUpKidId),
+        ),
         assignedKids?.[0]?.assignedKids!,
       );
 

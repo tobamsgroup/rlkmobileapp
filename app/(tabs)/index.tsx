@@ -5,6 +5,7 @@ import Container from '@/components/Container';
 import ActiveLearningTracks from '@/components/Home/ActiveLearningTracks';
 import CreateChildProfile from '@/components/Home/CreateChildProfile';
 import LearnersProgress from '@/components/Home/LearnersProgress';
+import NameCollectionModal from '@/components/Home/NameCollectionModal';
 import RecommendedLearningTracks from '@/components/Home/RecommendedLearningTracks';
 import Skeleton from '@/components/Skeleton';
 import TrialLockModal from '@/components/Subscription/TrialLockModal';
@@ -269,6 +270,9 @@ export default function HomeScreen() {
           <RecommendedLearningTracks />
         </View>
       </Container>
+      <NameCollectionModal
+        open={!!data && (!data.firstName?.trim() || !data.lastName?.trim())}
+      />
       <CreateChildProfile
         open={openModal}
         onClose={() => setOpenModal(false)}

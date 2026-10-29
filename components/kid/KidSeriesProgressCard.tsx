@@ -7,6 +7,7 @@ import { router } from 'expo-router';
 import React, { useRef, useState } from 'react';
 import { FlatList, Image, Pressable, Text, View } from 'react-native';
 import { twMerge } from 'tailwind-merge';
+import { useLearningAccess } from '@/hooks/useLearningTimeGuard';
 import Button from '../Button';
 import ProgressBar from '../ProgressBar';
 
@@ -123,6 +124,7 @@ export const KidSeriesProgressCardInner = ({
   chapterId: string;
   lessonId: string;
 }) => {
+  const { canLearn } = useLearningAccess();
   return (
     <View
       style={{ width: full ? '100%' : scaleWidth(279) }}
@@ -176,6 +178,7 @@ export const KidSeriesProgressCardInner = ({
       </View>
       <Button
         onPress={() =>
+          canLearn() &&
           // console.log(
 
           //     `/kid/Playground?book=${series.seriesId.bookId}&series=${series?.seriesId._id}&chapterId=${series?.seriesId?.chapters?.[0]}&mode=play&page=1`,

@@ -1,4 +1,5 @@
 import { ICONS } from '@/assets/icons';
+import { useLearningAccess } from '@/hooks/useLearningTimeGuard';
 import { AssignedChapter } from '@/types';
 import { ensureHttps } from '@/utils';
 import { calculateChapterProgress } from '@/utils/kid';
@@ -17,6 +18,7 @@ type ChapterProps = AssignedChapter & {
 };
 
 const KidLearningCard = (props: ChapterProps) => {
+  const { canLearn } = useLearningAccess();
   const progress = calculateChapterProgress({
     currentPLIndex: props?.currentPLIndex,
     currentPageIndex: props.currentPageIndex,
@@ -59,6 +61,7 @@ const KidLearningCard = (props: ChapterProps) => {
 
       <Button
         onPress={() =>
+          canLearn() &&
           router.push(
             `/kid/Playground?book=${props.bookId}&series=${props?.chapterId?.seriesId}&chapterId=${props?.chapterId?._id}&lessonId=${props?.chapterId?.lessons?.[0]?._id}&mode=read&page=1`,
           )
