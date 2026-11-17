@@ -17,7 +17,7 @@ type PopupProps = {
   onClick?: () => void;
   buttonText?: string;
   sound?: boolean;
-  nextLesson: string;
+  nextLesson?: string;
   onNext?: () => void;
   className?: string;
 };
@@ -41,13 +41,19 @@ const CongratulationsPopup: FC<PopupProps> = ({
   onNext,
   className,
 }) => {
-  const { play } = useSound();
+  const { play, stop } = useSound();
 
   useEffect(() => {
-    if (sound) {
-      play('cheers');
-    }
+    if (!sound) return;
+    play('cheers');
+    // Stop cheering when the popup closes or the game moves on
+    return () => stop('cheers');
   }, [sound]);
+
+  const handleContinue = () => {
+    stop('cheers');
+    onNext?.();
+  };
 
   return (
     <ReactNativeModal isVisible>
@@ -80,7 +86,7 @@ const CongratulationsPopup: FC<PopupProps> = ({
           )}
 
           <View className="flex flex-row items-center gap-5">
-            <Button onPress={onNext} text="Continue" className="w-full" />
+            <Button onPress={handleContinue} text="Continue" className="w-full" />
           </View>
         </View>
       </View>

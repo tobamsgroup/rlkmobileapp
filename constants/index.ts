@@ -1,6 +1,5 @@
 // import { BooksComponent } from "@/components/books";
 import { ChapterPage, PageParagraph } from "@/types";
-import { BooksComponent } from "./BooksComponent";
 
 export type Item = {
   id: string;
@@ -155,34 +154,6 @@ export const activities: Activity[] = [
     ],
   },
 ];
-
-export function getActiveLesson({
-  bookId,
-  seriesId,
-  chapterId,
-  lessonId,
-}: {
-  bookId: string;
-  seriesId: string;
-  chapterId: string;
-  lessonId: string;
-}) {
-  const book = BooksComponent.find((b) => b.bookId === bookId);
-  if (!book) return null;
-
-  const series = book.series.find((s) => s.id === seriesId);
-  if (!series) return null;
-
-  const chapter = series.chapters.find((c) => c.id === chapterId);
-  if (!chapter) return null;
-
-  const lesson = chapter.lessons.find((l) => l.lessonId === lessonId);
-  if (lesson) {
-    return { ...lesson, total: chapter.lessons.length };
-  }
-
-  return null;
-}
 
 export function getPageName(data: ChapterPage) {
   let pageName = "Page " + data.index;

@@ -4,12 +4,16 @@ import {
   reportBreakReminder,
 } from '@/actions/learning-time-controls';
 import { showLearningTimeLeftToast } from '@/components/kid/LearningTimeLeftToast';
+import { isLearningIdle } from '@/hooks/useLearningActivity';
 import {
   getLearningTimeScreen,
   showLearningTimeScreen,
 } from '@/hooks/useLearningTimeOverlay';
 import { getData, storeData } from '@/lib/storage';
-import { DailyUsage, KidLearningTimeControls } from '@/types/learningTimeControls';
+import {
+  DailyUsage,
+  KidLearningTimeControls,
+} from '@/types/learningTimeControls';
 import {
   getLearningAccess,
   isDailyLimitReached,
@@ -127,13 +131,20 @@ const useLearningTimeGuard = () => {
   }, [refetch]);
 
   // Clock + active-time counter for break reminders. Time spent on a learning
-  // time screen (a break, a reminder) or in the background doesn't count.
+  // time screen (a break, a reminder), in the background or idle doesn't
+  // count.
   useEffect(() => {
     let last = Date.now();
     const interval = setInterval(() => {
       const current = Date.now();
-      if (AppState.currentState === 'active' && !getLearningTimeScreen()) {
-        activeSecondsRef.current += (current - last) / 1000;
+      if (
+        AppState.currentState === 'active' &&
+        !getLearningTimeScreen() &&
+        !isLearningIdle(current)
+      ) {
+        // Timers stop in the background, so never credit more than ~one tick
+        activeSecondsRef.current +=
+          Math.min(current - last, TICK_MS * 2) / 1000;
       }
       last = current;
       setNow(new Date(current));

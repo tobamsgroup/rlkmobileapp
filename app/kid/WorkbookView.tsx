@@ -1,7 +1,9 @@
 import { updateWorkbookProgress } from '@/actions/kid';
 import { ICONS } from '@/assets/icons';
 import Button, { LinearButton, SecondaryButton } from '@/components/Button';
+import { markLearningActive } from '@/hooks/useLearningActivity';
 import useLearningTimeGuard from '@/hooks/useLearningTimeGuard';
+import useReadingTimeTracker from '@/hooks/useReadingTimeTracker';
 import { WorkbookChapter } from '@/types';
 import { invalidateQueries } from '@/utils/query';
 import { STAUS_BAR_HEIGHT } from '@/utils/scale';
@@ -22,6 +24,8 @@ const WorkbookView = () => {
   const parsedChapter = useMemo(() => {
     return JSON.parse(chapter as string) as WorkbookChapter;
   }, [chapter]);
+  // Workbook time counts towards the daily limit like the Playground
+  useReadingTimeTracker(parsedChapter?.chapterId);
   const [currentIndex, setCurrentIndex] = useState(parsedChapter?.start || 0);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -49,7 +53,10 @@ const WorkbookView = () => {
   };
 
   return (
-    <View className="bg-[#DBEFDC] flex-1 pb-10 ">
+    <View
+      onTouchStart={markLearningActive}
+      className="bg-[#DBEFDC] flex-1 pb-10 "
+    >
       <View
         style={{ paddingTop: STAUS_BAR_HEIGHT + 20 }}
         className=" px-6 flex-row gap-8 items-center pb-6 border-b border-b-[#DBEFDC] bg-[#FAFDFF]"
@@ -82,6 +89,7 @@ const WorkbookView = () => {
             enableDoubleTapZoom
             singlePage
             onPageChanged={(page) => {
+              markLearningActive();
               setCurrentIndex(page);
 
               if (page < parsedChapter?.start) {

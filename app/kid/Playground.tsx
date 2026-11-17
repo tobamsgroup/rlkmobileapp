@@ -1,9 +1,5 @@
 import { getSeriesChapters } from '@/actions/curriculum';
-import {
-  getReadingProgress,
-  updateLessonProgress,
-  updatePLProgress,
-} from '@/actions/kid';
+import { getReadingProgress, updatePLProgress } from '@/actions/kid';
 import { ICONS } from '@/assets/icons';
 import { IMAGES } from '@/assets/images';
 import Button, { LinearButton, SecondaryButton } from '@/components/Button';
@@ -14,17 +10,17 @@ import ReadMode from '@/components/kid/ReadMode';
 import Reward from '@/components/kid/Reward';
 import ScenarioQuiz from '@/components/kid/ScenarioQuiz';
 import XpDropdown from '@/components/kid/XpDropdown';
-import { getActiveLesson, PLAY_LEARN_PROGRESS_KEY } from '@/constants';
+import { PLAY_LEARN_PROGRESS_KEY } from '@/constants';
 import useChapterPages from '@/hooks/useChapterPages';
 import useKidLearningOverview from '@/hooks/useKidLearning';
 import useKidProfile from '@/hooks/useKidProfile';
+import { markLearningActive } from '@/hooks/useLearningActivity';
 import useLearningTimeGuard from '@/hooks/useLearningTimeGuard';
 import useReadingTimeTracker from '@/hooks/useReadingTimeTracker';
 import useSeriesChapterPages from '@/hooks/useSeriesChapterPages';
 import { getData, storeData } from '@/lib/storage';
 import { AssignedSeries } from '@/types';
 import {
-  formatActivityPages,
   getPLProgress,
   getSeriesReadingProgress,
   handleParams,
@@ -51,18 +47,17 @@ import Activity from './Activity';
 import CurriculumBar from './CurriculumBar';
 
 const Playground = () => {
-  const { book, series, chapterId, lessonId, mode, page } =
-    useLocalSearchParams();
+  const { book, series, chapterId, mode, page } = useLocalSearchParams();
 
   const [openXp, setOpenXp] = useState(false);
   const { data: profile } = useKidProfile();
   const startTimeRef = useRef<number>(Date.now());
-  const [accumulatedTime, setAccumulatedTime] = useState<number>(0);
   const [openSwitch, setOpenSwitch] = useState(false);
   const [showPlayModal, setShowPlayModal] = useState(false);
 
   // Active learning time (reading, quizzes and activities) counts towards
-  // the daily limit, so track it for the whole Playground, not just ReadMode
+  // the daily limit, so track it for the whole Playground, not just ReadMode.
+  // Touches anywhere keep it counting (see useLearningActivity).
   useReadingTimeTracker(chapterId as string | undefined);
   useLearningTimeGuard();
 
@@ -89,29 +84,6 @@ const Playground = () => {
     if (currentPage === 'scenario' || currentPage === 'journal')
       return 'Mission';
     return 'Lesson';
-  };
-
-  const newActivityPages = useMemo(() => {
-    if (!chapters) return;
-    return formatActivityPages(chapters);
-  }, [chapters]);
-
-  // Get current progress for play mode
-  const getCurrentPlayProgress = async () => {
-    if (!chapterId) return 0;
-    const p = await getData(PLAY_LEARN_PROGRESS_KEY + chapterId);
-    return parseInt(p as string);
-  };
-
-  const savePlayProgress = async (pageNumber: number) => {
-    if (!chapterId) return;
-    const currentProgress = await getCurrentPlayProgress();
-    if (pageNumber > currentProgress) {
-      await storeData(
-        PLAY_LEARN_PROGRESS_KEY + chapterId,
-        pageNumber.toString(),
-      );
-    }
   };
 
   const baseChapter = allSeriesPages?.find((s) => s._id === chapterId);
@@ -150,57 +122,12 @@ const Playground = () => {
     ];
   }, [progress]);
 
-  const updateCurrentLessonProgress = async (activityType: string) => {
-    if (!lessonId || !chapterId) return;
-
-    const totalTimeSpent = accumulatedTime;
-
-    try {
-      await updateLessonProgress(
-        lessonId as string,
-        activityType,
-        [],
-        totalTimeSpent,
-      );
-      invalidateProgress();
-    } catch (error) {
-      console.log('error');
-    }
-
-    setAccumulatedTime(0);
-  };
-
-  const ActiveLesson: ReturnType<typeof getActiveLesson> | null =
-    useMemo(() => {
-      if (!chapterId || !book || !lessonId || !series) {
-        return null;
-      }
-      return getActiveLesson({
-        bookId: book as string,
-        seriesId: series as string,
-        lessonId: lessonId as string,
-        chapterId: chapterId as string,
-      });
-    }, [series, book, lessonId, chapterId]);
-
   const targetChapterData = useMemo(() => {
     return allSeriesPages?.find((sp) => sp._id === chapterId) || null;
   }, [chapterId, allSeriesPages]);
 
-  const targetLessonData = useMemo(() => {
-    return chapters?.find((ch) => ch._id === chapterId) || null;
-  }, [chapterId, chapters]);
-
+  // Read mode quizzes; Play & Learn steps use onNext
   const handleNext = async () => {
-    const isMidOrEnd = page === 'mid' || page === 'end';
-    const activityType = isMidOrEnd ? 'Assignment' : 'Lesson';
-
-    if (mode === 'play' && chapterId && lessonId) {
-      await updateCurrentLessonProgress(activityType);
-      if (page === 'mid') savePlayProgress(5);
-      if (page === 'end') savePlayProgress(8);
-    }
-
     if (mode === 'read' && chapterId) {
       const timeSpent = Math.floor((Date.now() - startTimeRef.current) / 1000);
       invalidateProgress();
@@ -227,32 +154,15 @@ const Playground = () => {
         const newIndex = medianIndex + 1;
         handleParams([['page', newIndex.toString()]]);
       }
-    } else if (mode === 'play') {
-      const data = targetLessonData;
-      if (!data?.lessons.length) return;
-
-      const medianIndex = Math.floor(data.lessons.length / 2);
-      const nextChapter = allSeriesPages?.[data.index || 0];
-
-      if (page === 'end') {
-        if (nextChapter?._id) {
-          handleParams([
-            ['chapterId', nextChapter._id],
-            ['page', '1'],
-          ]);
-        }
-        return;
-      }
-
-      if (page === 'mid') {
-        const newIndex = medianIndex + 1;
-        handleParams([
-          ['page', newIndex.toString()],
-          ['lessonId', ActiveLesson?.nextlesson || ''],
-        ]);
-      }
     }
   };
+
+  // Play & Learn steps are the same for every chapter, so only `page` changes
+  const goToStep = (step: string) =>
+    handleParams([
+      ['lessonId', ''],
+      ['page', step],
+    ]);
 
   const onNext = async () => {
     const completedPage = await getData(PLAY_LEARN_PROGRESS_KEY + chapterId);
@@ -268,48 +178,33 @@ const Playground = () => {
           await updatePLProgress(chapterId! as string, 4);
           invalidateProgress();
         }
-        return handleParams([
-          ['lessonId', 'scenario'],
-          ['page', 'scenario'],
-        ]);
+        return goToStep('scenario');
       case 'end':
         if (completedPage === '5') {
           storeData(PLAY_LEARN_PROGRESS_KEY + chapterId, page);
         }
-        return handleParams([
-          ['lessonId', 'rewards'],
-          ['page', 'rewards'],
-        ]);
+        return goToStep('rewards');
 
       case 'journal':
         if (currentProgress === 5) {
           await updatePLProgress(chapterId! as string, 6);
           invalidateProgress();
         }
-        return handleParams([
-          ['lessonId', newActivityPages?.[0]?.lessons?.[5]?._id || ''],
-          ['page', '5'],
-        ]);
+        return goToStep('5');
 
       case 'learn':
         if (currentProgress === 2) {
           await updatePLProgress(chapterId! as string, 3);
           invalidateProgress();
         }
-        return handleParams([
-          ['lessonId', 'mid'],
-          ['page', 'mid'],
-        ]);
+        return goToStep('mid');
 
       case 'scenario':
         if (currentProgress === 4) {
           await updatePLProgress(chapterId! as string, 5);
           invalidateProgress();
         }
-        return handleParams([
-          ['lessonId', 'journal'],
-          ['page', 'journal'],
-        ]);
+        return goToStep('journal');
 
       case 'rewards':
         if (currentProgress === 7) {
@@ -324,20 +219,14 @@ const Playground = () => {
             await updatePLProgress(chapterId! as string, 2);
             invalidateProgress();
           }
-          return handleParams([
-            ['lessonId', 'learn'],
-            ['page', 'learn'],
-          ]);
+          return goToStep('learn');
         }
         if (Number(page) === 5) {
           if (currentProgress === 6) {
             await updatePLProgress(chapterId! as string, 7);
             invalidateProgress();
           }
-          return handleParams([
-            ['lessonId', 'end'],
-            ['page', 'end'],
-          ]);
+          return goToStep('end');
         }
     }
   };
@@ -345,49 +234,28 @@ const Playground = () => {
   const onPrev = () => {
     switch (page) {
       case 'mid':
-        return handleParams([
-          ['lessonId', 'learn'],
-          ['page', 'learn'],
-        ]);
+        return goToStep('learn');
       case 'end':
-        return handleParams([
-          ['lessonId', newActivityPages?.[0]?.lessons?.[5]?._id || ''],
-          ['page', '5'],
-        ]);
+        return goToStep('5');
 
       case 'journal':
-        return handleParams([
-          ['lessonId', 'scenario'],
-          ['page', 'scenario'],
-        ]);
+        return goToStep('scenario');
 
       case 'learn':
-        return handleParams([
-          ['lessonId', newActivityPages?.[0]?.lessons?.[0]?._id || ''],
-          ['page', '1'],
-        ]);
+        return goToStep('1');
 
       case 'scenario':
-        return handleParams([
-          ['lessonId', 'mid'],
-          ['page', 'mid'],
-        ]);
+        return goToStep('mid');
 
       case 'rewards':
-        return handleParams([
-          ['lessonId', 'end'],
-          ['page', 'end'],
-        ]);
+        return goToStep('end');
 
       default:
         if (Number(page) === 1) {
           return {};
         }
         if (Number(page) === 5) {
-          return handleParams([
-            ['lessonId', 'journal'],
-            ['page', 'journal'],
-          ]);
+          return goToStep('journal');
         }
     }
   };
@@ -417,6 +285,7 @@ const Playground = () => {
 
   return (
     <ScrollView
+      onTouchStart={markLearningActive}
       className="bg-[#DBEFDC] flex-1 pb-10 "
       showsVerticalScrollIndicator={false}
       contentContainerClassName="pb-10"

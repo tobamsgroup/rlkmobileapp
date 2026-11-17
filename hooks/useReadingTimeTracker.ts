@@ -1,13 +1,15 @@
 import { recordReadingTime } from '@/actions/learner-progress';
-import { applyUsageUpdate } from '@/hooks/useLearningTimeGuard';
 import {
-  getLearningTimeScreen,
-  subscribeLearningTimeScreen,
-} from '@/hooks/useLearningTimeOverlay';
+  isLearningIdle,
+  markLearningActive,
+} from '@/hooks/useLearningActivity';
+import { applyUsageUpdate } from '@/hooks/useLearningTimeGuard';
+import { getLearningTimeScreen } from '@/hooks/useLearningTimeOverlay';
 import { localDateKey } from '@/utils/learningTime';
 import { useEffect } from 'react';
 import { AppState } from 'react-native';
 
+const TICK_MS = 5_000;
 const FLUSH_INTERVAL_MS = 30_000;
 // Backend rejects heartbeats above 120 seconds
 const MAX_HEARTBEAT_SECONDS = 120;
@@ -15,26 +17,41 @@ const MAX_HEARTBEAT_SECONDS = 120;
 const MIN_SECONDS = 5;
 
 /**
- * Sends reading time for the open chapter to /kid/reading-time while the app
- * is in the foreground: every 30s, when the app is backgrounded, and when the
- * chapter changes or the reader closes. Time spent behind a learning time
- * screen (a break, a reminder) isn't counted. Feeds the guardian's reading
- * streak and reading time stats, and the daily learning limit.
+ * Sends learning time for the open chapter to /kid/reading-time: every 30s,
+ * when the app is backgrounded, and when the chapter changes or the screen
+ * closes. Only engaged time counts — not time in the background, behind a
+ * learning time screen (a break, a reminder), or idle (see
+ * useLearningActivity). Feeds the guardian's reading streak and reading time
+ * stats, and the daily learning limit.
  */
 const useReadingTimeTracker = (chapterId?: string, enabled = true) => {
   useEffect(() => {
     if (!enabled || !chapterId) return;
 
-    const counting = () =>
-      AppState.currentState === 'active' && !getLearningTimeScreen();
-    let startedAt: number | null = counting() ? Date.now() : null;
+    // Opening the screen is itself an interaction
+    markLearningActive();
+    let pendingSeconds = 0;
+    let last = Date.now();
+
+    const tick = () => {
+      const now = Date.now();
+      // Timers stop in the background, so never credit more than ~one tick
+      const elapsed = Math.min(now - last, TICK_MS * 2);
+      last = now;
+      if (
+        AppState.currentState === 'active' &&
+        !getLearningTimeScreen() &&
+        !isLearningIdle(now)
+      ) {
+        pendingSeconds += elapsed / 1000;
+      }
+    };
 
     const flush = () => {
-      if (startedAt === null) return;
-      const now = Date.now();
-      let seconds = Math.round((now - startedAt) / 1000);
-      startedAt = now;
+      tick();
+      let seconds = Math.round(pendingSeconds);
       if (seconds < MIN_SECONDS) return;
+      pendingSeconds = 0;
 
       const date = localDateKey();
       while (seconds > 0) {
@@ -43,27 +60,26 @@ const useReadingTimeTracker = (chapterId?: string, enabled = true) => {
         recordReadingTime({ chapterId, seconds: chunk, date })
           .then((res) => applyUsageUpdate(res?.usage))
           .catch(() => {
-            // Tracking is best-effort; never interrupt reading
+            // Tracking is best-effort; never interrupt learning
           });
       }
     };
 
-    const interval = setInterval(flush, FLUSH_INTERVAL_MS);
-    const update = () => {
-      if (counting()) {
-        startedAt ??= Date.now();
+    const tickInterval = setInterval(tick, TICK_MS);
+    const flushInterval = setInterval(flush, FLUSH_INTERVAL_MS);
+    const subscription = AppState.addEventListener('change', (state) => {
+      if (state === 'active') {
+        last = Date.now();
+        markLearningActive();
       } else {
         flush();
-        startedAt = null;
       }
-    };
-    const subscription = AppState.addEventListener('change', update);
-    const unsubscribeScreen = subscribeLearningTimeScreen(update);
+    });
 
     return () => {
-      clearInterval(interval);
+      clearInterval(tickInterval);
+      clearInterval(flushInterval);
       subscription.remove();
-      unsubscribeScreen();
       flush();
     };
   }, [chapterId, enabled]);

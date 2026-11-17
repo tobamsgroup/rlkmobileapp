@@ -1,5 +1,6 @@
 import { SubscriptionData } from '@/actions/subscription';
 import { ImageResizeMode } from 'react-native';
+import { ChapterMission } from './mission';
 
 export enum Role {
   TEACHER = 'Teacher',
@@ -327,6 +328,9 @@ export interface Chapter {
   createdAt: string;
   updatedAt: string;
   pages: ChapterPage[];
+  // Play & Learn content; the structure is the same for every chapter
+  introVideoUrl?: string;
+  mission?: ChapterMission;
 }
 export interface Lesson {
   chapterId: string;

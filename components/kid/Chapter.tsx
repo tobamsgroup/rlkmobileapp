@@ -5,6 +5,7 @@ import { fetchChapterPageAudio } from '@/actions/kid';
 import { ICONS } from '@/assets/icons';
 import { useReadSettings } from '@/context/ReadContext';
 import useKidProfile from '@/hooks/useKidProfile';
+import { useKeepLearningActive } from '@/hooks/useLearningActivity';
 import {
   AudioMark,
   ChapterPage as ChapterPageType,
@@ -113,6 +114,9 @@ export const Chapter = ({
   const [isPaused, setIsPaused] = useState(false);
   const [currentSegIndex, setCurrentSegIndex] = useState(-1);
   const [currentCharIndex, setCurrentCharIndex] = useState<number | null>(null);
+
+  // Listening to read-aloud is learning even without touches
+  useKeepLearningActive(isPlaying);
 
   const setPlayingState = (v: boolean) => {
     isPlayingRef.current = v;

@@ -30,7 +30,6 @@ import Svg, { Path } from 'react-native-svg';
 import { twMerge } from 'tailwind-merge';
 import { getPageName, PLAY_LEARN_PROGRESS_KEY } from '../../constants';
 import {
-  addExtraPagesToActivity,
   addExtraPagesToChapters,
   formatActivityPages,
   retrieveFromLocalStorage,
@@ -100,9 +99,10 @@ const CurriculumBar = ({
     index?: string,
   ) => {
     if (mode === 'play') {
+      // Steps are the same in every chapter, so the step's index is enough
       handleParams([
         ['chapterId', chapterId],
-        ['lessonId', lessonId || ''],
+        ['lessonId', ''],
         ['page', index || ''],
       ]);
     } else {
@@ -136,11 +136,6 @@ const CurriculumBar = ({
     return addExtraPagesToChapters(allSeriesPages);
   }, [allSeriesPages, addExtraPagesToChapters]);
 
-  const activityPages = useMemo(() => {
-    if (!chapters) return;
-    return addExtraPagesToActivity(chapters);
-  }, [chapters, addExtraPagesToActivity]);
-
   const newActivityPages = useMemo(() => {
     if (!chapters) return;
     return formatActivityPages(chapters);
@@ -152,8 +147,6 @@ const CurriculumBar = ({
       retrieveFromLocalStorage(PLAY_LEARN_PROGRESS_KEY + chapterId) || '0',
     );
   };
-
-  console.log({newActivityPages})
 
   // Get play progress text for display
   const getProgressText = (
@@ -178,7 +171,6 @@ const CurriculumBar = ({
   };
 
 
-  console.log({newActivityPages})
   return (
     <ReactNativeModal
       style={{ padding: 0, margin: 0 }}
@@ -493,7 +485,14 @@ const CurriculumBar = ({
                                   );
                                   onClose();
                                 } else {
-                                  handleLockedClicked(e);
+                                  // handleLockedClicked(e);
+                                    onSelectLesson(
+                                    module._id,
+                                    'play',
+                                    item._id,
+                                    item.index.toString(),
+                                  );
+                                  onClose();
                                 }
                               }}
                               className={twMerge(
@@ -627,6 +626,13 @@ const CurriculumBar = ({
                               >
                                 {item.title}
                               </Text>
+                              {item.comingSoon && (
+                                <View className="bg-[#FDF6D8] rounded-full px-2 py-0.5">
+                                  <Text className="text-[#806C00] font-sansSemiBold text-[11px]">
+                                    Coming soon
+                                  </Text>
+                                </View>
+                              )}
                               {/* <ICONS.PadLock/> */}
                               {completedIndex >= currentPageIndex && (
                                 <View className="flex items-center justify-end">
@@ -651,30 +657,6 @@ const CurriculumBar = ({
                           </>
                         );
                       })}
-                      {module.lessons?.length < 1 && (
-                        <View
-                          className={twMerge(
-                            'p-5 text-black flex-row items-center gap-4 cursor-pointer',
-                          )}
-                        >
-                          <View
-                            className={twMerge(
-                              'rounded-full p-2',
-                              'bg-[#EDF7ED]',
-                            )}
-                          >
-                            <ICONS.Message2Question
-                              width={16}
-                              height={16}
-                              stroke={'#3F9243'}
-                              strokeWidth={2}
-                            />
-                          </View>
-                          <Text className="text-[16px] font-sansMedium text-dark">
-                            Coming Soon...
-                          </Text>
-                        </View>
-                      )}
                     </View>
                   )}
                 </View>

@@ -10,6 +10,7 @@ import { useAudioPlayer } from "expo-audio";
  */
 type SoundContextType = {
   play: (key: string) => void;
+  stop: (key: string) => void;
 };
 
 /**
@@ -27,6 +28,17 @@ export const SoundProvider: React.FC<SoundProviderProps> = ({ children }) => {
   const correct = useAudioPlayer(require("../assets/sounds/correct.mp3"));
   const cheers = useAudioPlayer(require("../assets/sounds/cheers.mp3"));
   const wrong = useAudioPlayer(require("../assets/sounds/wrong.mp3"));
+
+  const players = { success, trashDrop, correct, cheers, wrong };
+
+  // Players live for the whole app, so a long sound keeps going after the
+  // screen that started it is gone unless it's stopped.
+  const stop = (key: string): void => {
+    const player = players[key as keyof typeof players];
+    if (!player) return;
+    player.pause();
+    player.seekTo(0);
+  };
 
   const play = (key: string): void => {
     switch (key) {
@@ -56,7 +68,7 @@ export const SoundProvider: React.FC<SoundProviderProps> = ({ children }) => {
   };
 
   return (
-    <SoundContext.Provider value={{ play }}>
+    <SoundContext.Provider value={{ play, stop }}>
       {children}
     </SoundContext.Provider>
   );

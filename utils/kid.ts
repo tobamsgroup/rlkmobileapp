@@ -1,6 +1,8 @@
+import { getPlayLearnContent } from '@/constants/playLearn';
 import {
   AssignedChapter,
   AudioMark,
+  Chapter as CurriculumChapter,
   ChapterPage,
   KidLearningOverview,
   PageParagraph,
@@ -610,6 +612,7 @@ type Lessons = {
   title?: string;
   updatedAt?: string;
   _id?: string;
+  comingSoon?: boolean;
 };
 
 type Activity = {
@@ -654,33 +657,36 @@ export function addExtraPagesToChapters(chapters: Chapter[]): Chapter[] {
   });
 }
 
-export function formatActivityPages(activity: Activity[]): Activity[] {
-  return activity.map((act) => {
-    if (!act?.lessons?.[0]?._id) return { ...act, lessons: [] };
-    const structuredLessons: Lessons[] = [
-      { _id: act?.lessons?.[0]?._id, index: 1, title: "Introduction" },
-      { _id: "learn", index: "learn", title: "Learning Module" },
-      {
-        _id: "mid",
-        index: "mid",
-        title: "Mid-Chapter Checkpoint",
-      },
-      {
-        _id: "scenario",
-        index: "scenario",
-        title: "Scenario-Based Application",
-      },
-      {
-        _id: "journal",
-        index: "journal",
-        title: "Reflective Journal",
-      },
-      { _id: act?.lessons?.[3]?._id, index: 5, title: "Mission Challenge" },
-      { _id: "end", index: "end", title: "Mastery Quiz" },
-      { _id: "rewards", index: "rewards", title: "Rewards" },
-    ];
+// The 8 Play & Learn steps every chapter follows. `index` is the step's
+// `page` param; "1" and "5" are kept numeric so existing links and progress
+// (see pageMap) still work.
+export const PLAY_LEARN_STEPS: Lessons[] = [
+  { _id: "intro", index: 1, title: "Introduction" },
+  { _id: "learn", index: "learn", title: "Learning Module" },
+  { _id: "mid", index: "mid", title: "Mid-Chapter Checkpoint" },
+  { _id: "scenario", index: "scenario", title: "Scenario-Based Application" },
+  { _id: "journal", index: "journal", title: "Reflective Journal" },
+  { _id: "mission", index: 5, title: "Mission Challenge" },
+  { _id: "end", index: "end", title: "Mastery Quiz" },
+  { _id: "rewards", index: "rewards", title: "Rewards" },
+];
 
-    return { ...act, lessons: structuredLessons };
+// Every chapter gets the full structure; steps without content yet (no intro
+// video or no mission configured) are marked "Coming soon".
+export function formatActivityPages(
+  chapters: CurriculumChapter[],
+): Activity[] {
+  return chapters.map((chapter) => {
+    const { introVideoUrl, mission } = getPlayLearnContent(chapter);
+    return {
+      ...chapter,
+      lessons: PLAY_LEARN_STEPS.map((step) => ({
+        ...step,
+        comingSoon:
+          (step._id === "intro" && !introVideoUrl) ||
+          (step._id === "mission" && !mission),
+      })),
+    };
   });
 }
 
